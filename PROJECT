@@ -1,0 +1,7 @@
+domain: gatekeeper.sh
+layout: go.kubebuilder.io/v2
+projectName: gatekeeper-operator
+repo: github.com/font/gatekeeper-operator
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}
