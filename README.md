@@ -1,2 +1,2 @@
-# opa-gatekeeper-operator
+# OPA Gatekeeper Operator
 Operator for OPA Gatekeeper
