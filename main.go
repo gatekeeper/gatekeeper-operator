@@ -26,6 +26,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
+	"github.com/font/gatekeeper-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -37,6 +40,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -63,6 +67,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.GatekeeperReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Gatekeeper")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
