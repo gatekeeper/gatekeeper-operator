@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	admregv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -29,7 +30,6 @@ type GatekeeperSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Replicas          int64                       `json:"replicas"`
-	LogLevel          LogLevelMode                `json:"logLevel"`
 	Image             ImageConfig                 `json:"image"`
 	Audit             AuditConfig                 `json:"audit"`
 	ValidatingWebhook WebhookMode                 `json:"validatingWebhook"`
@@ -52,6 +52,7 @@ type AuditConfig struct {
 	ConstraintViolationLimit int64              `json:"constraintViolationLimit"`
 	AuditFromCache           AuditFromCacheMode `json:"auditFromCache"`
 	AuditChunkSize           int64              `json:"auditChunkSize"`
+	LogLevel                 LogLevelMode       `json:"logLevel"`
 	EmitAuditEvents          EmitEventsMode     `json:"emitAuditEvents"`
 }
 
@@ -63,7 +64,9 @@ const (
 )
 
 type WebhookConfig struct {
-	EmitAdmissionEvents EmitEventsMode `json:"emitAdmissionEvents"`
+	LogLevel            LogLevelMode               `json:"logLevel"`
+	EmitAdmissionEvents EmitEventsMode             `json:"emitAdmissionEvents"`
+	FailurePolicy       admregv1.FailurePolicyType `json:"failurePolicy"`
 }
 
 type LogLevelMode string
