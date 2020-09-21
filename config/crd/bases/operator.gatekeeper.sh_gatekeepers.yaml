@@ -622,12 +622,15 @@ spec:
                   type: integer
                 emitAuditEvents:
                   type: string
+                logLevel:
+                  type: string
               required:
               - auditChunkSize
               - auditFromCache
               - auditInterval
               - constraintViolationLimit
               - emitAuditEvents
+              - logLevel
               type: object
             image:
               properties:
@@ -644,8 +647,6 @@ spec:
               - release
               - repository
               type: object
-            logLevel:
-              type: string
             nodeSelector:
               additionalProperties:
                 type: string
@@ -730,13 +731,18 @@ spec:
               properties:
                 emitAdmissionEvents:
                   type: string
+                failurePolicy:
+                  type: string
+                logLevel:
+                  type: string
               required:
               - emitAdmissionEvents
+              - failurePolicy
+              - logLevel
               type: object
           required:
           - audit
           - image
-          - logLevel
           - replicas
           - validatingWebhook
           type: object
