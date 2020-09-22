@@ -6,6 +6,9 @@
 *.dylib
 bin
 
+# testbin utilities
+testbin
+
 # Test binary, build with `go test -c`
 *.test
 
