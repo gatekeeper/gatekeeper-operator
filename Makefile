@@ -26,6 +26,7 @@ endif
 all: manager
 
 # Run tests
+# Set SKIP_FETCH_TOOLS=y to use tools in your own environment
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: generate fmt vet manifests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
