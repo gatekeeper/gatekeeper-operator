@@ -28,6 +28,13 @@ endif
 # Used the vendored directory
 export GOFLAGS = -mod=vendor
 
+# Include the go-bindata makefile
+include ./vendor/github.com/openshift/build-machinery-go/make/targets/openshift/bindata.mk
+
+# Invoke make function to create make targets for generating Go static assets
+# using go-bindata
+$(call add-bindata,gatekeeper,./config/gatekeeper/...,bindata,bindata,./pkg/bindata/bindata.go)
+
 all: manager
 
 # Run tests
