@@ -25,6 +25,9 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+# Used the vendored directory
+export GOFLAGS = -mod=vendor
+
 all: manager
 
 # Run tests
