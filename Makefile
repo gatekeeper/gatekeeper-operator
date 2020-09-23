@@ -1,5 +1,7 @@
 # Current Operator version
 VERSION ?= 0.0.1
+# Current Gatekeeper version
+GATEKEEPER_VERSION ?= v3.1.1
 # Default bundle image tag
 BUNDLE_IMG ?= controller-bundle:$(VERSION)
 # Options for 'bundle-build'
@@ -57,6 +59,10 @@ deploy: manifests kustomize
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+# Import Gatekeeper manifests
+import-manifests: kustomize
+	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o config/gatekeeper
 
 # Run go fmt against code
 fmt:
