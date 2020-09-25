@@ -29,31 +29,50 @@ import (
 type GatekeeperSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Replicas          int64                       `json:"replicas"`
-	Image             ImageConfig                 `json:"image"`
-	Audit             AuditConfig                 `json:"audit"`
-	ValidatingWebhook WebhookMode                 `json:"validatingWebhook"`
-	Webhook           *WebhookConfig              `json:"webhook,omitempty"`
-	NodeSelector      map[string]string           `json:"nodeSelector,omitempty"`
-	Affinity          *corev1.Affinity            `json:"affinity,omitempty"`
-	Tolerations       []corev1.Toleration         `json:"tolerations,omitempty"`
-	PodAnnotations    map[string]string           `json:"podAnnotations,omitempty"`
-	Resources         corev1.ResourceRequirements `json:"resources,omitempty"`
+	// +optional
+	Replicas *int64 `json:"replicas,omitempty"`
+	// +optional
+	Image *ImageConfig `json:"image,omitempty"`
+	// +optional
+	Audit *AuditConfig `json:"audit,omitempty"`
+	// +optional
+	ValidatingWebhook *WebhookMode `json:"validatingWebhook,omitempty"`
+	// +optional
+	Webhook *WebhookConfig `json:"webhook,omitempty"`
+	// +optional
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+	// +optional
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// +optional
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// +optional
+	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
+	// +optional
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 type ImageConfig struct {
-	Repository      string            `json:"repository"`
-	Release         string            `json:"release"`
-	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy"`
+	// +optional
+	Repository *string `json:"repository,omitempty"`
+	// +optional
+	Release *string `json:"release,omitempty"`
+	// +optional
+	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 type AuditConfig struct {
-	AuditInterval            metav1.Duration    `json:"auditInterval"`
-	ConstraintViolationLimit int64              `json:"constraintViolationLimit"`
-	AuditFromCache           AuditFromCacheMode `json:"auditFromCache"`
-	AuditChunkSize           int64              `json:"auditChunkSize"`
-	LogLevel                 LogLevelMode       `json:"logLevel"`
-	EmitAuditEvents          EmitEventsMode     `json:"emitAuditEvents"`
+	// +optional
+	AuditInterval *metav1.Duration `json:"auditInterval,omitempty"`
+	// +optional
+	ConstraintViolationLimit *int64 `json:"constraintViolationLimit,omitempty"`
+	// +optional
+	AuditFromCache *AuditFromCacheMode `json:"auditFromCache,omitempty"`
+	// +optional
+	AuditChunkSize *int64 `json:"auditChunkSize,omitempty"`
+	// +optional
+	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
+	// +optional
+	EmitAuditEvents *EmitEventsMode `json:"emitAuditEvents,omitempty"`
 }
 
 type WebhookMode string
@@ -64,9 +83,12 @@ const (
 )
 
 type WebhookConfig struct {
-	LogLevel            LogLevelMode               `json:"logLevel"`
-	EmitAdmissionEvents EmitEventsMode             `json:"emitAdmissionEvents"`
-	FailurePolicy       admregv1.FailurePolicyType `json:"failurePolicy"`
+	// +optional
+	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
+	// +optional
+	EmitAdmissionEvents *EmitEventsMode `json:"emitAdmissionEvents,omitempty"`
+	// +optional
+	FailurePolicy *admregv1.FailurePolicyType `json:"failurePolicy,omitempty"`
 }
 
 type LogLevelMode string
