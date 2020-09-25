@@ -643,13 +643,6 @@ spec:
                     type: string
                   logLevel:
                     type: string
-                required:
-                - auditChunkSize
-                - auditFromCache
-                - auditInterval
-                - constraintViolationLimit
-                - emitAuditEvents
-                - logLevel
                 type: object
               image:
                 properties:
@@ -661,10 +654,6 @@ spec:
                     type: string
                   repository:
                     type: string
-                required:
-                - imagePullPolicy
-                - release
-                - repository
                 type: object
               nodeSelector:
                 additionalProperties:
@@ -754,16 +743,7 @@ spec:
                     type: string
                   logLevel:
                     type: string
-                required:
-                - emitAdmissionEvents
-                - failurePolicy
-                - logLevel
                 type: object
-            required:
-            - audit
-            - image
-            - replicas
-            - validatingWebhook
             type: object
           status:
             description: GatekeeperStatus defines the observed state of Gatekeeper
