@@ -643,8 +643,13 @@ spec:
                     type: string
                   logLevel:
                     type: string
+                  replicas:
+                    format: int64
+                    type: integer
                 type: object
               image:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
                 properties:
                   imagePullPolicy:
                     description: PullPolicy describes a policy for if/when to pull
@@ -663,11 +668,6 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
-              replicas:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "make" to regenerate code after modifying this file'
-                format: int64
-                type: integer
               resources:
                 description: ResourceRequirements describes the compute resource requirements.
                 properties:
@@ -743,6 +743,9 @@ spec:
                     type: string
                   logLevel:
                     type: string
+                  replicas:
+                    format: int64
+                    type: integer
                 type: object
             type: object
           status:
