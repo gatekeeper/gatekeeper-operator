@@ -51,9 +51,13 @@ type GatekeeperSpec struct {
 
 type ImageConfig struct {
 	// +optional
+	Registry *string `json:"registry,omitempty"`
+	// +optional
 	Repository *string `json:"repository,omitempty"`
 	// +optional
-	Release *string `json:"release,omitempty"`
+	Image *string `json:"image,omitempty"`
+	// +optional
+	Version *string `json:"version,omitempty"`
 	// +optional
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
