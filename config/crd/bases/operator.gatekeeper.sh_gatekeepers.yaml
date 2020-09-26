@@ -651,13 +651,17 @@ spec:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
                 properties:
+                  image:
+                    type: string
                   imagePullPolicy:
                     description: PullPolicy describes a policy for if/when to pull
                       a container image
                     type: string
-                  release:
+                  registry:
                     type: string
                   repository:
+                    type: string
+                  version:
                     type: string
                 type: object
               nodeSelector:
