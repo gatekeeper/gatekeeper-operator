@@ -30,8 +30,6 @@ type GatekeeperSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	// +optional
-	Replicas *int64 `json:"replicas,omitempty"`
-	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
 	// +optional
 	Audit *AuditConfig `json:"audit,omitempty"`
@@ -62,6 +60,8 @@ type ImageConfig struct {
 
 type AuditConfig struct {
 	// +optional
+	Replicas *int64 `json:"replicas,omitempty"`
+	// +optional
 	AuditInterval *metav1.Duration `json:"auditInterval,omitempty"`
 	// +optional
 	ConstraintViolationLimit *int64 `json:"constraintViolationLimit,omitempty"`
@@ -83,6 +83,8 @@ const (
 )
 
 type WebhookConfig struct {
+	// +optional
+	Replicas *int64 `json:"replicas,omitempty"`
 	// +optional
 	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
 	// +optional
