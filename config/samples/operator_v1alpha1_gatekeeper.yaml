@@ -1,7 +1,7 @@
 apiVersion: operator.gatekeeper.sh/v1alpha1
 kind: Gatekeeper
 metadata:
-  name: gatekeeper-sample
+  name: gatekeeper
 spec:
   # Add fields here
   image:
