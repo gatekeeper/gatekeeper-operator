@@ -25,7 +25,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-# Used the vendored directory
+# Use the vendored directory
 export GOFLAGS = -mod=vendor
 
 # Include the go-bindata makefile
