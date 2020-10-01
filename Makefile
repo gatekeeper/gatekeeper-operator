@@ -142,3 +142,7 @@ bundle-build:
 .PHONY: vendor
 vendor:
 	GO111MODULE=on go mod vendor
+
+.PHONY: tidy
+tidy:
+	GO111MODULE=on go mod tidy
