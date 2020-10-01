@@ -141,4 +141,4 @@ bundle-build:
 
 .PHONY: vendor
 vendor:
-	go mod vendor
+	GO111MODULE=on go mod vendor
