@@ -28,13 +28,6 @@ endif
 # Use the vendored directory
 export GOFLAGS = -mod=vendor
 
-# Include the go-bindata makefile
-include ./vendor/github.com/openshift/build-machinery-go/make/targets/openshift/bindata.mk
-
-# Invoke make function to create make targets for generating Go static assets
-# using go-bindata
-$(call add-bindata,gatekeeper,./config/gatekeeper/...,bindata,bindata,./pkg/bindata/bindata.go)
-
 all: manager
 
 # Run tests
@@ -85,6 +78,39 @@ vet:
 # Generate code
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
+.ONESHELL:
+.ensure-go-bindata:
+	ln -s $(abspath ./vendor) "$${TMP_GOPATH}/src"
+	export GO111MODULE=off && export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && go install "./vendor/github.com/go-bindata/go-bindata/..."
+.PHONY: .ensure-go-bindata
+
+.run-bindata: .ensure-go-bindata
+	$${TMP_GOPATH}/bin/go-bindata -nocompress -nometadata \
+		-prefix "bindata" \
+		-pkg "bindata" \
+		-o "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)" \
+		-ignore "OWNERS" \
+		./config/gatekeeper/... && \
+	gofmt -s -w "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)"
+.PHONY: .run-bindata
+
+update-bindata:
+	export TMP_GOPATH=$$(mktemp -d)
+	$(MAKE) .run-bindata
+	rm -rf "$${TMP_GOPATH}"
+.PHONY: update-bindata
+
+verify-bindata:
+	export TMP_GOPATH=$$(mktemp -d)
+	export TMP_DIR=$$(mktemp -d)
+	export BINDATA_OUTPUT_PREFIX="$${TMP_DIR}/"
+	$(MAKE) .run-bindata
+	diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE)
+	rm -rf "$${TMP_DIR}"
+	rm -rf "$${TMP_GOPATH}"
+.PHONY: verify-bindata
 
 # Build the docker image
 docker-build: test
