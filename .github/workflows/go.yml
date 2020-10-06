@@ -28,6 +28,11 @@ jobs:
         make fmt
         git diff --exit-code
 
+    - name: Verify manifests
+      run: |
+        make manifests
+        git diff --exit-code
+
     - name: Test
       run: make test
 
