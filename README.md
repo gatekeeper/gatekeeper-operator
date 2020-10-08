@@ -1,4 +1,6 @@
 # OPA Gatekeeper Operator
+![master branch](https://github.com/font/gatekeeper-operator/workflows/Go/badge.svg?branch=master)
+
 Operator for OPA Gatekeeper
 
 ## Design
