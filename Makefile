@@ -26,7 +26,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 # Use the vendored directory
-export GOFLAGS = -mod=vendor
+GOFLAGS = -mod=vendor
 
 all: manager
 
@@ -36,15 +36,15 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: generate fmt vet manifests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); GOFLAGS=$(GOFLAGS) go test ./... -coverprofile cover.out
 
 # Build manager binary
-manager: generate fmt vet
-	go build -o bin/manager main.go
+manager: generate fmt vet manifests
+	GOFLAGS=$(GOFLAGS) go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
-	go run ./main.go
+	GOFLAGS=$(GOFLAGS) go run ./main.go
 
 # Install CRDs into a cluster
 install: manifests kustomize
@@ -73,7 +73,7 @@ fmt:
 
 # Run go vet against code
 vet:
-	go vet ./...
+	GOFLAGS=$(GOFLAGS) go vet ./...
 
 # Generate code
 generate: controller-gen
@@ -83,7 +83,7 @@ BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
 .ONESHELL:
 .ensure-go-bindata:
 	ln -s $(abspath ./vendor) "$${TMP_GOPATH}/src"
-	export GO111MODULE=off && export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && go install "./vendor/github.com/go-bindata/go-bindata/..."
+	export GO111MODULE=off && export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && GOFLAGS=$(GOFLAGS) go install "./vendor/github.com/go-bindata/go-bindata/..."
 .PHONY: .ensure-go-bindata
 
 .run-bindata: .ensure-go-bindata
@@ -129,7 +129,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -167,8 +167,8 @@ bundle-build:
 
 .PHONY: vendor
 vendor:
-	GO111MODULE=on go mod vendor
+	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod vendor
 
 .PHONY: tidy
 tidy:
-	GO111MODULE=on go mod tidy
+	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod tidy
