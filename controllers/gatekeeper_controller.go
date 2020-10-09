@@ -23,7 +23,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/openshift/library-go/pkg/manifest"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -115,13 +117,35 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 		}
 
 		err = r.Create(ctx, manifest.Obj)
-		if err != nil {
-			if !errors.IsAlreadyExists(err) {
-				return err
-			}
-		} else {
-			logger.Info(fmt.Sprintf("Created Gatekeeper resource %s", assetName))
+		if err == nil {
+			logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
+			continue
 		}
+
+		// Create returned an error, now process it.
+
+		if !errors.IsAlreadyExists(err) {
+			return err
+		}
+
+		clusterObj := &unstructured.Unstructured{}
+		clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
+		clusterObj.SetKind(manifest.Obj.GetKind())
+		namespacedName := types.NamespacedName{
+			Namespace: manifest.Obj.GetNamespace(),
+			Name:      manifest.Obj.GetName(),
+		}
+		err = r.Get(ctx, namespacedName, clusterObj)
+		if err != nil {
+			return err
+		}
+
+		err = r.Update(ctx, manifest.Obj)
+		if err != nil {
+			return err
+		}
+
+		logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
 	}
 
 	return err
