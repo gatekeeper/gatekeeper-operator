@@ -80,7 +80,6 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
-.ONESHELL:
 .ensure-go-bindata:
 	ln -s $(abspath ./vendor) "$${TMP_GOPATH}/src"
 	export GO111MODULE=off && export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && GOFLAGS=$(GOFLAGS) go install "./vendor/github.com/go-bindata/go-bindata/..."
@@ -97,18 +96,18 @@ BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
 .PHONY: .run-bindata
 
 update-bindata:
-	export TMP_GOPATH=$$(mktemp -d)
-	$(MAKE) .run-bindata
+	export TMP_GOPATH=$$(mktemp -d) ;\
+	$(MAKE) .run-bindata ;\
 	rm -rf "$${TMP_GOPATH}"
 .PHONY: update-bindata
 
 verify-bindata:
-	export TMP_GOPATH=$$(mktemp -d)
-	export TMP_DIR=$$(mktemp -d)
-	export BINDATA_OUTPUT_PREFIX="$${TMP_DIR}/"
-	$(MAKE) .run-bindata
-	diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE)
-	rm -rf "$${TMP_DIR}"
+	export TMP_GOPATH=$$(mktemp -d) ;\
+	export TMP_DIR=$$(mktemp -d) ;\
+	export BINDATA_OUTPUT_PREFIX="$${TMP_DIR}/" ;\
+	$(MAKE) .run-bindata ;\
+	diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE) ;\
+	rm -rf "$${TMP_DIR}" ;\
 	rm -rf "$${TMP_GOPATH}"
 .PHONY: verify-bindata
 
