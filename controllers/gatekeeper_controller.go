@@ -22,7 +22,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/openshift/library-go/pkg/manifest"
-	"k8s.io/apimachinery/pkg/api/errors"
+	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -87,8 +88,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 
 	err = r.deployGatekeeperResources()
 	if err != nil {
-		err := fmt.Errorf("Unable to deploy Gatekeeper resources: %v", err)
-		return ctrl.Result{}, err
+		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
 	}
 
 	return ctrl.Result{}, nil
@@ -125,7 +125,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 
 		// Create returned an error, now process it.
 
-		if !errors.IsAlreadyExists(err) {
+		if !apierrors.IsAlreadyExists(err) {
 			return err
 		}
 
@@ -143,7 +143,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 
 		err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Unable to retain cluster object fields from %s", namespacedName)
 		}
 
 		err = r.Update(ctx, manifest.Obj)

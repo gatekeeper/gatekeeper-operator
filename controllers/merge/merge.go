@@ -17,6 +17,8 @@ limitations under the License.
 package merge
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -30,6 +32,8 @@ func RetainClusterObjectFields(desiredObj, clusterObj *unstructured.Unstructured
 
 	if desiredObj.GetKind() == "Service" {
 		return retainServiceFields(desiredObj, clusterObj)
+	} else if desiredObj.GetKind() == "ValidatingWebhookConfiguration" {
+		return retainValidatingWebhookConfigurationFields(desiredObj, clusterObj)
 	}
 	return nil
 }
@@ -46,5 +50,58 @@ func retainServiceFields(desiredObj, clusterObj *unstructured.Unstructured) erro
 		}
 	} // !ok could indicate that a clusterIP was not assigned
 
+	return nil
+}
+
+func retainValidatingWebhookConfigurationFields(desiredObj, clusterObj *unstructured.Unstructured) error {
+	// Retain each webhook's CABundle
+	clusterWebhooks, ok, err := unstructured.NestedSlice(clusterObj.Object, "webhooks")
+	if err != nil {
+		return errors.Wrap(err, "Error retrieving webhooks from cluster object validatingwebhookconfiguration")
+	} else if ok && len(clusterWebhooks) == 0 {
+		err = unstructured.SetNestedSlice(desiredObj.Object, nil, "webhooks")
+		if err != nil {
+			return errors.Wrap(err, "Error setting webhooks for validatingwebhookconfiguration")
+		}
+		return nil
+	} else if !ok {
+		return nil
+	}
+
+	desiredWebhooks, ok, err := unstructured.NestedSlice(desiredObj.Object, "webhooks")
+	if err != nil {
+		return errors.Wrap(err, "Error retrieving webhooks from desired object validatingwebhookconfiguration")
+	} else if !ok {
+		// Should never happen
+		return errors.New("webhooks field not found for desired object validatingwebhookconfiguration")
+	}
+
+	for i := range desiredWebhooks {
+		for j := range clusterWebhooks {
+			desiredWebhook := desiredWebhooks[i].(map[string]interface{})
+			clusterWebhook := clusterWebhooks[j].(map[string]interface{})
+			if desiredWebhook["name"] != clusterWebhook["name"] {
+				continue
+			}
+
+			caBundle, ok, err := unstructured.NestedFieldNoCopy(clusterWebhook, "clientConfig", "caBundle")
+			if err != nil {
+				return errors.Wrapf(err, "Error retrieving webhooks[%d].clientConfig.caBundle from cluster object validatingwebhookconfiguration", j)
+			} else if !ok {
+				return fmt.Errorf("webhooks[%d].clientConfig.caBundle field not found for cluster object validatingwebhookconfiguration", j)
+			}
+
+			err = unstructured.SetNestedField(desiredWebhook, caBundle, "clientConfig", "caBundle")
+			if err != nil {
+				return errors.Wrapf(err, "Error setting webhooks[%d].clientConfig.caBundle for desired object validatingwebhookconfiguration", i)
+			}
+			break
+		}
+	}
+
+	err = unstructured.SetNestedSlice(desiredObj.Object, desiredWebhooks, "webhooks")
+	if err != nil {
+		return errors.Wrap(err, "Error setting webhooks for desired object validatingwebhookconfiguration")
+	}
 	return nil
 }
