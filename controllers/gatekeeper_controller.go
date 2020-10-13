@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
+	"github.com/font/gatekeeper-operator/controllers/merge"
 	"github.com/font/gatekeeper-operator/pkg/bindata"
 )
 
@@ -136,6 +137,11 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 			Name:      manifest.Obj.GetName(),
 		}
 		err = r.Get(ctx, namespacedName, clusterObj)
+		if err != nil {
+			return err
+		}
+
+		err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
 		if err != nil {
 			return err
 		}
