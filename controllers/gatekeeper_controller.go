@@ -43,7 +43,6 @@ var (
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
-		"~g_v1_namespace_gatekeeper-system.yaml",
 		"~g_v1_secret_gatekeeper-webhook-server-cert.yaml",
 		"~g_v1_serviceaccount_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
