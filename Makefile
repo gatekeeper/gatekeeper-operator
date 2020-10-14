@@ -69,7 +69,7 @@ import-manifests: kustomize
 
 # Run go fmt against code
 fmt:
-	go fmt ./...
+	GOFLAGS=$(GOFLAGS) go fmt ./...
 
 # Run go vet against code
 vet:
