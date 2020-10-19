@@ -28,8 +28,8 @@ jobs:
         make fmt
         git diff --exit-code
 
-    #- name: Test
-    #  run: make test
+    - name: Test
+      run: make test
 
     - name: Build
       run: make
