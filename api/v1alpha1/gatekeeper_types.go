@@ -25,10 +25,11 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+// Important: Run "make" to regenerate code after modifying this file
+
 // GatekeeperSpec defines the desired state of Gatekeeper
 type GatekeeperSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
 	// +optional
@@ -50,12 +51,16 @@ type GatekeeperSpec struct {
 }
 
 type ImageConfig struct {
+	// Image registry domain to pull from, e.g. quay.io
 	// +optional
 	Registry *string `json:"registry,omitempty"`
+	// Image repo context
 	// +optional
 	Repository *string `json:"repository,omitempty"`
+	// Image name
 	// +optional
 	Image *string `json:"image,omitempty"`
+	// Image tag or version
 	// +optional
 	Version *string `json:"version,omitempty"`
 	// +optional
@@ -63,14 +68,17 @@ type ImageConfig struct {
 }
 
 type AuditConfig struct {
+	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int64 `json:"replicas,omitempty"`
 	// +optional
 	AuditInterval *metav1.Duration `json:"auditInterval,omitempty"`
+	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	ConstraintViolationLimit *int64 `json:"constraintViolationLimit,omitempty"`
 	// +optional
 	AuditFromCache *AuditFromCacheMode `json:"auditFromCache,omitempty"`
+	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	AuditChunkSize *int64 `json:"auditChunkSize,omitempty"`
 	// +optional
@@ -79,6 +87,7 @@ type AuditConfig struct {
 	EmitAuditEvents *EmitEventsMode `json:"emitAuditEvents,omitempty"`
 }
 
+// +kubebuilder:validation:Enum:=Enabled;Disabled
 type WebhookMode string
 
 const (
@@ -87,6 +96,7 @@ const (
 )
 
 type WebhookConfig struct {
+	// +kubebuilder:validation:Minimum:=0
 	// +optional
 	Replicas *int64 `json:"replicas,omitempty"`
 	// +optional
@@ -97,6 +107,7 @@ type WebhookConfig struct {
 	FailurePolicy *admregv1.FailurePolicyType `json:"failurePolicy,omitempty"`
 }
 
+// +kubebuilder:validation:Enum:=DEBUG;INFO;WARNING;ERROR
 type LogLevelMode string
 
 const (
@@ -106,6 +117,7 @@ const (
 	LogLevelError   LogLevelMode = "ERROR"
 )
 
+// +kubebuilder:validation:Enum:=Enabled;Disabled
 type AuditFromCacheMode string
 
 const (
@@ -113,6 +125,7 @@ const (
 	AuditFromCacheDisabled AuditFromCacheMode = "Disabled"
 )
 
+// +kubebuilder:validation:Enum:=Enabled;Disabled
 type EmitEventsMode string
 
 const (
@@ -120,10 +133,11 @@ const (
 	EmitEventsDisabled EmitEventsMode = "Disabled"
 )
 
+// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+// Important: Run "make" to regenerate code after modifying this file
+
 // GatekeeperStatus defines the observed state of Gatekeeper
 type GatekeeperStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	// ObservedGeneration is the generation as observed by the operator consuming this API.
 	ObservedGeneration int64             `json:"observedGeneration"`
 	AuditConditions    []StatusCondition `json:"auditConditions"`
@@ -150,6 +164,7 @@ type StatusCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+// +kubebuilder:validation:Enum:=Ready;Not Ready
 type StatusConditionType string
 
 const (
@@ -159,6 +174,9 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+//// +kubebuilder:printcolumn:name="Audit Status",type=string,JSONPath=`.status.auditConditions[0].type`,description="The status of the Gatekeeper Audit"
+//// +kubebuilder:printcolumn:name="Webhook Status",type=string,JSONPath=`.status.webhookConditions[0].type`,description="The status of the Gatekeeper Webhook"
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // Gatekeeper is the Schema for the gatekeepers API
 type Gatekeeper struct {

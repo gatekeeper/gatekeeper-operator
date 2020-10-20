@@ -16,7 +16,11 @@ spec:
     singular: gatekeeper
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Gatekeeper is the Schema for the gatekeepers API
@@ -631,37 +635,53 @@ spec:
                 properties:
                   auditChunkSize:
                     format: int64
+                    minimum: 0
                     type: integer
                   auditFromCache:
+                    enum:
+                    - Enabled
+                    - Disabled
                     type: string
                   auditInterval:
                     type: string
                   constraintViolationLimit:
                     format: int64
+                    minimum: 0
                     type: integer
                   emitAuditEvents:
+                    enum:
+                    - Enabled
+                    - Disabled
                     type: string
                   logLevel:
+                    enum:
+                    - DEBUG
+                    - INFO
+                    - WARNING
+                    - ERROR
                     type: string
                   replicas:
                     format: int64
+                    minimum: 0
                     type: integer
                 type: object
               image:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "make" to regenerate code after modifying this file'
                 properties:
                   image:
+                    description: Image name
                     type: string
                   imagePullPolicy:
                     description: PullPolicy describes a policy for if/when to pull
                       a container image
                     type: string
                   registry:
+                    description: Image registry domain to pull from, e.g. quay.io
                     type: string
                   repository:
+                    description: Image repo context
                     type: string
                   version:
+                    description: Image tag or version
                     type: string
                 type: object
               nodeSelector:
@@ -738,17 +758,29 @@ spec:
                   type: object
                 type: array
               validatingWebhook:
+                enum:
+                - Enabled
+                - Disabled
                 type: string
               webhook:
                 properties:
                   emitAdmissionEvents:
+                    enum:
+                    - Enabled
+                    - Disabled
                     type: string
                   failurePolicy:
                     type: string
                   logLevel:
+                    enum:
+                    - DEBUG
+                    - INFO
+                    - WARNING
+                    - ERROR
                     type: string
                   replicas:
                     format: int64
+                    minimum: 0
                     type: integer
                 type: object
             type: object
@@ -780,6 +812,9 @@ spec:
                       type: string
                     type:
                       description: Type of status condition.
+                      enum:
+                      - Ready
+                      - Not Ready
                       type: string
                   required:
                   - status
@@ -787,10 +822,8 @@ spec:
                   type: object
                 type: array
               observedGeneration:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file ObservedGeneration is the generation as observed by the
-                  operator consuming this API.'
+                description: ObservedGeneration is the generation as observed by the
+                  operator consuming this API.
                 format: int64
                 type: integer
               webhookConditions:
@@ -818,6 +851,9 @@ spec:
                       type: string
                     type:
                       description: Type of status condition.
+                      enum:
+                      - Ready
+                      - Not Ready
                       type: string
                   required:
                   - status
