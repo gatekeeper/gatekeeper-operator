@@ -130,14 +130,14 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 		assetName := staticAssetsDir + a
 		bytes, err := bindata.Asset(assetName)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
 		}
 
 		logger := r.Log.WithValues("Gatekeeper resource", string(assetName))
 		manifest := &manifest.Manifest{}
 		err = manifest.UnmarshalJSON(bytes)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
 		}
 
 		err = r.Create(ctx, manifest.Obj)
@@ -149,7 +149,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 		// Create returned an error, now process it.
 
 		if !apierrors.IsAlreadyExists(err) {
-			return err
+			return errors.Wrapf(err, "Error attempting to create resource %s", assetName)
 		}
 
 		clusterObj := &unstructured.Unstructured{}
@@ -161,7 +161,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 		}
 		err = r.Get(ctx, namespacedName, clusterObj)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Error attempting to get resource %s", namespacedName)
 		}
 
 		err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
@@ -171,7 +171,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 
 		err = r.Update(ctx, manifest.Obj)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Error attempting to update resource %s", namespacedName)
 		}
 
 		logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
