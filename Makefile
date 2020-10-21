@@ -34,6 +34,14 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
+# Get the current kustomize binary. If there isn't any, we'll use the
+# GOBIN path
+ifeq (, $(shell which kustomize))
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
 # Use the vendored directory
 GOFLAGS = -mod=vendor
 
@@ -157,9 +165,10 @@ $(CONTROLLER_GEN):
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 
-.PHONY: controller-gen
-kustomize:
-ifeq (, $(shell which kustomize))
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE)
+
+$(KUSTOMIZE):
 	@{ \
 	set -e ;\
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
@@ -168,10 +177,6 @@ ifeq (, $(shell which kustomize))
 	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
 
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
