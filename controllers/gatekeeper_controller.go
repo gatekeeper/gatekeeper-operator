@@ -124,7 +124,6 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources() error {
-	ctx := context.Background()
 	var err error
 	for _, a := range orderedStaticAssets {
 		assetName := staticAssetsDir + a
@@ -133,37 +132,35 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
 		}
 
-		logger := r.Log.WithValues("Gatekeeper resource", string(assetName))
 		manifest := &manifest.Manifest{}
 		err = manifest.UnmarshalJSON(bytes)
 		if err != nil {
 			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
 		}
 
-		err = r.Create(ctx, manifest.Obj)
-		if err == nil {
-			logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
-			continue
+		if err = r.updateOrCreateResource(manifest); err != nil {
+			return err
 		}
+	}
 
-		// Create returned an error, now process it.
+	return err
+}
 
-		if !apierrors.IsAlreadyExists(err) {
-			return errors.Wrapf(err, "Error attempting to create resource %s", assetName)
-		}
+func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest) error {
+	ctx := context.Background()
+	clusterObj := &unstructured.Unstructured{}
+	clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
+	clusterObj.SetKind(manifest.Obj.GetKind())
+	namespacedName := types.NamespacedName{
+		Namespace: manifest.Obj.GetNamespace(),
+		Name:      manifest.Obj.GetName(),
+	}
 
-		clusterObj := &unstructured.Unstructured{}
-		clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
-		clusterObj.SetKind(manifest.Obj.GetKind())
-		namespacedName := types.NamespacedName{
-			Namespace: manifest.Obj.GetNamespace(),
-			Name:      manifest.Obj.GetName(),
-		}
-		err = r.Get(ctx, namespacedName, clusterObj)
-		if err != nil {
-			return errors.Wrapf(err, "Error attempting to get resource %s", namespacedName)
-		}
+	logger := r.Log.WithValues("Gatekeeper resource", namespacedName)
+	err := r.Get(ctx, namespacedName, clusterObj)
 
+	switch {
+	case err == nil:
 		err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
 		if err != nil {
 			return errors.Wrapf(err, "Unable to retain cluster object fields from %s", namespacedName)
@@ -175,6 +172,16 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 		}
 
 		logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
+
+	case apierrors.IsNotFound(err):
+		err = r.Create(ctx, manifest.Obj)
+		if err != nil {
+			return errors.Wrapf(err, "Error attempting to create resource %s", namespacedName)
+		}
+		logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
+
+	case err != nil:
+		return errors.Wrapf(err, "Error attempting to get resource %s", namespacedName)
 	}
 
 	return err
