@@ -26,6 +26,14 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+# Get the current controller-gen binary. If there isn't any, we'll use the
+# GOBIN path
+ifeq (, $(shell which controller-gen))
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
 # Use the vendored directory
 GOFLAGS = -mod=vendor
 
@@ -137,8 +145,9 @@ docker-push:
 # find or download controller-gen
 # download controller-gen if necessary
 .PHONY: controller-gen
-controller-gen:
-ifeq (, $(shell which controller-gen))
+controller-gen: $(CONTROLLER_GEN)
+
+$(CONTROLLER_GEN):
 	@{ \
 	set -e ;\
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
@@ -147,10 +156,6 @@ ifeq (, $(shell which controller-gen))
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
 
 .PHONY: controller-gen
 kustomize:
