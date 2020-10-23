@@ -12,7 +12,7 @@ jobs:
       - name: Slash Command Dispatch
         uses: peter-evans/slash-command-dispatch@v2
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
           commands: |
             deploy
             integration-test
