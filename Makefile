@@ -19,6 +19,8 @@ IMG ?= quay.io/gatekeeper/operator:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
+GATEKEEPER_MANIFEST_DIR ?= config/gatekeeper
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -91,7 +93,8 @@ manifests: controller-gen
 # Import Gatekeeper manifests
 .PHONY: import-manifests
 import-manifests: kustomize
-	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o config/gatekeeper
+	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR)
+	rm -f ./$(GATEKEEPER_MANIFEST_DIR)/~g_v1_namespace_gatekeeper-system.yaml
 
 # Run go fmt against code
 .PHONY: fmt
@@ -120,7 +123,7 @@ BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
 		-pkg "bindata" \
 		-o "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)" \
 		-ignore "OWNERS" \
-		./config/gatekeeper/... && \
+		./$(GATEKEEPER_MANIFEST_DIR)/... && \
 	gofmt -s -w "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)"
 .PHONY: .run-bindata
 
