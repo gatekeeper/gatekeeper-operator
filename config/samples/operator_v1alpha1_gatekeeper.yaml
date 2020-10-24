@@ -5,10 +5,7 @@ metadata:
 spec:
   # Add fields here
   image:
-    registry: docker.io
-    repository: openpolicyagent
-    image: gatekeeper
-    version: v3.1.1
+    image: docker.io/openpolicyagent/gatekeeper:v3.1.1
   audit:
     replicas: 1
     logLevel: INFO
