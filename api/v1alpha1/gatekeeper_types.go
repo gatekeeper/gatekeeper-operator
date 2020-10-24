@@ -51,18 +51,10 @@ type GatekeeperSpec struct {
 }
 
 type ImageConfig struct {
-	// Image registry domain to pull from, e.g. quay.io
-	// +optional
-	Registry *string `json:"registry,omitempty"`
-	// Image repo context
-	// +optional
-	Repository *string `json:"repository,omitempty"`
-	// Image name
+	// Image to pull including registry (optional), repository, name, and tag
+	// e.g. quay.io/gatekeeper/operator:latest
 	// +optional
 	Image *string `json:"image,omitempty"`
-	// Image tag or version
-	// +optional
-	Version *string `json:"version,omitempty"`
 	// +optional
 	ImagePullPolicy *corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
