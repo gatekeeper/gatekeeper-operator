@@ -105,11 +105,17 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{}
 	err := r.Get(ctx, req.NamespacedName, gatekeeper)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			return ctrl.Result{}, nil
+		}
 		// Reconcile failed due to error - requeue
 		return ctrl.Result{}, err
 	}
 
-	err = r.deployGatekeeperResources()
+	err = r.deployGatekeeperResources(gatekeeper)
 	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
 	}
@@ -123,7 +129,7 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *GatekeeperReconciler) deployGatekeeperResources() error {
+func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
 	var err error
 	for _, a := range orderedStaticAssets {
 		assetName := staticAssetsDir + a
@@ -138,7 +144,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
 		}
 
-		if err = r.updateOrCreateResource(manifest); err != nil {
+		if err = r.updateOrCreateResource(manifest, gatekeeper); err != nil {
 			return err
 		}
 	}
@@ -146,11 +152,12 @@ func (r *GatekeeperReconciler) deployGatekeeperResources() error {
 	return err
 }
 
-func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest) error {
+func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
 	ctx := context.Background()
 	clusterObj := &unstructured.Unstructured{}
 	clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
 	clusterObj.SetKind(manifest.Obj.GetKind())
+	ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
 	namespacedName := types.NamespacedName{
 		Namespace: manifest.Obj.GetNamespace(),
 		Name:      manifest.Obj.GetName(),
