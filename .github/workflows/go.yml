@@ -33,8 +33,15 @@ jobs:
         make manifests
         git diff --exit-code
 
-    - name: Test
-      run: make test
+    - name: Create K8s KinD Cluster
+      run: make test-cluster
 
-    - name: Build
-      run: make
+    - name: Build and Push Test Container Image to Local Insecure Container Registry
+      run: |
+        make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        make docker-push IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+
+    - name: Deploy Gatekeeper Operator
+      run: |
+        make install
+        make deploy IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA

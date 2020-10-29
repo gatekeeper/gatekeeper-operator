@@ -201,3 +201,7 @@ vendor:
 .PHONY: tidy
 tidy:
 	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod tidy
+
+.PHONY: test-cluster
+test-cluster:
+	./scripts/kind-with-registry.sh
