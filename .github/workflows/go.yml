@@ -33,12 +33,6 @@ jobs:
         make manifests
         git diff --exit-code
 
-    - name: Test
-      run: make test
-
-    - name: Build
-      run: make
-
     - name: Create K8s KinD Cluster
       run: make test-cluster
 
