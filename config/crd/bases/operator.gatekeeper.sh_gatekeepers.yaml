@@ -668,20 +668,12 @@ spec:
               image:
                 properties:
                   image:
-                    description: Image name
+                    description: Image to pull including registry (optional), repository,
+                      name, and tag e.g. quay.io/gatekeeper/operator:latest
                     type: string
                   imagePullPolicy:
                     description: PullPolicy describes a policy for if/when to pull
                       a container image
-                    type: string
-                  registry:
-                    description: Image registry domain to pull from, e.g. quay.io
-                    type: string
-                  repository:
-                    description: Image repo context
-                    type: string
-                  version:
-                    description: Image tag or version
                     type: string
                 type: object
               nodeSelector:
