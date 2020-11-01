@@ -29,6 +29,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
 	"github.com/font/gatekeeper-operator/controllers/merge"
@@ -54,6 +57,10 @@ var (
 		"~g_v1_service_gatekeeper-webhook-service.yaml",
 		"admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml",
 	}
+)
+
+const (
+	gatekeeperFinalizer = "finalizer.operator.gatekeeper.sh"
 )
 
 // GatekeeperReconciler reconciles a Gatekeeper object
@@ -106,13 +113,34 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	err := r.Get(ctx, req.NamespacedName, gatekeeper)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
+
 			return ctrl.Result{}, nil
 		}
-		// Reconcile failed due to error - requeue
+
 		return ctrl.Result{}, err
+	}
+
+	isGatekeeperMarkedToBeDeleted := gatekeeper.GetDeletionTimestamp() != nil
+	if isGatekeeperMarkedToBeDeleted {
+		if contains(gatekeeper.GetFinalizers(), gatekeeperFinalizer) {
+
+			if err := r.finalizeGatekeeper(logger, gatekeeper); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			controllerutil.RemoveFinalizer(gatekeeper, gatekeeperFinalizer)
+			err := r.Update(ctx, gatekeeper)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if !contains(gatekeeper.GetFinalizers(), gatekeeperFinalizer) {
+		if err := r.addFinalizer(logger, gatekeeper); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	err = r.deployGatekeeperResources(gatekeeper)
@@ -126,6 +154,18 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.Gatekeeper{}).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				oldGeneration := e.MetaOld.GetGeneration()
+				newGeneration := e.MetaNew.GetGeneration()
+
+				return oldGeneration != newGeneration
+			},
+			DeleteFunc: func(e event.DeleteEvent) bool {
+
+				return false
+			},
+		}).
 		Complete(r)
 }
 
@@ -153,18 +193,27 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 }
 
 func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
+	var err error
 	ctx := context.Background()
 	clusterObj := &unstructured.Unstructured{}
 	clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
 	clusterObj.SetKind(manifest.Obj.GetKind())
-	ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
+
 	namespacedName := types.NamespacedName{
 		Namespace: manifest.Obj.GetNamespace(),
 		Name:      manifest.Obj.GetName(),
 	}
 
 	logger := r.Log.WithValues("Gatekeeper resource", namespacedName)
-	err := r.Get(ctx, namespacedName, clusterObj)
+
+	if manifest.Obj.GetNamespace() != "" {
+		err = ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
+		if err != nil {
+			return errors.Wrapf(err, "Unable to set controller reference %s", namespacedName)
+		}
+	}
+
+	err = r.Get(ctx, namespacedName, clusterObj)
 
 	switch {
 	case err == nil:
@@ -192,4 +241,60 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 	}
 
 	return err
+}
+
+func (r *GatekeeperReconciler) finalizeGatekeeper(reqLogger logr.Logger, gatekeeper *operatorv1alpha1.Gatekeeper) error {
+	ctx := context.Background()
+
+	var err error
+	for _, a := range orderedStaticAssets {
+		assetName := staticAssetsDir + a
+		bytes, err := bindata.Asset(assetName)
+		if err != nil {
+			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
+		}
+
+		manifest := &manifest.Manifest{}
+		err = manifest.UnmarshalJSON(bytes)
+		if err != nil {
+			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
+		}
+
+		// Delete cluster scoped resource not owned by the CR
+		if manifest.Obj.GetNamespace() == "" {
+
+			err = r.Delete(ctx, manifest.Obj)
+			if err != nil && !apierrors.IsNotFound(err) {
+				return errors.Wrapf(err, "Error Deleting Finalizer Resource. Kind: '%s'. Name: '%s'", manifest.GVK.Kind, manifest.Obj.GetName())
+			}
+
+		}
+
+	}
+
+	reqLogger.Info("Successfully finalized Gatekeeper")
+	return err
+}
+
+func (r *GatekeeperReconciler) addFinalizer(reqLogger logr.Logger, g *operatorv1alpha1.Gatekeeper) error {
+	ctx := context.Background()
+
+	controllerutil.AddFinalizer(g, gatekeeperFinalizer)
+
+	// Update CR
+	err := r.Update(ctx, g)
+	if err != nil {
+		reqLogger.Error(err, "Failed to update Gatekeeper with finalizer")
+		return err
+	}
+	return nil
+}
+
+func contains(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
