@@ -42,6 +42,8 @@ import (
 var (
 	defaultGatekeeperCrName = "gatekeeper"
 	staticAssetsDir         = "config/gatekeeper/"
+	auditFile               = "apps_v1_deployment_gatekeeper-audit.yaml"
+	webhookFile             = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	orderedStaticAssets     = []string{
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
@@ -53,8 +55,8 @@ var (
 		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
 		"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml",
-		"apps_v1_deployment_gatekeeper-audit.yaml",
-		"apps_v1_deployment_gatekeeper-controller-manager.yaml",
+		auditFile,
+		webhookFile,
 		"~g_v1_service_gatekeeper-webhook-service.yaml",
 		"admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml",
 	}
@@ -171,26 +173,35 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
-	var err error
 	for _, a := range orderedStaticAssets {
-		assetName := staticAssetsDir + a
-		bytes, err := bindata.Asset(assetName)
+		manifest, err := getManifest(a)
 		if err != nil {
-			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
+			return err
 		}
-
-		manifest := &manifest.Manifest{}
-		err = manifest.UnmarshalJSON(bytes)
-		if err != nil {
-			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
+		if err = crOverrides(gatekeeper, a, manifest); err != nil {
+			return err
 		}
 
 		if err = r.updateOrCreateResource(manifest, gatekeeper); err != nil {
 			return err
 		}
 	}
+	return nil
+}
 
-	return err
+func getManifest(asset string) (*manifest.Manifest, error) {
+	manifest := &manifest.Manifest{}
+	assetName := staticAssetsDir + asset
+	bytes, err := bindata.Asset(assetName)
+	if err != nil {
+		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
+	}
+
+	err = manifest.UnmarshalJSON(bytes)
+	if err != nil {
+		return manifest, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
+	}
+	return manifest, nil
 }
 
 func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
@@ -285,6 +296,33 @@ func (r *GatekeeperReconciler) addFinalizer(reqLogger logr.Logger, g *operatorv1
 	err := r.Update(ctx, g)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to update Gatekeeper with finalizer. Name: '%s'", g.Name)
+	}
+	return nil
+}
+
+// crOverrides
+func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest) error {
+	// audit overrides
+	if asset == auditFile && gatekeeper.Spec.Audit != nil {
+		if err := setReplicas(manifest.Obj, gatekeeper.Spec.Audit.Replicas); err != nil {
+			return err
+		}
+	}
+	// webhook overrides
+	if asset == webhookFile && gatekeeper.Spec.Webhook != nil {
+		if err := setReplicas(manifest.Obj, gatekeeper.Spec.Webhook.Replicas); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// setReplicas
+func setReplicas(obj *unstructured.Unstructured, replicas *int64) error {
+	if replicas != nil {
+		if err := unstructured.SetNestedField(obj.Object, *replicas, "spec", "replicas"); err != nil {
+			return errors.Wrapf(err, "Failed to set replica value")
+		}
 	}
 	return nil
 }
