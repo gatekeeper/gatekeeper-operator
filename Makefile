@@ -145,7 +145,7 @@ verify-bindata:
 
 # Build the docker image
 .PHONY: docker-build
-docker-build: test
+docker-build:
 	docker build . -t ${IMG}
 
 # Push the docker image
