@@ -59,6 +59,11 @@ test: generate fmt vet manifests
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); GOFLAGS=$(GOFLAGS) go test ./... -coverprofile cover.out
 
+.PHONY: test-e2e
+test-e2e: generate fmt vet
+	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace
+	kubectl -n gatekeeper-system delete gatekeepers.operator.gatekeeper.sh gatekeeper
+
 # Build manager binary
 .PHONY: manager
 manager: generate fmt vet manifests
