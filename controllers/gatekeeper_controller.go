@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -122,7 +123,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 
 	isGatekeeperMarkedToBeDeleted := gatekeeper.GetDeletionTimestamp() != nil
 	if isGatekeeperMarkedToBeDeleted {
-		if contains(gatekeeper.GetFinalizers(), gatekeeperFinalizer) {
+		if sets.NewString(gatekeeper.GetFinalizers()...).Has(gatekeeperFinalizer) {
 
 			if err := r.finalizeGatekeeper(logger, gatekeeper); err != nil {
 				return ctrl.Result{}, err
@@ -137,7 +138,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, nil
 	}
 
-	if !contains(gatekeeper.GetFinalizers(), gatekeeperFinalizer) {
+	if !sets.NewString(gatekeeper.GetFinalizers()...).Has(gatekeeperFinalizer) {
 		if err := r.addFinalizer(logger, gatekeeper); err != nil {
 			return ctrl.Result{}, err
 		}
@@ -209,7 +210,7 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 	if manifest.Obj.GetNamespace() != "" {
 		err = ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
 		if err != nil {
-			return errors.Wrapf(err, "Unable to set controller reference %s", namespacedName)
+			return errors.Wrapf(err, "Unable to set controller reference for %s", namespacedName)
 		}
 	}
 
@@ -267,7 +268,6 @@ func (r *GatekeeperReconciler) finalizeGatekeeper(reqLogger logr.Logger, gatekee
 			if err != nil && !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "Error Deleting Finalizer Resource. Kind: '%s'. Name: '%s'", manifest.GVK.Kind, manifest.Obj.GetName())
 			}
-
 		}
 
 	}
@@ -284,17 +284,7 @@ func (r *GatekeeperReconciler) addFinalizer(reqLogger logr.Logger, g *operatorv1
 	// Update CR
 	err := r.Update(ctx, g)
 	if err != nil {
-		reqLogger.Error(err, "Failed to update Gatekeeper with finalizer")
-		return err
+		return errors.Wrapf(err, "Failed to update Gatekeeper with finalizer. Name: '%s'", g.Name)
 	}
 	return nil
-}
-
-func contains(list []string, s string) bool {
-	for _, v := range list {
-		if v == s {
-			return true
-		}
-	}
-	return false
 }
