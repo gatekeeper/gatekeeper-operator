@@ -20,15 +20,21 @@ import (
 	"testing"
 
 	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
+	. "github.com/onsi/gomega"
 	"github.com/openshift/library-go/pkg/manifest"
-	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+var (
+	auditReplicas   = int64(1)
+	webhookReplicas = int64(3)
+)
+
 func TestReplicas(t *testing.T) {
-	auditReplicas := int64(4)
-	webhookReplicas := int64(7)
+	g := NewWithT(t)
+	auditReplicaOverride := int64(4)
+	webhookReplicaOverride := int64(7)
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
@@ -37,36 +43,39 @@ func TestReplicas(t *testing.T) {
 	}
 	// test default audit replicas
 	auditManifest, err := getManifest(auditFile)
-	assert.Nil(t, err)
-	testManifestReplicas(t, auditManifest, int64(1))
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(auditManifest).ToNot(BeNil())
+	testManifestReplicas(t, auditManifest, auditReplicas)
 	// test nil audit replicas
 	err = crOverrides(gatekeeper, auditFile, auditManifest)
-	assert.Nil(t, err)
-	testManifestReplicas(t, auditManifest, int64(1))
-	// test audit replicas override
-	gatekeeper.Spec.Audit = &operatorv1alpha1.AuditConfig{Replicas: &auditReplicas}
-	err = crOverrides(gatekeeper, auditFile, auditManifest)
-	assert.Nil(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(t, auditManifest, auditReplicas)
+	// test audit replicas override
+	gatekeeper.Spec.Audit = &operatorv1alpha1.AuditConfig{Replicas: &auditReplicaOverride}
+	err = crOverrides(gatekeeper, auditFile, auditManifest)
+	g.Expect(err).ToNot(HaveOccurred())
+	testManifestReplicas(t, auditManifest, auditReplicaOverride)
 
 	// test default webhook replicas
 	webhookManifest, err := getManifest(webhookFile)
-	assert.Nil(t, err)
-	testManifestReplicas(t, webhookManifest, int64(3))
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookManifest).ToNot(BeNil())
+	testManifestReplicas(t, webhookManifest, webhookReplicas)
 	// test nil webhook replicas
 	err = crOverrides(gatekeeper, webhookFile, webhookManifest)
-	assert.Nil(t, err)
-	testManifestReplicas(t, webhookManifest, int64(3))
-	// test webhook replicas override
-	gatekeeper.Spec.Webhook = &operatorv1alpha1.WebhookConfig{Replicas: &webhookReplicas}
-	err = crOverrides(gatekeeper, webhookFile, webhookManifest)
-	assert.Nil(t, err)
+	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(t, webhookManifest, webhookReplicas)
+	// test webhook replicas override
+	gatekeeper.Spec.Webhook = &operatorv1alpha1.WebhookConfig{Replicas: &webhookReplicaOverride}
+	err = crOverrides(gatekeeper, webhookFile, webhookManifest)
+	g.Expect(err).ToNot(HaveOccurred())
+	testManifestReplicas(t, webhookManifest, webhookReplicaOverride)
 }
 
 func testManifestReplicas(t *testing.T, manifest *manifest.Manifest, expectedReplicas int64) {
+	g := NewWithT(t)
 	replicas, found, err := unstructured.NestedInt64(manifest.Obj.Object, "spec", "replicas")
-	assert.Nil(t, err)
-	assert.True(t, found)
-	assert.Equal(t, expectedReplicas, replicas)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(replicas).To(BeIdenticalTo(expectedReplicas))
 }

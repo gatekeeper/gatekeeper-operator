@@ -10,7 +10,6 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift/library-go v0.0.0-20201006230840-f360b9835cc8
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.4.0
 	k8s.io/api v0.19.0
 	k8s.io/apimachinery v0.19.0
 	k8s.io/client-go v0.19.0
