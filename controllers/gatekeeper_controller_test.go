@@ -27,14 +27,14 @@ import (
 )
 
 var (
-	auditReplicas   = int64(1)
-	webhookReplicas = int64(3)
+	auditReplicas   = int32(1)
+	webhookReplicas = int32(3)
 )
 
 func TestReplicas(t *testing.T) {
 	g := NewWithT(t)
-	auditReplicaOverride := int64(4)
-	webhookReplicaOverride := int64(7)
+	auditReplicaOverride := int32(4)
+	webhookReplicaOverride := int32(7)
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
@@ -72,10 +72,10 @@ func TestReplicas(t *testing.T) {
 	testManifestReplicas(t, webhookManifest, webhookReplicaOverride)
 }
 
-func testManifestReplicas(t *testing.T, manifest *manifest.Manifest, expectedReplicas int64) {
+func testManifestReplicas(t *testing.T, manifest *manifest.Manifest, expectedReplicas int32) {
 	g := NewWithT(t)
 	replicas, found, err := unstructured.NestedInt64(manifest.Obj.Object, "spec", "replicas")
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
-	g.Expect(replicas).To(BeIdenticalTo(expectedReplicas))
+	g.Expect(int32(replicas)).To(BeIdenticalTo(expectedReplicas))
 }
