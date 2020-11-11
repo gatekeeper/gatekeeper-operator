@@ -67,7 +67,7 @@ var _ = Describe("Gatekeeper", func() {
 						Name:      "gatekeeper-controller-manager",
 					}
 
-					Eventually(func() (int64, error) {
+					Eventually(func() (int32, error) {
 						return getDeployment(ctx, gkName, gkDeployment)
 					}, waitTimeout, pollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
 				})
@@ -78,7 +78,7 @@ var _ = Describe("Gatekeeper", func() {
 						Name:      "gatekeeper-audit",
 					}
 
-					Eventually(func() (int64, error) {
+					Eventually(func() (int32, error) {
 						return getDeployment(ctx, gkName, gkDeployment)
 					}, waitTimeout, pollInterval).Should(Equal(*gatekeeper.Spec.Audit.Replicas))
 				})
@@ -107,7 +107,7 @@ func useExistingCluster() bool {
 }
 
 func getDeployment(ctx context.Context, name types.NamespacedName,
-	deploy *appsv1.Deployment) (int64, error) {
+	deploy *appsv1.Deployment) (int32, error) {
 	err := K8sClient.Get(ctx, name, deploy)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -116,5 +116,5 @@ func getDeployment(ctx context.Context, name types.NamespacedName,
 		return 0, err
 	}
 
-	return int64(deploy.Status.ReadyReplicas), nil
+	return deploy.Status.ReadyReplicas, nil
 }
