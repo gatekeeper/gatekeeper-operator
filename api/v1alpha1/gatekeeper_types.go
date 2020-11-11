@@ -62,17 +62,17 @@ type ImageConfig struct {
 type AuditConfig struct {
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
-	Replicas *int64 `json:"replicas,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 	// +optional
 	AuditInterval *metav1.Duration `json:"auditInterval,omitempty"`
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
-	ConstraintViolationLimit *int64 `json:"constraintViolationLimit,omitempty"`
+	ConstraintViolationLimit *uint64 `json:"constraintViolationLimit,omitempty"`
 	// +optional
 	AuditFromCache *AuditFromCacheMode `json:"auditFromCache,omitempty"`
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
-	AuditChunkSize *int64 `json:"auditChunkSize,omitempty"`
+	AuditChunkSize *uint64 `json:"auditChunkSize,omitempty"`
 	// +optional
 	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
 	// +optional
@@ -90,7 +90,7 @@ const (
 type WebhookConfig struct {
 	// +kubebuilder:validation:Minimum:=0
 	// +optional
-	Replicas *int64 `json:"replicas,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 	// +optional
 	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
 	// +optional

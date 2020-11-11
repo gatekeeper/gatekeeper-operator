@@ -32,7 +32,7 @@ func (in *AuditConfig) DeepCopyInto(out *AuditConfig) {
 	*out = *in
 	if in.Replicas != nil {
 		in, out := &in.Replicas, &out.Replicas
-		*out = new(int64)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.AuditInterval != nil {
@@ -42,7 +42,7 @@ func (in *AuditConfig) DeepCopyInto(out *AuditConfig) {
 	}
 	if in.ConstraintViolationLimit != nil {
 		in, out := &in.ConstraintViolationLimit, &out.ConstraintViolationLimit
-		*out = new(int64)
+		*out = new(uint64)
 		**out = **in
 	}
 	if in.AuditFromCache != nil {
@@ -52,7 +52,7 @@ func (in *AuditConfig) DeepCopyInto(out *AuditConfig) {
 	}
 	if in.AuditChunkSize != nil {
 		in, out := &in.AuditChunkSize, &out.AuditChunkSize
-		*out = new(int64)
+		*out = new(uint64)
 		**out = **in
 	}
 	if in.LogLevel != nil {
@@ -278,7 +278,7 @@ func (in *WebhookConfig) DeepCopyInto(out *WebhookConfig) {
 	*out = *in
 	if in.Replicas != nil {
 		in, out := &in.Replicas, &out.Replicas
-		*out = new(int64)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.LogLevel != nil {

@@ -318,9 +318,9 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest
 }
 
 // setReplicas
-func setReplicas(obj *unstructured.Unstructured, replicas *int64) error {
+func setReplicas(obj *unstructured.Unstructured, replicas *int32) error {
 	if replicas != nil {
-		if err := unstructured.SetNestedField(obj.Object, *replicas, "spec", "replicas"); err != nil {
+		if err := unstructured.SetNestedField(obj.Object, int64(*replicas), "spec", "replicas"); err != nil {
 			return errors.Wrapf(err, "Failed to set replica value")
 		}
 	}
