@@ -18,12 +18,18 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
+	admregv1 "k8s.io/api/admissionregistration/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -40,11 +46,12 @@ import (
 )
 
 var (
-	defaultGatekeeperCrName = "gatekeeper"
-	staticAssetsDir         = "config/gatekeeper/"
-	auditFile               = "apps_v1_deployment_gatekeeper-audit.yaml"
-	webhookFile             = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
-	orderedStaticAssets     = []string{
+	defaultGatekeeperCrName        = "gatekeeper"
+	staticAssetsDir                = "config/gatekeeper/"
+	auditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
+	webhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
+	validatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
+	orderedStaticAssets            = []string{
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
@@ -58,12 +65,21 @@ var (
 		auditFile,
 		webhookFile,
 		"~g_v1_service_gatekeeper-webhook-service.yaml",
-		"admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml",
+		validatingWebhookConfiguration,
 	}
+	validationGatekeeperWebhook = "validation.gatekeeper.sh"
 )
 
 const (
-	gatekeeperFinalizer = "finalizer.operator.gatekeeper.sh"
+	gatekeeperFinalizer         = "finalizer.operator.gatekeeper.sh"
+	managerContainer            = "manager"
+	logLevelArg                 = "--log-level"
+	auditIntervalArg            = "--audit-interval"
+	constraintViolationLimitArg = "--constraint-violations-limit"
+	auditFromCacheArg           = "--audit-from-cache"
+	auditChunkSizeArg           = "--audit-chunk-size"
+	emitAuditEventsArg          = "--emit-audit-events"
+	emitAdmissionEventsArg      = "--emit-admission-events"
 )
 
 // GatekeeperReconciler reconciles a Gatekeeper object
@@ -300,17 +316,113 @@ func (r *GatekeeperReconciler) addFinalizer(reqLogger logr.Logger, g *operatorv1
 	return nil
 }
 
+var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.GatekeeperSpec) error{
+	setAffinity,
+	setNodeSelector,
+	setPodAnnotations,
+	setTolerations,
+	containerOverrides,
+}
+var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
+	setResources,
+	setImage,
+}
+
 // crOverrides
 func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest) error {
 	// audit overrides
-	if asset == auditFile && gatekeeper.Spec.Audit != nil {
-		if err := setReplicas(manifest.Obj, gatekeeper.Spec.Audit.Replicas); err != nil {
+	if asset == auditFile {
+		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
+			return err
+		}
+		if err := auditOverrides(manifest.Obj, gatekeeper.Spec.Audit); err != nil {
 			return err
 		}
 	}
 	// webhook overrides
-	if asset == webhookFile && gatekeeper.Spec.Webhook != nil {
-		if err := setReplicas(manifest.Obj, gatekeeper.Spec.Webhook.Replicas); err != nil {
+	if asset == webhookFile {
+		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
+			return err
+		}
+		if err := webhookOverrides(manifest.Obj, gatekeeper.Spec.Webhook); err != nil {
+			return err
+		}
+	}
+	// validatingWebhookConfiguration overrides
+	if asset == validatingWebhookConfiguration {
+		if err := validatingWebhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func commonOverrides(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	for _, f := range commonSpecOverridesFn {
+		if err := f(obj, spec); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func auditOverrides(obj *unstructured.Unstructured, audit *operatorv1alpha1.AuditConfig) error {
+	if audit != nil {
+		if err := setReplicas(obj, audit.Replicas); err != nil {
+			return err
+		}
+		if err := setLogLevel(obj, audit.LogLevel); err != nil {
+			return err
+		}
+		if err := setAuditInterval(obj, audit.AuditInterval); err != nil {
+			return err
+		}
+		if err := setConstraintViolationLimit(obj, audit.ConstraintViolationLimit); err != nil {
+			return err
+		}
+		if err := setAuditFromCache(obj, audit.AuditFromCache); err != nil {
+			return err
+		}
+		if err := setAuditChunkSize(obj, audit.AuditChunkSize); err != nil {
+			return err
+		}
+		if err := setEmitEvents(obj, emitAuditEventsArg, audit.EmitAuditEvents); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig) error {
+	if webhook != nil {
+		if err := setReplicas(obj, webhook.Replicas); err != nil {
+			return err
+		}
+		if err := setLogLevel(obj, webhook.LogLevel); err != nil {
+			return err
+		}
+		if err := setEmitEvents(obj, emitAdmissionEventsArg, webhook.EmitAdmissionEvents); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validatingWebhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig) error {
+	if webhook != nil {
+		if err := setFailurePolicy(obj, webhook.FailurePolicy); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func containerOverrides(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	for _, f := range commonContainerOverridesFn {
+		err := setContainerAttrWithFn(obj, managerContainer, func(container map[string]interface{}) error {
+			return f(container, spec)
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -325,4 +437,205 @@ func setReplicas(obj *unstructured.Unstructured, replicas *int32) error {
 		}
 	}
 	return nil
+}
+
+func setLogLevel(obj *unstructured.Unstructured, logLevel *operatorv1alpha1.LogLevelMode) error {
+	if logLevel != nil {
+		return setContainerArg(obj, managerContainer, logLevelArg, string(*logLevel))
+	}
+	return nil
+}
+
+func setAuditInterval(obj *unstructured.Unstructured, auditInterval *metav1.Duration) error {
+	if auditInterval != nil {
+		return setContainerArg(obj, managerContainer, auditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()))
+	}
+	return nil
+}
+
+func setConstraintViolationLimit(obj *unstructured.Unstructured, constraintViolationLimit *uint64) error {
+	if constraintViolationLimit != nil {
+		return setContainerArg(obj, managerContainer, constraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10))
+	}
+	return nil
+}
+
+func setAuditFromCache(obj *unstructured.Unstructured, auditFromCache *operatorv1alpha1.AuditFromCacheMode) error {
+	if auditFromCache != nil {
+		auditFromCacheValue := "false"
+		if *auditFromCache == operatorv1alpha1.AuditFromCacheEnabled {
+			auditFromCacheValue = "true"
+		}
+		return setContainerArg(obj, managerContainer, auditFromCacheArg, auditFromCacheValue)
+	}
+	return nil
+}
+
+func setAuditChunkSize(obj *unstructured.Unstructured, auditChunkSize *uint64) error {
+	if auditChunkSize != nil {
+		return setContainerArg(obj, managerContainer, auditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10))
+	}
+	return nil
+}
+
+func setEmitEvents(obj *unstructured.Unstructured, argName string, emitEvents *operatorv1alpha1.EmitEventsMode) error {
+	if emitEvents != nil {
+		emitArgValue := "false"
+		if *emitEvents == operatorv1alpha1.EmitEventsEnabled {
+			emitArgValue = "true"
+		}
+		return setContainerArg(obj, managerContainer, argName, emitArgValue)
+	}
+	return nil
+}
+
+func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.FailurePolicyType) error {
+	if failurePolicy != nil {
+		webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
+		if err != nil || !found {
+			return errors.Wrapf(err, "Failed to retrieve webhooks definition")
+		}
+		for _, w := range webhooks {
+			webhook := w.(map[string]interface{})
+			if webhook["name"] == validationGatekeeperWebhook {
+				unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy")
+			}
+		}
+		if err := unstructured.SetNestedSlice(obj.Object, webhooks, "webhooks"); err != nil {
+			return errors.Wrapf(err, "Failed to set webhooks")
+		}
+	}
+	return nil
+}
+
+// Generic setters
+
+func setAffinity(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.Affinity != nil {
+		if err := unstructured.SetNestedField(obj.Object, toMap(spec.Affinity), "spec", "template", "spec", "affinity"); err != nil {
+			return errors.Wrapf(err, "Failed to set affinity value")
+		}
+	}
+	return nil
+}
+
+func setNodeSelector(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.NodeSelector != nil {
+		if err := unstructured.SetNestedStringMap(obj.Object, spec.NodeSelector, "spec", "template", "spec", "nodeSelector"); err != nil {
+			return errors.Wrapf(err, "Failed to set nodeSelector value")
+		}
+	}
+	return nil
+}
+
+func setPodAnnotations(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.PodAnnotations != nil {
+		if err := unstructured.SetNestedStringMap(obj.Object, spec.PodAnnotations, "spec", "template", "metadata", "annotations"); err != nil {
+			return errors.Wrapf(err, "Failed to set podAnnotations")
+		}
+	}
+	return nil
+}
+
+func setTolerations(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.Tolerations != nil {
+		tolerations := make([]interface{}, len(spec.Tolerations))
+		for i, t := range spec.Tolerations {
+			tolerations[i] = toMap(t)
+		}
+		if err := unstructured.SetNestedSlice(obj.Object, tolerations, "spec", "template", "spec", "tolerations"); err != nil {
+			return errors.Wrapf(err, "Failed to set container tolerations")
+		}
+	}
+	return nil
+}
+
+// Container specific setters
+
+func setResources(container map[string]interface{}, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.Resources != nil {
+		if err := unstructured.SetNestedField(container, toMap(spec.Resources), "resources"); err != nil {
+			return errors.Wrapf(err, "Failed to set container resources")
+		}
+	}
+	return nil
+}
+
+func setImage(container map[string]interface{}, spec operatorv1alpha1.GatekeeperSpec) error {
+	if spec.Image == nil {
+		return nil
+	}
+	if spec.Image.Image != nil {
+		if err := unstructured.SetNestedField(container, *spec.Image.Image, "image"); err != nil {
+			return errors.Wrapf(err, "Failed to set container image")
+		}
+	}
+	if spec.Image.ImagePullPolicy != nil {
+		if err := unstructured.SetNestedField(container, string(*spec.Image.ImagePullPolicy), "imagePullPolicy"); err != nil {
+			return errors.Wrapf(err, "Failed to set container image pull policy")
+		}
+	}
+	return nil
+}
+
+func setContainerAttrWithFn(obj *unstructured.Unstructured, containerName string, containerFn func(map[string]interface{}) error) error {
+	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	if err != nil || !found {
+		return errors.Wrapf(err, "Failed to retrieve containers")
+	}
+	for _, c := range containers {
+		container := c.(map[string]interface{})
+		if name, found, err := unstructured.NestedString(container, "name"); err != nil || !found {
+			return errors.Wrapf(err, "Unable to retrieve container: %s", name)
+		} else if name == containerName {
+			if err := containerFn(container); err != nil {
+				return err
+			}
+		}
+	}
+	if err := unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers"); err != nil {
+		return errors.Wrapf(err, "Failed to set containers")
+	}
+	return nil
+}
+
+func setContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string) error {
+	return setContainerAttrWithFn(obj, containerName, func(container map[string]interface{}) error {
+		args, found, err := unstructured.NestedStringSlice(container, "args")
+		if !found || err != nil {
+			return errors.Wrapf(err, "Unable to retrieve container arguments for: %s", containerName)
+		}
+		exists := false
+		for i, arg := range args {
+			n, _ := fromArg(arg)
+			if n == argName {
+				args[i] = toArg(argName, argValue)
+				exists = true
+			}
+		}
+		if !exists {
+			args = append(args, toArg(argName, argValue))
+		}
+		return unstructured.SetNestedStringSlice(container, args, "args")
+	})
+}
+
+// toMap Convenience method to convert any struct into a map
+func toMap(obj interface{}) map[string]interface{} {
+	var result map[string]interface{}
+	resultRec, _ := json.Marshal(obj)
+	json.Unmarshal(resultRec, &result)
+	return result
+}
+
+func toArg(name, value string) string {
+	return name + "=" + value
+}
+
+func fromArg(arg string) (key, value string) {
+	parts := strings.Split(arg, "=")
+	if len(parts) == 1 {
+		return parts[0], ""
+	}
+	return parts[0], parts[1]
 }
