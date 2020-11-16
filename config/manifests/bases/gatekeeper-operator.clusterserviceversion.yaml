@@ -1,0 +1,49 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.1.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: gatekeeper-operator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Gatekeeper is the Schema for the gatekeepers API
+      displayName: Gatekeeper
+      kind: Gatekeeper
+      name: gatekeepers.operator.gatekeeper.sh
+      version: v1alpha1
+  description: Operator for OPA Gatekeeper
+  displayName: Gatekeeper Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - Gatekeeper
+  links:
+  - name: Gatekeeper Operator
+    url: https://github.com/font/gatekeeper-operator
+  maintainers:
+  - email: ifont@redhat.com
+    name: Ivan Font
+  maturity: alpha
+  provider:
+    name: Red Hat
+  version: 0.0.1

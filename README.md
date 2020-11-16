@@ -55,3 +55,57 @@ registry service like [quay.io](https://quay.io).
     ```shell
     make deploy IMG=<registry>/<imagename>:<tag>
     ```
+
+### Deploy Operator using OLM
+
+If you would like to deploy Operator using OLM, you'll need to build and push the bundle image and index image. You need to host the images on a public registry service like [quay.io](https://quay.io).
+
+1. Build your bundle image
+    ```shell
+    make bundle-build REPO=<registry>
+    ```
+1. Push the bundle image
+    ```shell
+    make docker-push IMG=<bundle image name>
+    ```
+1. Build the index image
+
+    OPM needs to be installed first. Get it from [here](https://github.com/operator-framework/operator-registry/releases).
+    ```shell
+    make bundle-index-build REPO=<registry>
+    ```
+1. Push the index image
+    ```shell
+    make docker-push IMG=<index image name>
+    ```
+1. Create the CatalogSource/OperatorGroup/Subscription
+    ```yaml
+    ---
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: CatalogSource
+    metadata:
+      name: gatekeeper-operator
+      namespace: gatekeeper-system
+    spec:
+      displayName: Gatekeeper Operator Upstream
+      image: <index image name>
+      publisher: github.com/font/gatekeeper-operator
+      sourceType: grpc
+    ---
+    apiVersion: operators.coreos.com/v1
+    kind: OperatorGroup
+    metadata:
+      name: gatekeeper-operator
+      namespace: gatekeeper-system
+    ---
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      name: gatekeeper-operator-sub
+      namespace: gatekeeper-system
+    spec:
+      name: gatekeeper-operator
+      channel: alpha
+      source: gatekeeper-operator
+      sourceNamespace: gatekeeper-system
+    ```
