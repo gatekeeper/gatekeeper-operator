@@ -3,8 +3,12 @@ SHELL := /bin/bash
 VERSION ?= 0.0.1
 # Current Gatekeeper version
 GATEKEEPER_VERSION ?= v3.1.1
+# Default image repo
+REPO ?= quay.io/gatekeeper
 # Default bundle image tag
-BUNDLE_IMG ?= controller-bundle:$(VERSION)
+BUNDLE_IMG ?= $(REPO)/gatekeeper-operator-bundle:$(VERSION)
+# Default bundle index image tag
+BUNDLE_INDEX_IMG ?= $(REPO)/gatekeeper-operator-bundle-index:$(VERSION)
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -15,7 +19,7 @@ endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/gatekeeper/operator:latest
+IMG ?= $(REPO)/operator:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -198,6 +202,11 @@ bundle: manifests
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+# Build the bundle index image.
+.PHONY: bundle-index-build
+bundle-index-build:
+	opm index add --bundles $(BUNDLE_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
 
 .PHONY: vendor
 vendor:

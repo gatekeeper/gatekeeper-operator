@@ -91,6 +91,7 @@ type GatekeeperReconciler struct {
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers/finalizers,verbs=get;update;patch;delete
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers/status,verbs=get;update;patch
 
 // Gatekeeper Operator RBAC permissions to deploy Gatekeeper. Many of these
