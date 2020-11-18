@@ -103,7 +103,7 @@ manifests: controller-gen
 .PHONY: import-manifests
 import-manifests: kustomize
 	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR)
-	rm -f ./$(GATEKEEPER_MANIFEST_DIR)/~g_v1_namespace_gatekeeper-system.yaml
+	rm -f ./$(GATEKEEPER_MANIFEST_DIR)/v1_namespace_gatekeeper-system.yaml
 
 # Run go fmt against code
 .PHONY: fmt
@@ -186,7 +186,7 @@ $(KUSTOMIZE):
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.8.6 ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 

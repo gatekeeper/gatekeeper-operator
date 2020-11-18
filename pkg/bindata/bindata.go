@@ -11,9 +11,9 @@
 // config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml
-// config/gatekeeper/~g_v1_secret_gatekeeper-webhook-server-cert.yaml
-// config/gatekeeper/~g_v1_service_gatekeeper-webhook-service.yaml
-// config/gatekeeper/~g_v1_serviceaccount_gatekeeper-admin.yaml
+// config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml
+// config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml
+// config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml
 package bindata
 
 import (
@@ -79,26 +79,6 @@ webhooks:
     service:
       name: gatekeeper-webhook-service
       namespace: gatekeeper-system
-      path: /v1/admitlabel
-  failurePolicy: Fail
-  name: check-ignore-label.gatekeeper.sh
-  rules:
-  - apiGroups:
-    - ""
-    apiVersions:
-    - '*'
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - namespaces
-  sideEffects: None
-  timeoutSeconds: 5
-- clientConfig:
-    caBundle: Cg==
-    service:
-      name: gatekeeper-webhook-service
-      namespace: gatekeeper-system
       path: /v1/admit
   failurePolicy: Ignore
   name: validation.gatekeeper.sh
@@ -116,6 +96,26 @@ webhooks:
     - UPDATE
     resources:
     - '*'
+  sideEffects: None
+  timeoutSeconds: 5
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: gatekeeper-webhook-service
+      namespace: gatekeeper-system
+      path: /v1/admitlabel
+  failurePolicy: Fail
+  name: check-ignore-label.gatekeeper.sh
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - '*'
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - namespaces
   sideEffects: None
   timeoutSeconds: 5
 `)
@@ -723,14 +723,14 @@ spec:
             port: 9090
         name: manager
         ports:
+        - containerPort: 8443
+          name: webhook-server
+          protocol: TCP
         - containerPort: 8888
           name: metrics
           protocol: TCP
         - containerPort: 9090
           name: healthz
-          protocol: TCP
-        - containerPort: 8443
-          name: webhook-server
           protocol: TCP
         readinessProbe:
           httpGet:
@@ -1027,7 +1027,7 @@ func configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRole
 	return a, nil
 }
 
-var _configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYaml = []byte(`apiVersion: v1
+var _configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml = []byte(`apiVersion: v1
 kind: Secret
 metadata:
   labels:
@@ -1036,22 +1036,22 @@ metadata:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYamlBytes() ([]byte, error) {
-	return _configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYaml, nil
+func configGatekeeperV1_secret_gatekeeperWebhookServerCertYamlBytes() ([]byte, error) {
+	return _configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml, nil
 }
 
-func configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYaml() (*asset, error) {
-	bytes, err := configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYamlBytes()
+func configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml() (*asset, error) {
+	bytes, err := configGatekeeperV1_secret_gatekeeperWebhookServerCertYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/~g_v1_secret_gatekeeper-webhook-server-cert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperG_v1_service_gatekeeperWebhookServiceYaml = []byte(`apiVersion: v1
+var _configGatekeeperV1_service_gatekeeperWebhookServiceYaml = []byte(`apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -1068,22 +1068,22 @@ spec:
     gatekeeper.sh/system: "yes"
 `)
 
-func configGatekeeperG_v1_service_gatekeeperWebhookServiceYamlBytes() ([]byte, error) {
-	return _configGatekeeperG_v1_service_gatekeeperWebhookServiceYaml, nil
+func configGatekeeperV1_service_gatekeeperWebhookServiceYamlBytes() ([]byte, error) {
+	return _configGatekeeperV1_service_gatekeeperWebhookServiceYaml, nil
 }
 
-func configGatekeeperG_v1_service_gatekeeperWebhookServiceYaml() (*asset, error) {
-	bytes, err := configGatekeeperG_v1_service_gatekeeperWebhookServiceYamlBytes()
+func configGatekeeperV1_service_gatekeeperWebhookServiceYaml() (*asset, error) {
+	bytes, err := configGatekeeperV1_service_gatekeeperWebhookServiceYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/~g_v1_service_gatekeeper-webhook-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperG_v1_serviceaccount_gatekeeperAdminYaml = []byte(`apiVersion: v1
+var _configGatekeeperV1_serviceaccount_gatekeeperAdminYaml = []byte(`apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
@@ -1092,17 +1092,17 @@ metadata:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperG_v1_serviceaccount_gatekeeperAdminYamlBytes() ([]byte, error) {
-	return _configGatekeeperG_v1_serviceaccount_gatekeeperAdminYaml, nil
+func configGatekeeperV1_serviceaccount_gatekeeperAdminYamlBytes() ([]byte, error) {
+	return _configGatekeeperV1_serviceaccount_gatekeeperAdminYaml, nil
 }
 
-func configGatekeeperG_v1_serviceaccount_gatekeeperAdminYaml() (*asset, error) {
-	bytes, err := configGatekeeperG_v1_serviceaccount_gatekeeperAdminYamlBytes()
+func configGatekeeperV1_serviceaccount_gatekeeperAdminYaml() (*asset, error) {
+	bytes, err := configGatekeeperV1_serviceaccount_gatekeeperAdminYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/~g_v1_serviceaccount_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1170,9 +1170,9 @@ var _bindata = map[string]func() (*asset, error){
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                                  configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                       configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                         configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml,
-	"config/gatekeeper/~g_v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                     configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYaml,
-	"config/gatekeeper/~g_v1_service_gatekeeper-webhook-service.yaml":                                                                        configGatekeeperG_v1_service_gatekeeperWebhookServiceYaml,
-	"config/gatekeeper/~g_v1_serviceaccount_gatekeeper-admin.yaml":                                                                           configGatekeeperG_v1_serviceaccount_gatekeeperAdminYaml,
+	"config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                        configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml,
+	"config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml":                                                                           configGatekeeperV1_service_gatekeeperWebhookServiceYaml,
+	"config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml":                                                                              configGatekeeperV1_serviceaccount_gatekeeperAdminYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -1229,9 +1229,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                                  {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                       {configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                         {configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
-			"~g_v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                     {configGatekeeperG_v1_secret_gatekeeperWebhookServerCertYaml, map[string]*bintree{}},
-			"~g_v1_service_gatekeeper-webhook-service.yaml":                                                                        {configGatekeeperG_v1_service_gatekeeperWebhookServiceYaml, map[string]*bintree{}},
-			"~g_v1_serviceaccount_gatekeeper-admin.yaml":                                                                           {configGatekeeperG_v1_serviceaccount_gatekeeperAdminYaml, map[string]*bintree{}},
+			"v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                        {configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml, map[string]*bintree{}},
+			"v1_service_gatekeeper-webhook-service.yaml":                                                                           {configGatekeeperV1_service_gatekeeperWebhookServiceYaml, map[string]*bintree{}},
+			"v1_serviceaccount_gatekeeper-admin.yaml":                                                                              {configGatekeeperV1_serviceaccount_gatekeeperAdminYaml, map[string]*bintree{}},
 		}},
 	}},
 }}

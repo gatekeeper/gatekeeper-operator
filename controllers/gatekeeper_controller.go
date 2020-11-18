@@ -56,15 +56,15 @@ var (
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
-		"~g_v1_secret_gatekeeper-webhook-server-cert.yaml",
-		"~g_v1_serviceaccount_gatekeeper-admin.yaml",
+		"v1_secret_gatekeeper-webhook-server-cert.yaml",
+		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
 		"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml",
 		auditFile,
 		webhookFile,
-		"~g_v1_service_gatekeeper-webhook-service.yaml",
+		"v1_service_gatekeeper-webhook-service.yaml",
 		validatingWebhookConfiguration,
 	}
 	validationGatekeeperWebhook = "validation.gatekeeper.sh"
