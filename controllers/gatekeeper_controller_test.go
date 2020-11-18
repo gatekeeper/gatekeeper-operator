@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/library-go/pkg/manifest"
 	admregv1 "k8s.io/api/admissionregistration/v1"
@@ -26,6 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 )
 
 var (
