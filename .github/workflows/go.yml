@@ -33,6 +33,11 @@ jobs:
         make manifests
         git diff --exit-code
 
+    - name: Verify imported manifests
+      run: |
+        make import-manifests
+        git diff --exit-code
+
     - name: Create K8s KinD Cluster
       run: make test-cluster
 
