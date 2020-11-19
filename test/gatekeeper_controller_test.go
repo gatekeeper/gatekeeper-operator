@@ -30,7 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
-	"github.com/font/gatekeeper-operator/api/v1alpha1"
+	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 )
 
 const (

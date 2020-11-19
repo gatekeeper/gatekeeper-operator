@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
+	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/library-go/pkg/manifest"
 	admregv1 "k8s.io/api/admissionregistration/v1"
