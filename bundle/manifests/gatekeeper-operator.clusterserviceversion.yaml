@@ -344,7 +344,7 @@ spec:
   - Gatekeeper
   links:
   - name: Gatekeeper Operator
-    url: https://github.com/font/gatekeeper-operator
+    url: https://github.com/gatekeeper/gatekeeper-operator
   maintainers:
   - email: ifont@redhat.com
     name: Ivan Font

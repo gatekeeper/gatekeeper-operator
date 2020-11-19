@@ -1,5 +1,5 @@
 # OPA Gatekeeper Operator
-![master branch](https://github.com/font/gatekeeper-operator/workflows/Go/badge.svg?branch=master)
+![master branch](https://github.com/gatekeeper/gatekeeper-operator/workflows/Go/badge.svg?branch=master)
 
 Operator for OPA Gatekeeper
 
@@ -89,7 +89,7 @@ If you would like to deploy Operator using OLM, you'll need to build and push th
     spec:
       displayName: Gatekeeper Operator Upstream
       image: <index image name>
-      publisher: github.com/font/gatekeeper-operator
+      publisher: github.com/gatekeeper/gatekeeper-operator
       sourceType: grpc
     ---
     apiVersion: operators.coreos.com/v1

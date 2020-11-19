@@ -1,4 +1,4 @@
-module github.com/font/gatekeeper-operator
+module github.com/gatekeeper/gatekeeper-operator
 
 go 1.15
 

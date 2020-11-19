@@ -40,9 +40,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	operatorv1alpha1 "github.com/font/gatekeeper-operator/api/v1alpha1"
-	"github.com/font/gatekeeper-operator/controllers/merge"
-	"github.com/font/gatekeeper-operator/pkg/bindata"
+	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
+	"github.com/gatekeeper/gatekeeper-operator/controllers/merge"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
 )
 
 var (
