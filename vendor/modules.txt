@@ -1,5 +1,10 @@
 # cloud.google.com/go v0.51.0
 cloud.google.com/go/compute/metadata
+# github.com/RHsyseng/operator-utils v1.4.6-0.20201116165605-e3e8466ece23
+## explicit
+github.com/RHsyseng/operator-utils/internal/platform
+github.com/RHsyseng/operator-utils/pkg/resource
+github.com/RHsyseng/operator-utils/pkg/utils/openshift
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
