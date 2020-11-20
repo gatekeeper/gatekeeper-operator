@@ -1,5 +1,9 @@
 # OPA Gatekeeper Operator
 ![master branch](https://github.com/gatekeeper/gatekeeper-operator/workflows/Go/badge.svg?branch=master)
+[![Docker Repository on
+Quay](https://quay.io/repository/gatekeeper/gatekeeper-operator/status "Docker
+Repository on
+Quay")](https://quay.io/repository/gatekeeper/gatekeeper-operator)
 
 Operator for OPA Gatekeeper
 
