@@ -221,7 +221,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/gatekeeper/operator:latest
+                image: quay.io/gatekeeper/gatekeeper-operator:latest
                 imagePullPolicy: Always
                 name: manager
                 resources:

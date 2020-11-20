@@ -27,5 +27,5 @@ jobs:
         pull: true
         push: true
         tags: |
-          quay.io/gatekeeper/operator:latest
-          quay.io/gatekeeper/operator:master
+          quay.io/gatekeeper/gatekeeper-operator:latest
+          quay.io/gatekeeper/gatekeeper-operator:master
