@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	"github.com/go-logr/logr"
 	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
@@ -36,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -48,6 +50,8 @@ import (
 var (
 	defaultGatekeeperCrName        = "gatekeeper"
 	staticAssetsDir                = "config/gatekeeper/"
+	openshiftAssetsDir             = "openshift/"
+	roleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	auditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
 	webhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	validatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
@@ -60,7 +64,7 @@ var (
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
-		"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml",
+		roleFile,
 		"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml",
 		auditFile,
 		webhookFile,
@@ -122,6 +126,15 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	logger := r.Log.WithValues("gatekeeper", req.NamespacedName)
 	logger.Info("Reconciling Gatekeeper")
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	platformName, err := openshift.GetPlatformName(cfg)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	if req.Name != defaultGatekeeperCrName {
 		err := fmt.Errorf("Gatekeeper resource name must be '%s'", defaultGatekeeperCrName)
 		logger.Error(err, "Invalid Gatekeeper resource name")
@@ -130,7 +143,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	}
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{}
-	err := r.Get(ctx, req.NamespacedName, gatekeeper)
+	err = r.Get(ctx, req.NamespacedName, gatekeeper)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 
@@ -163,7 +176,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		}
 	}
 
-	err = r.deployGatekeeperResources(gatekeeper)
+	err = r.deployGatekeeperResources(gatekeeper, platformName)
 	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
 	}
@@ -189,8 +202,11 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
+func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper, platformName string) error {
 	for _, a := range orderedStaticAssets {
+		if a == roleFile && platformName == "OpenShift" {
+			a = openshiftAssetsDir + a
+		}
 		manifest, err := getManifest(a)
 		if err != nil {
 			return err
