@@ -52,7 +52,7 @@ type GatekeeperSpec struct {
 
 type ImageConfig struct {
 	// Image to pull including registry (optional), repository, name, and tag
-	// e.g. quay.io/gatekeeper/operator:latest
+	// e.g. quay.io/gatekeeper/gatekeeper-operator:latest
 	// +optional
 	Image *string `json:"image,omitempty"`
 	// +optional
