@@ -44,12 +44,11 @@ import (
 
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers/merge"
-	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 )
 
 var (
 	defaultGatekeeperCrName        = "gatekeeper"
-	StaticAssetsDir                = "config/gatekeeper/"
 	openshiftAssetsDir             = "openshift/"
 	RoleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	AuditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
@@ -207,7 +206,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 		if a == RoleFile && platformName == "OpenShift" {
 			a = openshiftAssetsDir + a
 		}
-		manifest, err := getManifest(a)
+		manifest, err := util.GetManifest(a)
 		if err != nil {
 			return err
 		}
@@ -220,21 +219,6 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 		}
 	}
 	return nil
-}
-
-func getManifest(asset string) (*manifest.Manifest, error) {
-	manifest := &manifest.Manifest{}
-	assetName := StaticAssetsDir + asset
-	bytes, err := bindata.Asset(assetName)
-	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
-	}
-
-	err = manifest.UnmarshalJSON(bytes)
-	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
-	}
-	return manifest, nil
 }
 
 func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
@@ -293,16 +277,9 @@ func (r *GatekeeperReconciler) finalizeGatekeeper(reqLogger logr.Logger, gatekee
 
 	var err error
 	for _, a := range orderedStaticAssets {
-		assetName := StaticAssetsDir + a
-		bytes, err := bindata.Asset(assetName)
+		manifest, err := util.GetManifest(a)
 		if err != nil {
-			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
-		}
-
-		manifest := &manifest.Manifest{}
-		err = manifest.UnmarshalJSON(bytes)
-		if err != nil {
-			return errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
+			return err
 		}
 
 		// Delete cluster scoped resource not owned by the CR
