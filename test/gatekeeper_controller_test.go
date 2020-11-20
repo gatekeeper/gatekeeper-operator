@@ -32,15 +32,15 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
+	"github.com/gatekeeper/gatekeeper-operator/controllers"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
+	test "github.com/gatekeeper/gatekeeper-operator/test/util"
 )
 
 const (
@@ -54,10 +54,8 @@ const (
 )
 
 var (
-	auditReplicas   = int32(1)
-	webhookReplicas = int32(3)
-	ctx             = context.Background()
-	auditName       = types.NamespacedName{
+	ctx       = context.Background()
+	auditName = types.NamespacedName{
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-audit",
 	}
@@ -73,9 +71,6 @@ var (
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-validating-webhook-configuration",
 	}
-	// duplicated variables from the controllers package
-	auditFile   = "apps_v1_deployment_gatekeeper-audit.yaml"
-	webhookFile = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 )
 
 var _ = Describe("Gatekeeper", func() {
@@ -96,7 +91,7 @@ var _ = Describe("Gatekeeper", func() {
 			return apierrors.IsNotFound(err)
 		}, waitTimeout, pollInterval).Should(BeTrue())
 
-		//wait for reconciliation clean up
+		// wait for reconciliation clean up
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, auditName, &appsv1.Deployment{})
 			if err == nil {
@@ -117,7 +112,7 @@ var _ = Describe("Gatekeeper", func() {
 		Context("Creating Gatekeeper custom resource", func() {
 			It("Should install Gatekeeper", func() {
 				gatekeeper := &v1alpha1.Gatekeeper{}
-				gatekeeper.Namespace = "gatekeeper-system"
+				gatekeeper.Namespace = gkNamespace
 				err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
 				Expect(err).ToNot(HaveOccurred())
 				gkDeployment := &appsv1.Deployment{}
@@ -142,7 +137,7 @@ var _ = Describe("Gatekeeper", func() {
 	})
 
 	Describe("Overriding CR", func() {
-		It("Contains default values", func() {
+		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 
@@ -150,63 +145,32 @@ var _ = Describe("Gatekeeper", func() {
 			Eventually(func() error {
 				return K8sClient.Get(ctx, auditName, auditDeployment)
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-			Expect(auditDeployment).NotTo(BeNil())
 
 			webhookDeployment := &appsv1.Deployment{}
 			Eventually(func() error {
 				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-			Expect(webhookDeployment).NotTo(BeNil())
 
 			By("Checking default replicas", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
-				Expect(*auditDeployment.Spec.Replicas).To(Equal(auditReplicas))
+				Expect(*auditDeployment.Spec.Replicas).To(Equal(test.DefaultDeployment.AuditReplicas))
 				Expect(webhookDeployment.Spec.Replicas).NotTo(BeNil())
-				Expect(*webhookDeployment.Spec.Replicas).To(Equal(webhookReplicas))
+				Expect(*webhookDeployment.Spec.Replicas).To(Equal(test.DefaultDeployment.WebhookReplicas))
 			})
 
 			By("Checking default pod affinity", func() {
 				Expect(auditDeployment.Spec.Template.Spec.Affinity).To(BeNil())
-				defaultWebhookAffinity := &corev1.Affinity{
-					PodAntiAffinity: &corev1.PodAntiAffinity{
-						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-							{
-								Weight: 100,
-								PodAffinityTerm: corev1.PodAffinityTerm{
-									LabelSelector: &metav1.LabelSelector{
-										MatchExpressions: []metav1.LabelSelectorRequirement{
-											{
-												Key:      "gatekeeper.sh/operation",
-												Operator: metav1.LabelSelectorOpIn,
-												Values: []string{
-													"webhook",
-												},
-											},
-										},
-									},
-									TopologyKey: "kubernetes.io/hostname",
-								},
-							},
-						},
-					},
-				}
-				Expect(webhookDeployment.Spec.Template.Spec.Affinity).To(BeEquivalentTo(defaultWebhookAffinity))
+				Expect(webhookDeployment.Spec.Template.Spec.Affinity).To(BeEquivalentTo(test.DefaultDeployment.Affinity))
 			})
 
 			By("Checking default node selector", func() {
-				defaultConfig := map[string]string{
-					"kubernetes.io/os": "linux",
-				}
-				Expect(auditDeployment.Spec.Template.Spec.NodeSelector).To(BeEquivalentTo(defaultConfig))
-				Expect(webhookDeployment.Spec.Template.Spec.NodeSelector).To(BeEquivalentTo(defaultConfig))
+				Expect(auditDeployment.Spec.Template.Spec.NodeSelector).To(BeEquivalentTo(test.DefaultDeployment.NodeSelector))
+				Expect(webhookDeployment.Spec.Template.Spec.NodeSelector).To(BeEquivalentTo(test.DefaultDeployment.NodeSelector))
 			})
 
 			By("Checking default pod annotations", func() {
-				defaultConfig := map[string]string{
-					"container.seccomp.security.alpha.kubernetes.io/manager": "runtime/default",
-				}
-				Expect(auditDeployment.Spec.Template.Annotations).To(BeEquivalentTo(defaultConfig))
-				Expect(webhookDeployment.Spec.Template.Annotations).To(BeEquivalentTo(defaultConfig))
+				Expect(auditDeployment.Spec.Template.Annotations).To(BeEquivalentTo(test.DefaultDeployment.PodAnnotations))
+				Expect(webhookDeployment.Spec.Template.Annotations).To(BeEquivalentTo(test.DefaultDeployment.PodAnnotations))
 			})
 
 			By("Checking default tolerations", func() {
@@ -215,82 +179,70 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking default resource limits and requests", func() {
-				defaultConfig := corev1.ResourceRequirements{
-					Limits: corev1.ResourceList{
-						corev1.ResourceCPU:    resource.MustParse("1000m"),
-						corev1.ResourceMemory: resource.MustParse("512Mi"),
-					},
-					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    resource.MustParse("100m"),
-						corev1.ResourceMemory: resource.MustParse("256Mi"),
-					},
-				}
-				assertResources(defaultConfig, auditDeployment.Spec.Template.Spec.Containers[0].Resources)
-				assertResources(defaultConfig, webhookDeployment.Spec.Template.Spec.Containers[0].Resources)
+				assertResources(*test.DefaultDeployment.Resources, auditDeployment.Spec.Template.Spec.Containers[0].Resources)
+				assertResources(*test.DefaultDeployment.Resources, webhookDeployment.Spec.Template.Spec.Containers[0].Resources)
 			})
 
 			By("Checking default image", func() {
-				auditImage, auditImagePullPolicy, err := getDefaultImage(auditFile)
+				auditImage, auditImagePullPolicy, err := getDefaultImage(controllers.AuditFile)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(auditDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(auditImage))
 				Expect(auditDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(auditImagePullPolicy))
-				webhookImage, webhookImagePullPolicy, err := getDefaultImage(webhookFile)
+				webhookImage, webhookImagePullPolicy, err := getDefaultImage(controllers.WebhookFile)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(webhookImage))
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(webhookImagePullPolicy))
 			})
 
 			By("Checking default failure policy", func() {
-				defaultPolicy := admregv1.Ignore
 				validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
 				Eventually(func() error {
 					return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				Expect(auditDeployment).NotTo(BeNil())
 				for _, wh := range validatingWebhookConfiguration.Webhooks {
-					if wh.Name == "validation.gatekeeper.sh" {
-						Expect(wh.FailurePolicy).To(Equal(&defaultPolicy))
+					if wh.Name == controllers.ValidationGatekeeperWebhook {
+						Expect(wh.FailurePolicy).To(Equal(&test.DefaultDeployment.FailurePolicy))
 					}
 				}
 			})
 
 			By("Checking default audit interval", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-interval")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default audit log level", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--log-level")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default audit constraint violation limit", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--constraint-violations-limit")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.ConstraintViolationLimitArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default audit chunk size", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-chunk-size")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditChunkSizeArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default audit from cache", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-from-cache")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditFromCacheArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default emit audit events", func() {
-				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--emit-audit-events")
+				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAuditEventsArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default emit admission events", func() {
-				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, "--emit-admission-events")
+				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAdmissionEventsArg)
 				Expect(found).To(BeFalse())
 			})
 
 			By("Checking default webhook log level", func() {
-				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, "--log-level")
+				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeFalse())
 			})
 		})
@@ -306,13 +258,11 @@ var _ = Describe("Gatekeeper", func() {
 			Eventually(func() error {
 				return K8sClient.Get(ctx, auditName, auditDeployment)
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-			Expect(auditDeployment).NotTo(BeNil())
 
 			webhookDeployment := &appsv1.Deployment{}
 			Eventually(func() error {
 				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-			Expect(webhookDeployment).NotTo(BeNil())
 
 			By("Checking expected replicas", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
@@ -358,60 +308,59 @@ var _ = Describe("Gatekeeper", func() {
 				Eventually(func() error {
 					return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				Expect(validatingWebhookConfiguration).NotTo(BeNil())
 				for _, wh := range validatingWebhookConfiguration.Webhooks {
-					if wh.Name == "validation.gatekeeper.sh" {
+					if wh.Name == controllers.ValidationGatekeeperWebhook {
 						Expect(wh.FailurePolicy).To(Equal(gatekeeper.Spec.Webhook.FailurePolicy))
 					}
 				}
 			})
 
 			By("Checking expected audit interval", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-interval")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--audit-interval=10"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.AuditIntervalArg, "10")))
 			})
 
 			By("Checking expected audit log level", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--log-level")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--log-level=DEBUG"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.LogLevelArg, "DEBUG")))
 			})
 
 			By("Checking expected audit constraint violation limit", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--constraint-violations-limit")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.ConstraintViolationLimitArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--constraint-violations-limit=55"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.ConstraintViolationLimitArg, "55")))
 			})
 
 			By("Checking expected audit chunk size", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-chunk-size")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditChunkSizeArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--audit-chunk-size=66"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.AuditChunkSizeArg, "66")))
 			})
 
 			By("Checking expected audit from cache", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--audit-from-cache")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditFromCacheArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--audit-from-cache=true"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.AuditFromCacheArg, "true")))
 			})
 
 			By("Checking expected emit audit events", func() {
-				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, "--emit-audit-events")
+				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAuditEventsArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--emit-audit-events=true"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.EmitAuditEventsArg, "true")))
 			})
 
 			By("Checking expected emit admission events", func() {
-				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, "--emit-admission-events")
+				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAdmissionEventsArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--emit-admission-events=true"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.EmitAdmissionEventsArg, "true")))
 			})
 
 			By("Checking expected webhook log level", func() {
-				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, "--log-level")
+				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal("--log-level=ERROR"))
+				Expect(value).To(Equal(controllers.ToArg(controllers.LogLevelArg, "ERROR")))
 			})
 		})
 	})
@@ -474,13 +423,9 @@ func emptyGatekeeper() *v1alpha1.Gatekeeper {
 	}
 }
 
-func ptrToInt(num int32) *int32 {
-	return &num
-}
-
 func getManifest(asset string) (*manifest.Manifest, error) {
 	manifest := &manifest.Manifest{}
-	assetName := "config/gatekeeper/" + asset
+	assetName := controllers.StaticAssetsDir + asset
 	bytes, err := bindata.Asset(assetName)
 	if err != nil {
 		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
@@ -499,22 +444,25 @@ func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPoli
 		return "", "", err
 	}
 	containers, found, err := unstructured.NestedSlice(manifest.Obj.Object, "spec", "template", "spec", "containers")
+	if err != nil {
+		return "", "", err
+	}
 	if !found {
 		return "", "", fmt.Errorf("Containers not found")
 	}
+	image, found, err = unstructured.NestedString(containers[0].(map[string]interface{}), "image")
 	if err != nil {
 		return "", "", err
 	}
-	image, found, err = unstructured.NestedString(containers[0].(map[string]interface{}), "image")
 	if !found {
 		return "", "", fmt.Errorf("Image not found")
 	}
+	policy, found, err := unstructured.NestedString(containers[0].(map[string]interface{}), "imagePullPolicy")
 	if err != nil {
 		return "", "", err
 	}
-	policy, found, err := unstructured.NestedString(containers[0].(map[string]interface{}), "imagePullPolicy")
 	if !found {
 		return "", "", fmt.Errorf("ImagePullPolicy not found")
 	}
-	return image, corev1.PullPolicy(policy), err
+	return image, corev1.PullPolicy(policy), nil
 }
