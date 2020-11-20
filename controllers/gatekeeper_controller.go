@@ -49,12 +49,12 @@ import (
 
 var (
 	defaultGatekeeperCrName        = "gatekeeper"
-	staticAssetsDir                = "config/gatekeeper/"
+	StaticAssetsDir                = "config/gatekeeper/"
 	openshiftAssetsDir             = "openshift/"
-	roleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
-	auditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
-	webhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
-	validatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
+	RoleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
+	AuditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
+	WebhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
+	ValidatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
 	orderedStaticAssets            = []string{
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
@@ -64,26 +64,26 @@ var (
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
-		roleFile,
+		RoleFile,
 		"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml",
-		auditFile,
-		webhookFile,
+		AuditFile,
+		WebhookFile,
 		"v1_service_gatekeeper-webhook-service.yaml",
-		validatingWebhookConfiguration,
+		ValidatingWebhookConfiguration,
 	}
-	validationGatekeeperWebhook = "validation.gatekeeper.sh"
+	ValidationGatekeeperWebhook = "validation.gatekeeper.sh"
 )
 
 const (
 	gatekeeperFinalizer         = "finalizer.operator.gatekeeper.sh"
 	managerContainer            = "manager"
-	logLevelArg                 = "--log-level"
-	auditIntervalArg            = "--audit-interval"
-	constraintViolationLimitArg = "--constraint-violations-limit"
-	auditFromCacheArg           = "--audit-from-cache"
-	auditChunkSizeArg           = "--audit-chunk-size"
-	emitAuditEventsArg          = "--emit-audit-events"
-	emitAdmissionEventsArg      = "--emit-admission-events"
+	LogLevelArg                 = "--log-level"
+	AuditIntervalArg            = "--audit-interval"
+	ConstraintViolationLimitArg = "--constraint-violations-limit"
+	AuditFromCacheArg           = "--audit-from-cache"
+	AuditChunkSizeArg           = "--audit-chunk-size"
+	EmitAuditEventsArg          = "--emit-audit-events"
+	EmitAdmissionEventsArg      = "--emit-admission-events"
 )
 
 // GatekeeperReconciler reconciles a Gatekeeper object
@@ -204,7 +204,7 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper, platformName string) error {
 	for _, a := range orderedStaticAssets {
-		if a == roleFile && platformName == "OpenShift" {
+		if a == RoleFile && platformName == "OpenShift" {
 			a = openshiftAssetsDir + a
 		}
 		manifest, err := getManifest(a)
@@ -224,7 +224,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 
 func getManifest(asset string) (*manifest.Manifest, error) {
 	manifest := &manifest.Manifest{}
-	assetName := staticAssetsDir + asset
+	assetName := StaticAssetsDir + asset
 	bytes, err := bindata.Asset(assetName)
 	if err != nil {
 		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
@@ -293,7 +293,7 @@ func (r *GatekeeperReconciler) finalizeGatekeeper(reqLogger logr.Logger, gatekee
 
 	var err error
 	for _, a := range orderedStaticAssets {
-		assetName := staticAssetsDir + a
+		assetName := StaticAssetsDir + a
 		bytes, err := bindata.Asset(assetName)
 		if err != nil {
 			return errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
@@ -348,7 +348,7 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 // crOverrides
 func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest) error {
 	// audit overrides
-	if asset == auditFile {
+	if asset == AuditFile {
 		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
 			return err
 		}
@@ -357,7 +357,7 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest
 		}
 	}
 	// webhook overrides
-	if asset == webhookFile {
+	if asset == WebhookFile {
 		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
 			return err
 		}
@@ -365,8 +365,8 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest
 			return err
 		}
 	}
-	// validatingWebhookConfiguration overrides
-	if asset == validatingWebhookConfiguration {
+	// ValidatingWebhookConfiguration overrides
+	if asset == ValidatingWebhookConfiguration {
 		if err := validatingWebhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook); err != nil {
 			return err
 		}
@@ -403,7 +403,7 @@ func auditOverrides(obj *unstructured.Unstructured, audit *operatorv1alpha1.Audi
 		if err := setAuditChunkSize(obj, audit.AuditChunkSize); err != nil {
 			return err
 		}
-		if err := setEmitEvents(obj, emitAuditEventsArg, audit.EmitAuditEvents); err != nil {
+		if err := setEmitEvents(obj, EmitAuditEventsArg, audit.EmitAuditEvents); err != nil {
 			return err
 		}
 	}
@@ -418,7 +418,7 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 		if err := setLogLevel(obj, webhook.LogLevel); err != nil {
 			return err
 		}
-		if err := setEmitEvents(obj, emitAdmissionEventsArg, webhook.EmitAdmissionEvents); err != nil {
+		if err := setEmitEvents(obj, EmitAdmissionEventsArg, webhook.EmitAdmissionEvents); err != nil {
 			return err
 		}
 	}
@@ -458,21 +458,21 @@ func setReplicas(obj *unstructured.Unstructured, replicas *int32) error {
 
 func setLogLevel(obj *unstructured.Unstructured, logLevel *operatorv1alpha1.LogLevelMode) error {
 	if logLevel != nil {
-		return setContainerArg(obj, managerContainer, logLevelArg, string(*logLevel))
+		return setContainerArg(obj, managerContainer, LogLevelArg, string(*logLevel))
 	}
 	return nil
 }
 
 func setAuditInterval(obj *unstructured.Unstructured, auditInterval *metav1.Duration) error {
 	if auditInterval != nil {
-		return setContainerArg(obj, managerContainer, auditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()))
+		return setContainerArg(obj, managerContainer, AuditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()))
 	}
 	return nil
 }
 
 func setConstraintViolationLimit(obj *unstructured.Unstructured, constraintViolationLimit *uint64) error {
 	if constraintViolationLimit != nil {
-		return setContainerArg(obj, managerContainer, constraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10))
+		return setContainerArg(obj, managerContainer, ConstraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10))
 	}
 	return nil
 }
@@ -483,14 +483,14 @@ func setAuditFromCache(obj *unstructured.Unstructured, auditFromCache *operatorv
 		if *auditFromCache == operatorv1alpha1.AuditFromCacheEnabled {
 			auditFromCacheValue = "true"
 		}
-		return setContainerArg(obj, managerContainer, auditFromCacheArg, auditFromCacheValue)
+		return setContainerArg(obj, managerContainer, AuditFromCacheArg, auditFromCacheValue)
 	}
 	return nil
 }
 
 func setAuditChunkSize(obj *unstructured.Unstructured, auditChunkSize *uint64) error {
 	if auditChunkSize != nil {
-		return setContainerArg(obj, managerContainer, auditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10))
+		return setContainerArg(obj, managerContainer, AuditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10))
 	}
 	return nil
 }
@@ -514,7 +514,7 @@ func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.Fa
 		}
 		for _, w := range webhooks {
 			webhook := w.(map[string]interface{})
-			if webhook["name"] == validationGatekeeperWebhook {
+			if webhook["name"] == ValidationGatekeeperWebhook {
 				unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy")
 			}
 		}
@@ -626,12 +626,12 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		for i, arg := range args {
 			n, _ := fromArg(arg)
 			if n == argName {
-				args[i] = toArg(argName, argValue)
+				args[i] = ToArg(argName, argValue)
 				exists = true
 			}
 		}
 		if !exists {
-			args = append(args, toArg(argName, argValue))
+			args = append(args, ToArg(argName, argValue))
 		}
 		return unstructured.SetNestedStringSlice(container, args, "args")
 	})
@@ -645,7 +645,7 @@ func toMap(obj interface{}) map[string]interface{} {
 	return result
 }
 
-func toArg(name, value string) string {
+func ToArg(name, value string) string {
 	return name + "=" + value
 }
 
