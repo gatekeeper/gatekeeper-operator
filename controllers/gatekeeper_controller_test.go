@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 	test "github.com/gatekeeper/gatekeeper-operator/test/util"
 )
 
@@ -41,7 +42,7 @@ func TestReplicas(t *testing.T) {
 		},
 	}
 	// test default audit replicas
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	testManifestReplicas(g, auditManifest, test.DefaultDeployment.AuditReplicas)
@@ -56,7 +57,7 @@ func TestReplicas(t *testing.T) {
 	testManifestReplicas(g, auditManifest, auditReplicaOverride)
 
 	// test default webhook replicas
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookManifest).ToNot(BeNil())
 	testManifestReplicas(g, webhookManifest, test.DefaultDeployment.WebhookReplicas)
@@ -100,10 +101,10 @@ func TestAffinity(t *testing.T) {
 		},
 	}
 	// test default affinity
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertAuditAffinity(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertWebhookAffinity(g, webhookManifest, nil)
 
@@ -167,10 +168,10 @@ func TestNodeSelector(t *testing.T) {
 		},
 	}
 	// test default nodeSelector
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, auditManifest, nil)
 	assertNodeSelector(g, webhookManifest, nil)
@@ -219,10 +220,10 @@ func TestPodAnnotations(t *testing.T) {
 		},
 	}
 	// test default podAnnotations
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, webhookManifest, nil)
 
@@ -278,10 +279,10 @@ func TestTolerations(t *testing.T) {
 		},
 	}
 	// test default tolerations
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, webhookManifest, nil)
 
@@ -336,10 +337,10 @@ func TestResources(t *testing.T) {
 		},
 	}
 	// test default resources
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, webhookManifest, nil)
 
@@ -402,10 +403,10 @@ func TestImage(t *testing.T) {
 		},
 	}
 	// test default image
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, auditManifest, nil)
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, webhookManifest, nil)
 
@@ -486,7 +487,7 @@ func TestFailurePolicy(t *testing.T) {
 		},
 	}
 	// test default failurePolicy
-	manifest, err := getManifest(ValidatingWebhookConfiguration)
+	manifest, err := util.GetManifest(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertFailurePolicy(g, manifest, nil)
 
@@ -539,7 +540,7 @@ func TestAuditInterval(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditIntervalArg))
@@ -568,7 +569,7 @@ func TestAuditLogLevel(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(LogLevelArg))
@@ -597,7 +598,7 @@ func TestAuditConstraintViolationLimit(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(ConstraintViolationLimitArg))
@@ -626,7 +627,7 @@ func TestAuditChunkSize(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditChunkSizeArg))
@@ -655,7 +656,7 @@ func TestAuditFromCache(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditFromCacheArg))
@@ -684,7 +685,7 @@ func TestEmitAuditEvents(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(EmitAuditEventsArg))
@@ -725,7 +726,7 @@ func TestAllAuditArgs(t *testing.T) {
 		},
 	}
 	// test default
-	auditManifest, err := getManifest(AuditFile)
+	auditManifest, err := util.GetManifest(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditChunkSizeArg))
@@ -769,7 +770,7 @@ func TestEmitAdmissionEvents(t *testing.T) {
 		},
 	}
 	// test default
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
@@ -798,7 +799,7 @@ func TestWebhookLogLevel(t *testing.T) {
 		},
 	}
 	// test default
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
@@ -829,7 +830,7 @@ func TestAllWebhookArgs(t *testing.T) {
 		},
 	}
 	// test default
-	webhookManifest, err := getManifest(WebhookFile)
+	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))

@@ -26,8 +26,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/openshift/library-go/pkg/manifest"
-	"github.com/pkg/errors"
 	admregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -39,7 +37,7 @@ import (
 
 	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
-	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 	test "github.com/gatekeeper/gatekeeper-operator/test/util"
 )
 
@@ -423,23 +421,8 @@ func emptyGatekeeper() *v1alpha1.Gatekeeper {
 	}
 }
 
-func getManifest(asset string) (*manifest.Manifest, error) {
-	manifest := &manifest.Manifest{}
-	assetName := controllers.StaticAssetsDir + asset
-	bytes, err := bindata.Asset(assetName)
-	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
-	}
-
-	err = manifest.UnmarshalJSON(bytes)
-	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
-	}
-	return manifest, nil
-}
-
 func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPolicy, err error) {
-	manifest, err := getManifest(file)
+	manifest, err := util.GetManifest(file)
 	if err != nil {
 		return "", "", err
 	}
