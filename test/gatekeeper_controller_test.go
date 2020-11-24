@@ -130,6 +130,13 @@ var _ = Describe("Gatekeeper", func() {
 						return getDeploymentReadyReplicas(ctx, auditName, gkDeployment)
 					}, waitTimeout, pollInterval).Should(Equal(*gatekeeper.Spec.Audit.Replicas))
 				})
+
+				By("Checking validatingWebhookConfiguration is deployed", func() {
+					validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+					Eventually(func() error {
+						return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+					}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+				})
 			})
 		})
 	})
@@ -316,50 +323,73 @@ var _ = Describe("Gatekeeper", func() {
 			By("Checking expected audit interval", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.AuditIntervalArg, "10")))
+				Expect(value).To(Equal(util.ToArg(controllers.AuditIntervalArg, "10")))
 			})
 
 			By("Checking expected audit log level", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.LogLevelArg, "DEBUG")))
+				Expect(value).To(Equal(util.ToArg(controllers.LogLevelArg, "DEBUG")))
 			})
 
 			By("Checking expected audit constraint violation limit", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.ConstraintViolationLimitArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.ConstraintViolationLimitArg, "55")))
+				Expect(value).To(Equal(util.ToArg(controllers.ConstraintViolationLimitArg, "55")))
 			})
 
 			By("Checking expected audit chunk size", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditChunkSizeArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.AuditChunkSizeArg, "66")))
+				Expect(value).To(Equal(util.ToArg(controllers.AuditChunkSizeArg, "66")))
 			})
 
 			By("Checking expected audit from cache", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditFromCacheArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.AuditFromCacheArg, "true")))
+				Expect(value).To(Equal(util.ToArg(controllers.AuditFromCacheArg, "true")))
 			})
 
 			By("Checking expected emit audit events", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAuditEventsArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.EmitAuditEventsArg, "true")))
+				Expect(value).To(Equal(util.ToArg(controllers.EmitAuditEventsArg, "true")))
 			})
 
 			By("Checking expected emit admission events", func() {
 				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EmitAdmissionEventsArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.EmitAdmissionEventsArg, "true")))
+				Expect(value).To(Equal(util.ToArg(controllers.EmitAdmissionEventsArg, "true")))
 			})
 
 			By("Checking expected webhook log level", func() {
 				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(controllers.ToArg(controllers.LogLevelArg, "ERROR")))
+				Expect(value).To(Equal(util.ToArg(controllers.LogLevelArg, "ERROR")))
 			})
+		})
+
+		It("Does not deploy the validatingWebhookConfiguration", func() {
+			gatekeeper := emptyGatekeeper()
+			webhookMode := v1alpha1.WebhookDisabled
+			gatekeeper.Spec.ValidatingWebhook = &webhookMode
+			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+
+			auditDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, auditName, auditDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			webhookDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+			Eventually(func() bool {
+				err := K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+				return apierrors.IsNotFound(err)
+			}, waitTimeout, pollInterval).Should(BeTrue())
 		})
 	})
 })

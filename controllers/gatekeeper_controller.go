@@ -18,10 +18,8 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
@@ -202,7 +200,7 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper, platformName string) error {
-	for _, a := range orderedStaticAssets {
+	for _, a := range getStaticAssets(gatekeeper) {
 		if a == RoleFile && platformName == "OpenShift" {
 			a = openshiftAssetsDir + a
 		}
@@ -219,6 +217,19 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 		}
 	}
 	return nil
+}
+
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) []string {
+	if gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled {
+		return orderedStaticAssets
+	}
+	assets := make([]string, 0)
+	for _, a := range orderedStaticAssets {
+		if a != ValidatingWebhookConfiguration {
+			assets = append(assets, a)
+		}
+	}
+	return assets
 }
 
 func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
@@ -506,7 +517,7 @@ func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.Fa
 
 func setAffinity(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
 	if spec.Affinity != nil {
-		if err := unstructured.SetNestedField(obj.Object, toMap(spec.Affinity), "spec", "template", "spec", "affinity"); err != nil {
+		if err := unstructured.SetNestedField(obj.Object, util.ToMap(spec.Affinity), "spec", "template", "spec", "affinity"); err != nil {
 			return errors.Wrapf(err, "Failed to set affinity value")
 		}
 	}
@@ -535,7 +546,7 @@ func setTolerations(obj *unstructured.Unstructured, spec operatorv1alpha1.Gateke
 	if spec.Tolerations != nil {
 		tolerations := make([]interface{}, len(spec.Tolerations))
 		for i, t := range spec.Tolerations {
-			tolerations[i] = toMap(t)
+			tolerations[i] = util.ToMap(t)
 		}
 		if err := unstructured.SetNestedSlice(obj.Object, tolerations, "spec", "template", "spec", "tolerations"); err != nil {
 			return errors.Wrapf(err, "Failed to set container tolerations")
@@ -548,7 +559,7 @@ func setTolerations(obj *unstructured.Unstructured, spec operatorv1alpha1.Gateke
 
 func setResources(container map[string]interface{}, spec operatorv1alpha1.GatekeeperSpec) error {
 	if spec.Resources != nil {
-		if err := unstructured.SetNestedField(container, toMap(spec.Resources), "resources"); err != nil {
+		if err := unstructured.SetNestedField(container, util.ToMap(spec.Resources), "resources"); err != nil {
 			return errors.Wrapf(err, "Failed to set container resources")
 		}
 	}
@@ -601,35 +612,15 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		}
 		exists := false
 		for i, arg := range args {
-			n, _ := fromArg(arg)
+			n, _ := util.FromArg(arg)
 			if n == argName {
-				args[i] = ToArg(argName, argValue)
+				args[i] = util.ToArg(argName, argValue)
 				exists = true
 			}
 		}
 		if !exists {
-			args = append(args, ToArg(argName, argValue))
+			args = append(args, util.ToArg(argName, argValue))
 		}
 		return unstructured.SetNestedStringSlice(container, args, "args")
 	})
-}
-
-// toMap Convenience method to convert any struct into a map
-func toMap(obj interface{}) map[string]interface{} {
-	var result map[string]interface{}
-	resultRec, _ := json.Marshal(obj)
-	json.Unmarshal(resultRec, &result)
-	return result
-}
-
-func ToArg(name, value string) string {
-	return name + "=" + value
-}
-
-func fromArg(arg string) (key, value string) {
-	parts := strings.Split(arg, "=")
-	if len(parts) == 1 {
-		return parts[0], ""
-	}
-	return parts[0], parts[1]
 }

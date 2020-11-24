@@ -113,3 +113,31 @@ If you would like to deploy Operator using OLM, you'll need to build and push th
       source: gatekeeper-operator
       sourceNamespace: gatekeeper-system
     ```
+
+## Usage
+
+Before using Gatekeeper you have to create a `gatekeeper` resource that will be consumed by the operator and create all the necessary resources for you.
+
+Here you can find an example of a `gatekeeper` resource definition:
+
+```yaml
+apiVersion: operator.gatekeeper.sh/v1alpha1
+kind: Gatekeeper
+metadata:
+  name: gatekeeper
+spec:
+  # Add fields here
+  audit:
+    replicas: 1
+    logLevel: ERROR
+```
+
+If nothing is defined in the `spec`, the default values will be used. In the example above the number of replicas for the audit pod is set to `1` and the logLevel to `ERROR` where the default is `INFO`.
+
+The default behaviour for the `ValidatingWebhookConfiguration` is `ENABLED`, that means that it will be created. To disable the `ValidatingWebhookConfiguration` deployment, set the `validatingWebhook` spec property to `DISABLED`.
+
+In order to create an instance of gatekeeper in the specified namespace you can start from one of the [sample configurations](config/samples).
+
+```shell
+kubectl create -f config/samples/operator_v1alpha1_gatekeeper.yaml
+```

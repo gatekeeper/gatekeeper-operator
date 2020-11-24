@@ -31,6 +31,23 @@ import (
 	test "github.com/gatekeeper/gatekeeper-operator/test/util"
 )
 
+func TestDeployValidatingWebhookConfig(t *testing.T) {
+	g := NewWithT(t)
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "testns",
+		},
+	}
+	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
+	webhookMode := operatorv1alpha1.WebhookEnabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookMode
+	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
+	webhookMode = operatorv1alpha1.WebhookDisabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookMode
+	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
+}
+
 func TestReplicas(t *testing.T) {
 	g := NewWithT(t)
 	auditReplicaOverride := int32(4)
@@ -152,7 +169,7 @@ func assertWebhookAffinity(g *WithT, manifest *manifest.Manifest, expected *core
 }
 
 func assertAffinity(g *WithT, expected *corev1.Affinity, current interface{}) {
-	g.Expect(toMap(expected)).To(BeEquivalentTo(toMap(current)))
+	g.Expect(util.ToMap(expected)).To(BeEquivalentTo(util.ToMap(current)))
 }
 
 func TestNodeSelector(t *testing.T) {
@@ -312,7 +329,7 @@ func assertTolerations(g *WithT, manifest *manifest.Manifest, expected []corev1.
 		g.Expect(found).To(BeFalse())
 	} else {
 		for i, toleration := range expected {
-			g.Expect(toMap(toleration)).To(BeEquivalentTo(current[i]))
+			g.Expect(util.ToMap(toleration)).To(BeEquivalentTo(current[i]))
 		}
 	}
 }
@@ -369,7 +386,7 @@ func assertResources(g *WithT, manifest *manifest.Manifest, expected *corev1.Res
 	g.Expect(found).To(BeTrue())
 
 	for _, c := range containers {
-		current, found, err := unstructured.NestedMap(toMap(c), "resources")
+		current, found, err := unstructured.NestedMap(util.ToMap(c), "resources")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		if expected == nil {
@@ -436,7 +453,7 @@ func assertImage(g *WithT, manifest *manifest.Manifest, expected *operatorv1alph
 	g.Expect(found).To(BeTrue())
 
 	for _, c := range containers {
-		currentImage, found, err := unstructured.NestedString(toMap(c), "image")
+		currentImage, found, err := unstructured.NestedString(util.ToMap(c), "image")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		if expected == nil {
@@ -444,7 +461,7 @@ func assertImage(g *WithT, manifest *manifest.Manifest, expected *operatorv1alph
 		} else {
 			g.Expect(*expected.Image).To(BeEquivalentTo(currentImage))
 		}
-		currentImagePullPolicy, found, err := unstructured.NestedString(toMap(c), "imagePullPolicy")
+		currentImagePullPolicy, found, err := unstructured.NestedString(util.ToMap(c), "imagePullPolicy")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		if expected == nil {
@@ -512,7 +529,7 @@ func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admreg
 	for _, w := range webhooks {
 		webhook := w.(map[string]interface{})
 		if webhook["name"] == ValidationGatekeeperWebhook {
-			current, found, err := unstructured.NestedString(toMap(w), "failurePolicy")
+			current, found, err := unstructured.NestedString(util.ToMap(w), "failurePolicy")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
 			if expected == nil {
@@ -859,16 +876,16 @@ func getContainerArguments(g *WithT, containerName string, manifest *manifest.Ma
 	g.Expect(found).To(BeTrue())
 
 	for _, c := range containers {
-		cName, found, err := unstructured.NestedString(toMap(c), "name")
+		cName, found, err := unstructured.NestedString(util.ToMap(c), "name")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		if cName == containerName {
-			args, found, err := unstructured.NestedStringSlice(toMap(c), "args")
+			args, found, err := unstructured.NestedStringSlice(util.ToMap(c), "args")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
 			argsMap := make(map[string]string)
 			for _, arg := range args {
-				key, value := fromArg(arg)
+				key, value := util.FromArg(arg)
 				argsMap[key] = value
 			}
 			return argsMap

@@ -15,6 +15,9 @@ limitations under the License.
 package util
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
 
@@ -38,4 +41,26 @@ func GetManifest(asset string) (*manifest.Manifest, error) {
 		return manifest, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
 	}
 	return manifest, nil
+}
+
+// ToMap Convenience method to convert any struct into a map
+func ToMap(obj interface{}) map[string]interface{} {
+	var result map[string]interface{}
+	resultRec, _ := json.Marshal(obj)
+	json.Unmarshal(resultRec, &result)
+	return result
+}
+
+// ToArg Converts a key, value pair into a valid container argument. e.g. '--argName', 'argValue' returns '--argName=argValue'
+func ToArg(name, value string) string {
+	return name + "=" + value
+}
+
+// FromArg Converts a container argument into a key, value pair. e.g. '--argName=argValue' returns '--argName', 'argValue'
+func FromArg(arg string) (key, value string) {
+	parts := strings.Split(arg, "=")
+	if len(parts) == 1 {
+		return parts[0], ""
+	}
+	return parts[0], parts[1]
 }

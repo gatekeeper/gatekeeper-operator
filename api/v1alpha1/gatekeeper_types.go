@@ -34,6 +34,7 @@ type GatekeeperSpec struct {
 	Image *ImageConfig `json:"image,omitempty"`
 	// +optional
 	Audit *AuditConfig `json:"audit,omitempty"`
+	// +kubebuilder:default:=Enabled
 	// +optional
 	ValidatingWebhook *WebhookMode `json:"validatingWebhook,omitempty"`
 	// +optional
