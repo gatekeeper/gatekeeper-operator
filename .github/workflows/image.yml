@@ -29,3 +29,17 @@ jobs:
         tags: |
           quay.io/gatekeeper/gatekeeper-operator:latest
           quay.io/gatekeeper/gatekeeper-operator:master
+
+    - name: Build and Push Bundle Image
+      run: |
+        make bundle-build VERSION=master
+        docker tag quay.io/gatekeeper/gatekeeper-operator-bundle:master quay.io/gatekeeper/gatekeeper-operator-bundle:latest
+        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle:master
+        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle:latest
+
+    - name: Build and Push Bundle Index Image
+      run: |
+        make bundle-index-build VERSION=master
+        docker tag quay.io/gatekeeper/gatekeeper-operator-bundle-index:master quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest
+        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:master
+        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest
