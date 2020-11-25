@@ -48,6 +48,14 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+# Get the current opm binary. If there isn't any, we'll use the
+# GOBIN path
+ifeq (, $(shell which opm))
+OPM=$(GOBIN)/opm
+else
+OPM=$(shell which opm)
+endif
+
 # Use the vendored directory
 GOFLAGS = -mod=vendor
 
@@ -189,6 +197,23 @@ $(KUSTOMIZE):
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 
+.PHONY: opm
+opm: $(OPM)
+
+$(OPM):
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	export GOPATH=$${OPM_GEN_TMP_DIR} ;\
+	go get github.com/operator-framework/operator-registry || true;\
+	cd src/github.com/operator-framework/operator-registry ;\
+	git checkout -b v1.15.1 ;\
+	make bin/opm ;\
+	mv bin/opm $@ ;\
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
 bundle: manifests
@@ -204,8 +229,8 @@ bundle-build:
 
 # Build the bundle index image.
 .PHONY: bundle-index-build
-bundle-index-build:
-	opm index add --bundles $(BUNDLE_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
+bundle-index-build: opm
+	$(OPM) index add --bundles $(BUNDLE_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
 
 .PHONY: vendor
 vendor:
