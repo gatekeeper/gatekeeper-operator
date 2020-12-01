@@ -2,7 +2,7 @@ SHELL := /bin/bash
 # Current Operator version
 VERSION ?= 0.0.1
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.1.1
+GATEKEEPER_VERSION ?= v3.2.1
 # Default image repo
 REPO ?= quay.io/gatekeeper
 # Default bundle image tag

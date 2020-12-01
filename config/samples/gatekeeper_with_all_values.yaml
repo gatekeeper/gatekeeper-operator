@@ -5,7 +5,7 @@ metadata:
 spec:
   # Add fields here
   image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.1.1
+    image: docker.io/openpolicyagent/gatekeeper:v3.2.1
     imagePullPolicy: Always
   audit:
     replicas: 1
@@ -15,12 +15,26 @@ spec:
     auditFromCache: Enabled
     auditChunkSize: 66
     emitAuditEvents: Enabled
+    resources:
+      limits:
+        cpu: 500m
+        memory: 150Mi
+      requests:
+        cpu: 500m
+        memory: 130Mi
   validatingWebhook: Enabled
   webhook:
     replicas: 2
     logLevel: ERROR
     emitAdmissionEvents: Enabled
     failurePolicy: Fail
+    resources:
+      limits:
+        cpu: 480m
+        memory: 140Mi
+      requests:
+        cpu: 400m
+        memory: 120Mi
   nodeSelector:
     region: "EMEA"
   affinity:
@@ -37,10 +51,3 @@ spec:
   podAnnotations:
     some-annotation: "this is a test"
     other-annotation: "another test"
-  resources:
-    limits:
-      cpu: 500m
-      memory: 140Mi
-    requests:
-      cpu: 400m
-      memory: 120Mi

@@ -8,6 +8,7 @@
 // config/gatekeeper/apps_v1_deployment_gatekeeper-audit.yaml
 // config/gatekeeper/apps_v1_deployment_gatekeeper-controller-manager.yaml
 // config/gatekeeper/openshift/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
+// config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
@@ -98,7 +99,7 @@ webhooks:
     resources:
     - '*'
   sideEffects: None
-  timeoutSeconds: 5
+  timeoutSeconds: 3
 - clientConfig:
     caBundle: Cg==
     service:
@@ -118,7 +119,7 @@ webhooks:
     resources:
     - namespaces
   sideEffects: None
-  timeoutSeconds: 5
+  timeoutSeconds: 3
 `)
 
 func configGatekeeperAdmissionregistrationK8sIo_v1beta1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYamlBytes() ([]byte, error) {
@@ -607,7 +608,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.1.1
+        image: openpolicyagent/gatekeeper:v3.2.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -716,7 +717,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.1.1
+        image: openpolicyagent/gatekeeper:v3.2.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -835,6 +836,54 @@ func configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRo
 	return a, nil
 }
 
+var _configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml = []byte(`apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
+  labels:
+    gatekeeper.sh/system: "yes"
+  name: gatekeeper-admin
+spec:
+  allowPrivilegeEscalation: false
+  fsGroup:
+    ranges:
+    - max: 65535
+      min: 1
+    rule: MustRunAs
+  requiredDropCapabilities:
+  - ALL
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    ranges:
+    - max: 65535
+      min: 1
+    rule: MustRunAs
+  volumes:
+  - configMap
+  - projected
+  - secret
+  - downwardAPI
+`)
+
+func configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYamlBytes() ([]byte, error) {
+	return _configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml, nil
+}
+
+func configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml() (*asset, error) {
+	bytes, err := configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -897,6 +946,8 @@ rules:
   - watch
 - apiGroups:
   - policy
+  resourceNames:
+  - gatekeeper-admin
   resources:
   - podsecuritypolicies
   verbs:
@@ -1221,6 +1272,7 @@ var _bindata = map[string]func() (*asset, error){
 	"config/gatekeeper/apps_v1_deployment_gatekeeper-audit.yaml":                                                                             configGatekeeperApps_v1_deployment_gatekeeperAuditYaml,
 	"config/gatekeeper/apps_v1_deployment_gatekeeper-controller-manager.yaml":                                                                configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml,
 	"config/gatekeeper/openshift/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                             configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
+	"config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml":                                                               configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":                                                configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                                  configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                       configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
@@ -1283,6 +1335,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"openshift": {nil, map[string]*bintree{
 				"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml": {configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
 			}},
+			"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml":                              {configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":               {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml": {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                      {configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},

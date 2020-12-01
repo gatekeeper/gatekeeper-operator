@@ -27,6 +27,7 @@ import (
 	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
 	admregv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -59,6 +60,7 @@ var (
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
 		"v1_secret_gatekeeper-webhook-server-cert.yaml",
 		"v1_serviceaccount_gatekeeper-admin.yaml",
+		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
 		RoleFile,
@@ -105,7 +107,7 @@ type GatekeeperReconciler struct {
 // +kubebuilder:rbac:groups=config.gatekeeper.sh,resources=configs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=config.gatekeeper.sh,resources=configs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=constraints.gatekeeper.sh,resources=*,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=policy,resources=podsecuritypolicies,verbs=use
+// +kubebuilder:rbac:groups=policy,resources=podsecuritypolicies,verbs=create;delete;use
 // +kubebuilder:rbac:groups=status.gatekeeper.sh,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=templates.gatekeeper.sh,resources=constrainttemplates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=templates.gatekeeper.sh,resources=constrainttemplates/finalizers,verbs=get;update;patch;delete
@@ -329,7 +331,6 @@ var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.
 	containerOverrides,
 }
 var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
-	setResources,
 	setImage,
 }
 
@@ -394,6 +395,9 @@ func auditOverrides(obj *unstructured.Unstructured, audit *operatorv1alpha1.Audi
 		if err := setEmitEvents(obj, EmitAuditEventsArg, audit.EmitAuditEvents); err != nil {
 			return err
 		}
+		if err := setResources(obj, audit.Resources); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -407,6 +411,9 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 			return err
 		}
 		if err := setEmitEvents(obj, EmitAdmissionEventsArg, webhook.EmitAdmissionEvents); err != nil {
+			return err
+		}
+		if err := setResources(obj, webhook.Resources); err != nil {
 			return err
 		}
 	}
@@ -557,11 +564,14 @@ func setTolerations(obj *unstructured.Unstructured, spec operatorv1alpha1.Gateke
 
 // Container specific setters
 
-func setResources(container map[string]interface{}, spec operatorv1alpha1.GatekeeperSpec) error {
-	if spec.Resources != nil {
-		if err := unstructured.SetNestedField(container, util.ToMap(spec.Resources), "resources"); err != nil {
-			return errors.Wrapf(err, "Failed to set container resources")
-		}
+func setResources(obj *unstructured.Unstructured, resources *corev1.ResourceRequirements) error {
+	if resources != nil {
+		return setContainerAttrWithFn(obj, managerContainer, func(container map[string]interface{}) error {
+			if err := unstructured.SetNestedField(container, util.ToMap(resources), "resources"); err != nil {
+				return errors.Wrapf(err, "Failed to set container resources")
+			}
+			return nil
+		})
 	}
 	return nil
 }

@@ -75,6 +75,8 @@ rules:
   resources:
   - podsecuritypolicies
   verbs:
+  - create
+  - delete
   - use
 - apiGroups:
   - rbac.authorization.k8s.io
