@@ -48,7 +48,7 @@ const (
 	waitTimeout = 30 * time.Second
 	// Gatekeeper name and namespace
 	gkName      = "gatekeeper"
-	gkNamespace = "gatekeeper-system"
+	gkNamespace = "mygatekeeper"
 )
 
 var (
@@ -254,7 +254,7 @@ var _ = Describe("Gatekeeper", func() {
 
 		It("Contains the configured values", func() {
 			gatekeeper := &v1alpha1.Gatekeeper{}
-			gatekeeper.Namespace = "gatekeeper-system"
+			gatekeeper.Namespace = gkNamespace
 			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
