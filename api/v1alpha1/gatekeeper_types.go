@@ -47,8 +47,6 @@ type GatekeeperSpec struct {
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// +optional
 	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
-	// +optional
-	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 type ImageConfig struct {
@@ -78,6 +76,8 @@ type AuditConfig struct {
 	LogLevel *LogLevelMode `json:"logLevel,omitempty"`
 	// +optional
 	EmitAuditEvents *EmitEventsMode `json:"emitAuditEvents,omitempty"`
+	// +optional
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // +kubebuilder:validation:Enum:=Enabled;Disabled
@@ -98,6 +98,8 @@ type WebhookConfig struct {
 	EmitAdmissionEvents *EmitEventsMode `json:"emitAdmissionEvents,omitempty"`
 	// +optional
 	FailurePolicy *admregv1.FailurePolicyType `json:"failurePolicy,omitempty"`
+	// +optional
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // +kubebuilder:validation:Enum:=DEBUG;INFO;WARNING;ERROR

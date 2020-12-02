@@ -16,7 +16,7 @@ metadata:
               "replicas": 1
             },
             "image": {
-              "image": "docker.io/openpolicyagent/gatekeeper:v3.1.1"
+              "image": "docker.io/openpolicyagent/gatekeeper:v3.2.1"
             },
             "validatingWebhook": "Enabled",
             "webhook": {
@@ -115,6 +115,8 @@ spec:
           - watch
         - apiGroups:
           - policy
+          resourceNames:
+          - gatekeeper-admin
           resources:
           - podsecuritypolicies
           verbs:

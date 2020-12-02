@@ -297,8 +297,8 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking expected resource limits and requests", func() {
-				assertResources(*gatekeeper.Spec.Resources, auditDeployment.Spec.Template.Spec.Containers[0].Resources)
-				assertResources(*gatekeeper.Spec.Resources, webhookDeployment.Spec.Template.Spec.Containers[0].Resources)
+				assertResources(*gatekeeper.Spec.Audit.Resources, auditDeployment.Spec.Template.Spec.Containers[0].Resources)
+				assertResources(*gatekeeper.Spec.Webhook.Resources, webhookDeployment.Spec.Template.Spec.Containers[0].Resources)
 			})
 
 			By("Checking expected image", func() {

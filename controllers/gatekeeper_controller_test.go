@@ -336,17 +336,30 @@ func assertTolerations(g *WithT, manifest *manifest.Manifest, expected []corev1.
 
 func TestResources(t *testing.T) {
 	g := NewWithT(t)
-	resources := &corev1.ResourceRequirements{
-		Limits: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("2000M"),
-			corev1.ResourceMemory: resource.MustParse("1024Mi"),
-		},
-		Requests: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("200m"),
-			corev1.ResourceMemory: resource.MustParse("512"),
+	audit := &operatorv1alpha1.AuditConfig{
+		Resources: &corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("2000M"),
+				corev1.ResourceMemory: resource.MustParse("1024Mi"),
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("200m"),
+				corev1.ResourceMemory: resource.MustParse("512"),
+			},
 		},
 	}
-
+	webhook := &operatorv1alpha1.WebhookConfig{
+		Resources: &corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("2001M"),
+				corev1.ResourceMemory: resource.MustParse("1025Mi"),
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("201m"),
+				corev1.ResourceMemory: resource.MustParse("513"),
+			},
+		},
+	}
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test",
@@ -370,13 +383,15 @@ func TestResources(t *testing.T) {
 	assertResources(g, webhookManifest, nil)
 
 	// test resources override
-	gatekeeper.Spec.Resources = resources
+	gatekeeper.Spec.Audit = audit
 	err = crOverrides(gatekeeper, AuditFile, auditManifest)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertResources(g, auditManifest, resources)
+	assertResources(g, auditManifest, audit.Resources)
+
+	gatekeeper.Spec.Webhook = webhook
 	err = crOverrides(gatekeeper, WebhookFile, webhookManifest)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertResources(g, webhookManifest, resources)
+	assertResources(g, webhookManifest, webhook.Resources)
 }
 
 func assertResources(g *WithT, manifest *manifest.Manifest, expected *corev1.ResourceRequirements) {
