@@ -74,7 +74,9 @@ If you would like to deploy Operator using OLM, you'll need to build and push th
     ```
 1. Build the index image
 
-    OPM needs to be installed first. Get it from [here](https://github.com/operator-framework/operator-registry/releases).
+    This `make` target will install `opm` if it is not already installed. If
+    you would like to install it in your `PATH` manually instead, get it from
+    [here](https://github.com/operator-framework/operator-registry/releases).
     ```shell
     make bundle-index-build REPO=<registry>
     ```
