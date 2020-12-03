@@ -281,3 +281,16 @@ tidy:
 .PHONY: test-cluster
 test-cluster:
 	./scripts/kind-with-registry.sh
+
+.PHONY: test-gatekeeper-e2e
+test-gatekeeper-e2e:
+	kubectl -n $(NAMESPACE) apply -f ./config/samples/operator_v1alpha1_gatekeeper.yaml
+	bats -t test/bats/test.bats
+
+.PHONY: deploy-ci
+deploy-ci: deploy-ci-namespace deploy
+
+.PHONY: deploy-ci-namespace
+deploy-ci-namespace: install
+	kubectl create namespace --dry-run=client -o yaml $(NAMESPACE) | kubectl apply -f-
+	sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
