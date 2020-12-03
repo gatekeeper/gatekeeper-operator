@@ -48,6 +48,60 @@ func TestDeployValidatingWebhookConfig(t *testing.T) {
 	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
 }
 
+func TestCustomNamespace(t *testing.T) {
+	g := NewWithT(t)
+	namespace := "testns"
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: namespace,
+		},
+	}
+	// Rolebinding namespace overrides
+	rolebindingManifest, err := util.GetManifest(RoleBindingFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(rolebindingManifest).ToNot(BeNil())
+	err = crOverrides(gatekeeper, RoleBindingFile, rolebindingManifest)
+	g.Expect(err).ToNot(HaveOccurred())
+	subjects, found, err := unstructured.NestedSlice(rolebindingManifest.Obj.Object, "subjects")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	for _, s := range subjects {
+		subject := s.(map[string]interface{})
+		g.Expect(subject).NotTo(BeNil())
+		ns, found, err := unstructured.NestedString(subject, "namespace")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(found).To(BeTrue())
+		g.Expect(ns).To(Equal(namespace))
+	}
+
+	// WebhookFile namespace overrides
+	webhookManifest, err := util.GetManifest(WebhookFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookManifest).ToNot(BeNil())
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(getContainerArguments(g, managerContainer, webhookManifest)).To(HaveKeyWithValue(ExemptNamespaceArg, namespace))
+
+	// ValidatingWebhookConfiguration namespace overrides
+	webhookConfig, err := util.GetManifest(ValidatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookConfig).ToNot(BeNil())
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig)
+	g.Expect(err).ToNot(HaveOccurred())
+	webhooks, found, err := unstructured.NestedSlice(webhookConfig.Obj.Object, "webhooks")
+	g.Expect(found).To(BeTrue())
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhooks).ToNot(BeNil())
+	for _, w := range webhooks {
+		webhook := w.(map[string]interface{})
+		ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(found).To(BeTrue())
+		g.Expect(ns).To(Equal(namespace))
+	}
+}
+
 func TestReplicas(t *testing.T) {
 	g := NewWithT(t)
 	auditReplicaOverride := int32(4)

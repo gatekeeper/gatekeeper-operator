@@ -52,6 +52,8 @@ var (
 	RoleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	AuditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
+	ClusterRoleBindingFile         = "rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml"
+	RoleBindingFile                = "rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml"
 	ValidatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
 	orderedStaticAssets            = []string{
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
@@ -62,9 +64,9 @@ var (
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
-		"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml",
+		ClusterRoleBindingFile,
 		RoleFile,
-		"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml",
+		RoleBindingFile,
 		AuditFile,
 		WebhookFile,
 		"v1_service_gatekeeper-webhook-service.yaml",
@@ -83,6 +85,7 @@ const (
 	AuditChunkSizeArg           = "--audit-chunk-size"
 	EmitAuditEventsArg          = "--emit-audit-events"
 	EmitAdmissionEventsArg      = "--emit-admission-events"
+	ExemptNamespaceArg          = "--exempt-namespace"
 )
 
 // GatekeeperReconciler reconciles a Gatekeeper object
@@ -336,6 +339,10 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 
 // crOverrides
 func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest) error {
+	// set current namespace
+	if err := setCurrentNamespace(manifest.Obj, asset, gatekeeper.Namespace); err != nil {
+		return err
+	}
 	// audit overrides
 	if asset == AuditFile {
 		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
@@ -510,7 +517,9 @@ func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.Fa
 		for _, w := range webhooks {
 			webhook := w.(map[string]interface{})
 			if webhook["name"] == ValidationGatekeeperWebhook {
-				unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy")
+				if err := unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy"); err != nil {
+					return errors.Wrapf(err, "Failed to set webhook failure policy")
+				}
 			}
 		}
 		if err := unstructured.SetNestedSlice(obj.Object, webhooks, "webhooks"); err != nil {
@@ -633,4 +642,67 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		}
 		return unstructured.SetNestedStringSlice(container, args, "args")
 	})
+}
+
+func setCurrentNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
+	if obj.GetNamespace() != "" {
+		obj.SetNamespace(namespace)
+	}
+	if err := setClientConfigNamespace(obj, asset, namespace); err != nil {
+		return err
+	}
+	if err := setControllerManagerExceptNamespace(obj, asset, namespace); err != nil {
+		return err
+	}
+	if err := setRoleBindingSubjectNamespace(obj, asset, namespace); err != nil {
+
+	}
+	return nil
+}
+
+func setClientConfigNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
+	if asset != ValidatingWebhookConfiguration {
+		return nil
+	}
+	webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
+	if err != nil || !found {
+		return errors.Wrapf(err, "Failed to retrieve webhooks definition")
+	}
+	for _, w := range webhooks {
+		webhook := w.(map[string]interface{})
+		if err := unstructured.SetNestedField(webhook, namespace, "clientConfig", "service", "namespace"); err != nil {
+			return errors.Wrapf(err, "Failed to set webhook clientConfig.service.namespace")
+		}
+	}
+	if err := unstructured.SetNestedSlice(obj.Object, webhooks, "webhooks"); err != nil {
+		return errors.Wrapf(err, "Failed to set webhooks")
+	}
+	return nil
+}
+
+func setControllerManagerExceptNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
+	if asset != WebhookFile {
+		return nil
+	}
+	return setContainerArg(obj, managerContainer, ExemptNamespaceArg, namespace)
+}
+
+func setRoleBindingSubjectNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
+	if asset != ClusterRoleBindingFile && asset != RoleBindingFile {
+		return nil
+	}
+	subjects, found, err := unstructured.NestedSlice(obj.Object, "subjects")
+	if !found || err != nil {
+		return errors.Wrapf(err, "Failed to retrieve subjects from roleBinding")
+	}
+	for _, s := range subjects {
+		subject := s.(map[string]interface{})
+		if err := unstructured.SetNestedField(subject, namespace, "namespace"); err != nil {
+			return errors.Wrapf(err, "Failed to set namespace for rolebinding subject")
+		}
+	}
+	if err := unstructured.SetNestedSlice(obj.Object, subjects, "subjects"); err != nil {
+		return errors.Wrapf(err, "Failed to set updated subjects in rolebinding")
+	}
+	return nil
 }

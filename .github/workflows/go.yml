@@ -56,7 +56,7 @@ jobs:
     - name: Deploy Gatekeeper Operator
       run: |
         make install
-        make deploy IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        make deploy NAMESPACE=mygatekeeper IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
 
     - name: E2E Tests
       run: make test-e2e

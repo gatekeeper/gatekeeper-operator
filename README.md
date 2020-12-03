@@ -60,6 +60,14 @@ registry service like [quay.io](https://quay.io).
     make deploy IMG=<registry>/<imagename>:<tag>
     ```
 
+You can also specify in which namespace you want the operator to be deployed to by
+providing the `NAMESPACE` variable. If not provided the default namespace will be 
+`gatekeeper-system`.
+
+```shell
+make deploy IMG=<registry>/<imagename>:tag NAMESPACE=mygatekeeper
+```
+
 ### Deploy Operator using OLM
 
 If you would like to deploy Operator using OLM, you'll need to build and push the bundle image and index image. You need to host the images on a public registry service like [quay.io](https://quay.io).
