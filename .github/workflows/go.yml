@@ -43,12 +43,12 @@ jobs:
         make verify-bindata
 
     - name: Create K8s KinD Cluster
-      run: make test-cluster
+      run: kind create cluster
 
-    - name: Build and Push Test Container Image to Local Insecure Container Registry
+    - name: Build and Push Test Container Image
       run: |
         make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
-        make docker-push IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        kind load docker-image localhost:5000/gatekeeper-operator:$GITHUB_SHA
 
     - name: Unit and Integration Tests
       run: make test
