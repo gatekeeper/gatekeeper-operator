@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        go: [ '1.15' ]
+
     name: Image build and push
     steps:
     - name: Set Up Environment Variables
@@ -47,6 +51,12 @@ jobs:
         docker tag ${WORKFLOW_BUNDLE_IMG}:master ${WORKFLOW_BUNDLE_IMG}:latest
         make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:master
         make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:latest
+
+    - name: Set Up Go to Install OPM
+      uses: actions/setup-go@v2
+      id: go
+      with:
+        go-version: ${{ matrix.go }}
 
     - name: Build and Push Bundle Index Image
       run: |
