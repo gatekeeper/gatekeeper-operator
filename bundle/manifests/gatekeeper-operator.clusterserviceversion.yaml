@@ -115,11 +115,12 @@ spec:
           - watch
         - apiGroups:
           - policy
-          resourceNames:
-          - gatekeeper-admin
           resources:
           - podsecuritypolicies
           verbs:
+          - create
+          - delete
+          - update
           - use
         - apiGroups:
           - rbac.authorization.k8s.io
