@@ -22,15 +22,15 @@ teardown() {
 }
 
 @test "namespace label webhook is serving" {
-  cert=$(mktemp)
-  CLEAN_CMD+="; rm -f ${cert}"
-  wait_for_process $WAIT_TIME $SLEEP_TIME "get_ca_cert ${cert}"
+  #cert=$(mktemp)
+  #CLEAN_CMD+="; rm -f ${cert}"
+  #wait_for_process $WAIT_TIME $SLEEP_TIME "get_ca_cert ${cert}"
 
   kubectl port-forward -n gatekeeper-system deployment/gatekeeper-controller-manager 8443:8443 &
   FORWARDING_PID=$!
   CLEAN_CMD+="; kill ${FORWARDING_PID}"
 
-  run wait_for_process $WAIT_TIME $SLEEP_TIME "curl -f -v --resolve gatekeeper-webhook-service.gatekeeper-system.svc:8443:127.0.0.1 --cacert ${cert} https://gatekeeper-webhook-service.gatekeeper-system.svc:8443/v1/admitlabel"
+  run wait_for_process $WAIT_TIME $SLEEP_TIME "curl -k -f -v --resolve gatekeeper-webhook-service.gatekeeper-system.svc:8443:127.0.0.1 https://gatekeeper-webhook-service.gatekeeper-system.svc:8443/v1/admitlabel"
   assert_success
 }
 
