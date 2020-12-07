@@ -7,8 +7,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        go: [ '1.15' ]
+
     name: Image build and push
     steps:
+    - name: Set Up Environment Variables
+      env:
+        REPO: quay.io/${{ secrets.QUAY_ACCOUNT_NAME }}
+        IMG: gatekeeper-operator
+      run: |
+        echo "REPO=${REPO}" >> ${GITHUB_ENV}
+        WORKFLOW_IMG="${REPO}/${IMG}"
+        echo "WORKFLOW_IMG=${WORKFLOW_IMG}" >> ${GITHUB_ENV}
+        echo "WORKFLOW_BUNDLE_IMG=${WORKFLOW_IMG}-bundle" >> ${GITHUB_ENV}
+        echo "WORKFLOW_BUNDLE_INDEX_IMG=${WORKFLOW_IMG}-bundle-index" >> ${GITHUB_ENV}
+
     - uses: actions/checkout@v2
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
@@ -27,19 +42,25 @@ jobs:
         pull: true
         push: true
         tags: |
-          quay.io/gatekeeper/gatekeeper-operator:latest
-          quay.io/gatekeeper/gatekeeper-operator:master
+          ${{ env.WORKFLOW_IMG }}:latest
+          ${{ env.WORKFLOW_IMG }}:master
 
     - name: Build and Push Bundle Image
       run: |
         make bundle-build VERSION=master
-        docker tag quay.io/gatekeeper/gatekeeper-operator-bundle:master quay.io/gatekeeper/gatekeeper-operator-bundle:latest
-        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle:master
-        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle:latest
+        docker tag ${WORKFLOW_BUNDLE_IMG}:master ${WORKFLOW_BUNDLE_IMG}:latest
+        make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:master
+        make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:latest
+
+    - name: Set Up Go to Install OPM
+      uses: actions/setup-go@v2
+      id: go
+      with:
+        go-version: ${{ matrix.go }}
 
     - name: Build and Push Bundle Index Image
       run: |
         make bundle-index-build VERSION=master
-        docker tag quay.io/gatekeeper/gatekeeper-operator-bundle-index:master quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest
-        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:master
-        make docker-push IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest
+        docker tag ${WORKFLOW_BUNDLE_INDEX_IMG}:master ${WORKFLOW_BUNDLE_INDEX_IMG}:latest
+        make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:master
+        make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:latest
