@@ -27,7 +27,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v1.1.0
+    operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   name: gatekeeper-operator.v0.0.1
   namespace: placeholder
@@ -115,11 +115,12 @@ spec:
           - watch
         - apiGroups:
           - policy
-          resourceNames:
-          - gatekeeper-admin
           resources:
           - podsecuritypolicies
           verbs:
+          - create
+          - delete
+          - update
           - use
         - apiGroups:
           - rbac.authorization.k8s.io
