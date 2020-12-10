@@ -54,13 +54,14 @@ var (
 	WebhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	ClusterRoleBindingFile         = "rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml"
 	RoleBindingFile                = "rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml"
+	ServerCertFile                 = "v1_secret_gatekeeper-webhook-server-cert.yaml"
 	ValidatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
 	orderedStaticAssets            = []string{
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
-		"v1_secret_gatekeeper-webhook-server-cert.yaml",
+		ServerCertFile,
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
 		"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml",
@@ -91,14 +92,15 @@ const (
 // GatekeeperReconciler reconciles a Gatekeeper object
 type GatekeeperReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log       logr.Logger
+	Scheme    *runtime.Scheme
+	Namespace string
 }
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
-// +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers/finalizers,verbs=get;update;patch;delete
-// +kubebuilder:rbac:groups=operator.gatekeeper.sh,namespace="system",resources=gatekeepers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers/finalizers,verbs=get;update;patch;delete
+// +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers/status,verbs=get;update;patch
 
 // Gatekeeper Operator RBAC permissions to deploy Gatekeeper. Many of these
 // RBAC permissions are needed because the operator must have the permissions
@@ -213,7 +215,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 		if err != nil {
 			return err
 		}
-		if err = crOverrides(gatekeeper, a, manifest, (platformName == "OpenShift")); err != nil {
+		if err = crOverrides(gatekeeper, a, manifest, r.Namespace, (platformName == "OpenShift")); err != nil {
 			return err
 		}
 
@@ -338,9 +340,9 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 }
 
 // crOverrides
-func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest, isOpenshift bool) error {
+func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest, namespace string, isOpenshift bool) error {
 	// set current namespace
-	if err := setCurrentNamespace(manifest.Obj, asset, gatekeeper.Namespace); err != nil {
+	if err := setCurrentNamespace(manifest.Obj, asset, namespace); err != nil {
 		return err
 	}
 	// audit overrides
@@ -671,10 +673,7 @@ func setCurrentNamespace(obj *unstructured.Unstructured, asset, namespace string
 	if err := setControllerManagerExceptNamespace(obj, asset, namespace); err != nil {
 		return err
 	}
-	if err := setRoleBindingSubjectNamespace(obj, asset, namespace); err != nil {
-
-	}
-	return nil
+	return setRoleBindingSubjectNamespace(obj, asset, namespace)
 }
 
 func setClientConfigNamespace(obj *unstructured.Unstructured, asset, namespace string) error {

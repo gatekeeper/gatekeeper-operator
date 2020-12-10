@@ -76,9 +76,10 @@ func main() {
 	}
 
 	if err = (&controllers.GatekeeperReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
-		Scheme: mgr.GetScheme(),
+		Client:    mgr.GetClient(),
+		Log:       ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
+		Scheme:    mgr.GetScheme(),
+		Namespace: watchNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Gatekeeper")
 		os.Exit(1)
