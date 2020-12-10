@@ -1,0 +1,20 @@
+bases:
+- ../../base
+patchesJSON6902:
+- target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRole
+    name: manager-role
+  patch: |-
+    - op: add
+      path: /rules/-
+      value:
+        apiGroups:
+          - security.openshift.io
+        resourceNames:
+          - anyuid
+        resources:
+          - securitycontextconstraints
+        verbs:
+          - use

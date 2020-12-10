@@ -11,6 +11,8 @@ BUNDLE_IMG ?= $(REPO)/gatekeeper-operator-bundle:$(VERSION)
 BUNDLE_INDEX_IMG ?= $(REPO)/gatekeeper-operator-bundle-index:$(VERSION)
 # Default namespace
 NAMESPACE ?= gatekeeper-system
+# Default Kubernetes distribution
+KUBE_DISTRIBUTION ?= vanilla
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -26,6 +28,12 @@ IMG ?= $(REPO)/gatekeeper-operator:latest
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 GATEKEEPER_MANIFEST_DIR ?= config/gatekeeper
+
+ifeq (openshift, $(KUBE_DISTRIBUTION))
+RBAC_DIR=config/rbac/overlays/openshift
+else
+RBAC_DIR=config/rbac/base
+endif
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -101,13 +109,14 @@ uninstall: manifests kustomize
 .PHONY: deploy
 deploy: manifests kustomize
 	cd config/default && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
+	cd $(RBAC_DIR) && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	{ $(KUSTOMIZE) build config/default ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases output:rbac:dir=config/rbac/base
 
 # Import Gatekeeper manifests
 .PHONY: import-manifests
@@ -222,7 +231,7 @@ $(OPM):
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	{ $(KUSTOMIZE) build config/manifests ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
 # Build the bundle image.
