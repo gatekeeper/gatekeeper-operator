@@ -30,9 +30,10 @@ IMG ?= $(REPO)/gatekeeper-operator:latest
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 GATEKEEPER_MANIFEST_DIR ?= config/gatekeeper
+OPENSHIFT_RBAC_DIR = config/rbac/overlays/openshift
 
 ifeq (openshift, $(KUBE_DISTRIBUTION))
-RBAC_DIR=config/rbac/overlays/openshift
+RBAC_DIR=$(OPENSHIFT_RBAC_DIR)
 else
 RBAC_DIR=config/rbac/base
 endif
@@ -257,7 +258,7 @@ $(OPERATOR_SDK):
 bundle: operator-sdk manifests
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	{ $(KUSTOMIZE) build config/manifests ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	{ $(KUSTOMIZE) build config/manifests ; echo "---" ; $(KUSTOMIZE) build $(OPENSHIFT_RBAC_DIR) ; } | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 # Build the bundle image.
