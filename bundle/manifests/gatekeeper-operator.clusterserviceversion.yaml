@@ -16,7 +16,7 @@ metadata:
               "replicas": 1
             },
             "image": {
-              "image": "docker.io/openpolicyagent/gatekeeper:v3.2.1"
+              "image": "docker.io/openpolicyagent/gatekeeper:v3.2.2"
             },
             "validatingWebhook": "Enabled",
             "webhook": {
