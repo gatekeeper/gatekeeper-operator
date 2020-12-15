@@ -42,6 +42,11 @@ jobs:
       run: |
         make verify-bindata
 
+    - name: Verify bundle
+      run: |
+        make bundle
+        git diff --exit-code
+
     - name: Create K8s KinD Cluster
       run: make test-cluster
 
