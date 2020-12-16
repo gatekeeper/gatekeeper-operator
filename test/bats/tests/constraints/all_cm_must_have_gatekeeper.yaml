@@ -1,0 +1,12 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: cm-must-have-gk
+spec:
+  match:
+    namespaces: ["gatekeeper-test-playground", "gatekeeper-excluded-namespace"]
+    kinds:
+      - apiGroups: [""]
+        kinds: ["ConfigMap"]
+  parameters:
+    labels: ["gatekeeper"]

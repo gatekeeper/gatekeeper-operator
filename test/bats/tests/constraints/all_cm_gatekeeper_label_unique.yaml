@@ -1,0 +1,12 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sUniqueLabel
+metadata:
+  name: cm-gk-label-unique
+spec:
+  match:
+    namespaces: ["gatekeeper-test-playground"]
+    kinds:
+      - apiGroups: [""]
+        kinds: ["ConfigMap"]
+  parameters:
+    label: gatekeeper
