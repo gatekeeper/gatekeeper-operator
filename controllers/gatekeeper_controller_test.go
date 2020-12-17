@@ -31,12 +31,13 @@ import (
 	test "github.com/gatekeeper/gatekeeper-operator/test/util"
 )
 
+var namespace = "testns"
+
 func TestDeployValidatingWebhookConfig(t *testing.T) {
 	g := NewWithT(t)
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
@@ -50,18 +51,17 @@ func TestDeployValidatingWebhookConfig(t *testing.T) {
 
 func TestCustomNamespace(t *testing.T) {
 	g := NewWithT(t)
-	namespace := "testns"
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: namespace,
+			Name: "test",
 		},
 	}
+	expectedNamespace := "otherNamespace"
 	// Rolebinding namespace overrides
 	rolebindingManifest, err := util.GetManifest(RoleBindingFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(rolebindingManifest).ToNot(BeNil())
-	err = crOverrides(gatekeeper, RoleBindingFile, rolebindingManifest, false)
+	err = crOverrides(gatekeeper, RoleBindingFile, rolebindingManifest, expectedNamespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	subjects, found, err := unstructured.NestedSlice(rolebindingManifest.Obj.Object, "subjects")
 	g.Expect(err).ToNot(HaveOccurred())
@@ -72,22 +72,22 @@ func TestCustomNamespace(t *testing.T) {
 		ns, found, err := unstructured.NestedString(subject, "namespace")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
-		g.Expect(ns).To(Equal(namespace))
+		g.Expect(ns).To(Equal(expectedNamespace))
 	}
 
 	// WebhookFile namespace overrides
 	webhookManifest, err := util.GetManifest(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookManifest).ToNot(BeNil())
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, expectedNamespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(getContainerArguments(g, managerContainer, webhookManifest)).To(HaveKeyWithValue(ExemptNamespaceArg, namespace))
+	g.Expect(getContainerArguments(g, managerContainer, webhookManifest)).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
 
 	// ValidatingWebhookConfiguration namespace overrides
 	webhookConfig, err := util.GetManifest(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookConfig).ToNot(BeNil())
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig, expectedNamespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	webhooks, found, err := unstructured.NestedSlice(webhookConfig.Obj.Object, "webhooks")
 	g.Expect(found).To(BeTrue())
@@ -98,7 +98,7 @@ func TestCustomNamespace(t *testing.T) {
 		ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
-		g.Expect(ns).To(Equal(namespace))
+		g.Expect(ns).To(Equal(expectedNamespace))
 	}
 }
 
@@ -108,8 +108,7 @@ func TestReplicas(t *testing.T) {
 	webhookReplicaOverride := int32(7)
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default audit replicas
@@ -118,12 +117,12 @@ func TestReplicas(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	testManifestReplicas(g, auditManifest, test.DefaultDeployment.AuditReplicas)
 	// test nil audit replicas
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(g, auditManifest, test.DefaultDeployment.AuditReplicas)
 	// test audit replicas override
 	gatekeeper.Spec.Audit = &operatorv1alpha1.AuditConfig{Replicas: &auditReplicaOverride}
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(g, auditManifest, auditReplicaOverride)
 
@@ -133,12 +132,12 @@ func TestReplicas(t *testing.T) {
 	g.Expect(webhookManifest).ToNot(BeNil())
 	testManifestReplicas(g, webhookManifest, test.DefaultDeployment.WebhookReplicas)
 	// test nil webhook replicas
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(g, webhookManifest, test.DefaultDeployment.WebhookReplicas)
 	// test webhook replicas override
 	gatekeeper.Spec.Webhook = &operatorv1alpha1.WebhookConfig{Replicas: &webhookReplicaOverride}
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	testManifestReplicas(g, webhookManifest, webhookReplicaOverride)
 }
@@ -167,8 +166,7 @@ func TestAffinity(t *testing.T) {
 	}
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default affinity
@@ -180,20 +178,20 @@ func TestAffinity(t *testing.T) {
 	assertWebhookAffinity(g, webhookManifest, nil)
 
 	// test nil affinity
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertAuditAffinity(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertWebhookAffinity(g, webhookManifest, nil)
 
 	// test affinity override
 	gatekeeper.Spec.Affinity = affinity
 
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertAuditAffinity(g, auditManifest, affinity)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertWebhookAffinity(g, webhookManifest, affinity)
 }
@@ -234,8 +232,7 @@ func TestNodeSelector(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default nodeSelector
@@ -248,19 +245,19 @@ func TestNodeSelector(t *testing.T) {
 	assertNodeSelector(g, webhookManifest, nil)
 
 	// test nil nodeSelector
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, webhookManifest, nil)
 
 	// test nodeSelector override
 	gatekeeper.Spec.NodeSelector = nodeSelector
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, auditManifest, nodeSelector)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertNodeSelector(g, webhookManifest, nodeSelector)
 }
@@ -286,8 +283,7 @@ func TestPodAnnotations(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default podAnnotations
@@ -299,19 +295,19 @@ func TestPodAnnotations(t *testing.T) {
 	assertPodAnnotations(g, webhookManifest, nil)
 
 	// test nil podAnnotations
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, webhookManifest, nil)
 
 	// test podAnnotations override
 	gatekeeper.Spec.PodAnnotations = podAnnotations
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, auditManifest, podAnnotations)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertPodAnnotations(g, webhookManifest, podAnnotations)
 }
@@ -345,8 +341,7 @@ func TestTolerations(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default tolerations
@@ -358,19 +353,19 @@ func TestTolerations(t *testing.T) {
 	assertTolerations(g, webhookManifest, nil)
 
 	// test nil tolerations
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, webhookManifest, nil)
 
 	// test tolerations override
 	gatekeeper.Spec.Tolerations = tolerations
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, auditManifest, tolerations)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertTolerations(g, webhookManifest, tolerations)
 }
@@ -416,8 +411,7 @@ func TestResources(t *testing.T) {
 	}
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default resources
@@ -429,21 +423,21 @@ func TestResources(t *testing.T) {
 	assertResources(g, webhookManifest, nil)
 
 	// test nil resources
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, webhookManifest, nil)
 
 	// test resources override
 	gatekeeper.Spec.Audit = audit
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, auditManifest, audit.Resources)
 
 	gatekeeper.Spec.Webhook = webhook
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertResources(g, webhookManifest, webhook.Resources)
 }
@@ -484,8 +478,7 @@ func TestImage(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default image
@@ -497,19 +490,19 @@ func TestImage(t *testing.T) {
 	assertImage(g, webhookManifest, nil)
 
 	// test nil image
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, auditManifest, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, webhookManifest, nil)
 
 	// test image override
 	gatekeeper.Spec.Image = imageConfig
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, auditManifest, imageConfig)
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertImage(g, webhookManifest, imageConfig)
 }
@@ -568,8 +561,7 @@ func TestFailurePolicy(t *testing.T) {
 	}
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default failurePolicy
@@ -578,13 +570,13 @@ func TestFailurePolicy(t *testing.T) {
 	assertFailurePolicy(g, manifest, nil)
 
 	// test nil failurePolicy
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertFailurePolicy(g, manifest, nil)
 
 	// test failurePolicy override
 	gatekeeper.Spec.Webhook = &webhook
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	assertFailurePolicy(g, manifest, &failurePolicy)
 }
@@ -621,8 +613,7 @@ func TestAuditInterval(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -631,12 +622,12 @@ func TestAuditInterval(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditIntervalArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditIntervalArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(AuditIntervalArg, "3600"))
 }
@@ -650,8 +641,7 @@ func TestAuditLogLevel(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -660,12 +650,12 @@ func TestAuditLogLevel(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(LogLevelArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(LogLevelArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
 }
@@ -679,8 +669,7 @@ func TestAuditConstraintViolationLimit(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -689,12 +678,12 @@ func TestAuditConstraintViolationLimit(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(ConstraintViolationLimitArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(ConstraintViolationLimitArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(ConstraintViolationLimitArg, "20"))
 }
@@ -708,8 +697,7 @@ func TestAuditChunkSize(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -718,12 +706,12 @@ func TestAuditChunkSize(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditChunkSizeArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditChunkSizeArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(AuditChunkSizeArg, "10"))
 }
@@ -737,8 +725,7 @@ func TestAuditFromCache(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -747,12 +734,12 @@ func TestAuditFromCache(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditFromCacheArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditFromCacheArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(AuditFromCacheArg, "true"))
 }
@@ -766,8 +753,7 @@ func TestEmitAuditEvents(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -776,12 +762,12 @@ func TestEmitAuditEvents(t *testing.T) {
 	g.Expect(auditManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(EmitAuditEventsArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(EmitAuditEventsArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(EmitAuditEventsArg, "true"))
 }
@@ -807,8 +793,7 @@ func TestAllAuditArgs(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -822,7 +807,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(EmitAuditEventsArg))
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditIntervalArg))
 	// test nil
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditChunkSizeArg))
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditFromCacheArg))
@@ -832,7 +817,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectManifestContainerArgument(g, managerContainer, auditManifest).NotTo(HaveKey(AuditIntervalArg))
 	// test override
 	gatekeeper.Spec.Audit = &auditOverride
-	err = crOverrides(gatekeeper, AuditFile, auditManifest, false)
+	err = crOverrides(gatekeeper, AuditFile, auditManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(AuditChunkSizeArg, "10"))
 	expectManifestContainerArgument(g, managerContainer, auditManifest).To(HaveKeyWithValue(AuditFromCacheArg, "true"))
@@ -851,8 +836,7 @@ func TestEmitAdmissionEvents(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -861,12 +845,12 @@ func TestEmitAdmissionEvents(t *testing.T) {
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	// test nil
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	// test override
 	gatekeeper.Spec.Webhook = &webhookOverride
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EmitAdmissionEventsArg, "true"))
 }
@@ -880,8 +864,7 @@ func TestWebhookLogLevel(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -890,12 +873,12 @@ func TestWebhookLogLevel(t *testing.T) {
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
 	// test nil
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
 	// test override
 	gatekeeper.Spec.Webhook = &webhookOverride
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
 }
@@ -911,8 +894,7 @@ func TestAllWebhookArgs(t *testing.T) {
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "testns",
+			Name: "test",
 		},
 	}
 	// test default
@@ -922,13 +904,13 @@ func TestAllWebhookArgs(t *testing.T) {
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
 	// test nil
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
 	// test override
 	gatekeeper.Spec.Webhook = &webhookOverride
-	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, false)
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EmitAdmissionEventsArg, "true"))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
@@ -961,4 +943,20 @@ func getContainerArguments(g *WithT, containerName string, manifest *manifest.Ma
 		}
 	}
 	return nil
+}
+
+func TestSetCertNamespace(t *testing.T) {
+	g := NewWithT(t)
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+	// test default
+	serverCertManifest, err := util.GetManifest(ServerCertFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(serverCertManifest).ToNot(BeNil())
+	err = crOverrides(gatekeeper, ServerCertFile, serverCertManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(serverCertManifest.Obj.GetNamespace()).To(Equal(namespace))
 }

@@ -71,6 +71,26 @@ rules:
   - update
   - watch
 - apiGroups:
+  - operator.gatekeeper.sh
+  resources:
+  - gatekeepers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.gatekeeper.sh
+  resources:
+  - gatekeepers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - policy
   resources:
   - podsecuritypolicies
@@ -168,35 +188,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - operator.gatekeeper.sh
-  resources:
-  - gatekeepers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - operator.gatekeeper.sh
-  resources:
-  - gatekeepers/finalizers
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - operator.gatekeeper.sh
-  resources:
-  - gatekeepers/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:

@@ -136,6 +136,9 @@ var _ = Describe("Gatekeeper", func() {
 					Eventually(func() error {
 						return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
 					}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+					Expect(validatingWebhookConfiguration.OwnerReferences).To(HaveLen(1))
+					Expect(validatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
+					Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
 				})
 			})
 		})
