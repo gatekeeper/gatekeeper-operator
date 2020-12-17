@@ -12,7 +12,7 @@ spec:
     listKind: GatekeeperList
     plural: gatekeepers
     singular: gatekeeper
-  scope: Namespaced
+  scope: Cluster
   versions:
   - additionalPrinterColumns:
     - jsonPath: .metadata.creationTimestamp

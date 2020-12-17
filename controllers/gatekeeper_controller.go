@@ -33,11 +33,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -77,7 +75,6 @@ var (
 )
 
 const (
-	gatekeeperFinalizer         = "finalizer.operator.gatekeeper.sh"
 	managerContainer            = "manager"
 	LogLevelArg                 = "--log-level"
 	AuditIntervalArg            = "--audit-interval"
@@ -99,7 +96,6 @@ type GatekeeperReconciler struct {
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers/finalizers,verbs=get;update;patch;delete
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers/status,verbs=get;update;patch
 
 // Gatekeeper Operator RBAC permissions to deploy Gatekeeper. Many of these
@@ -155,29 +151,6 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		}
 
 		return ctrl.Result{}, err
-	}
-
-	isGatekeeperMarkedToBeDeleted := gatekeeper.GetDeletionTimestamp() != nil
-	if isGatekeeperMarkedToBeDeleted {
-		if sets.NewString(gatekeeper.GetFinalizers()...).Has(gatekeeperFinalizer) {
-
-			if err := r.finalizeGatekeeper(logger, gatekeeper); err != nil {
-				return ctrl.Result{}, err
-			}
-
-			controllerutil.RemoveFinalizer(gatekeeper, gatekeeperFinalizer)
-			err := r.Update(ctx, gatekeeper)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-		return ctrl.Result{}, nil
-	}
-
-	if !sets.NewString(gatekeeper.GetFinalizers()...).Has(gatekeeperFinalizer) {
-		if err := r.addFinalizer(logger, gatekeeper); err != nil {
-			return ctrl.Result{}, err
-		}
 	}
 
 	err = r.deployGatekeeperResources(gatekeeper, platformName)
@@ -253,11 +226,9 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 
 	logger := r.Log.WithValues("Gatekeeper resource", namespacedName)
 
-	if manifest.Obj.GetNamespace() != "" {
-		err = ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
-		if err != nil {
-			return errors.Wrapf(err, "Unable to set controller reference for %s", namespacedName)
-		}
+	err = ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
+	if err != nil {
+		return errors.Wrapf(err, "Unable to set controller reference for %s", namespacedName)
 	}
 
 	err = r.Get(ctx, namespacedName, clusterObj)
@@ -288,44 +259,6 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 	}
 
 	return err
-}
-
-func (r *GatekeeperReconciler) finalizeGatekeeper(reqLogger logr.Logger, gatekeeper *operatorv1alpha1.Gatekeeper) error {
-	ctx := context.Background()
-
-	var err error
-	for _, a := range orderedStaticAssets {
-		manifest, err := util.GetManifest(a)
-		if err != nil {
-			return err
-		}
-
-		// Delete cluster scoped resource not owned by the CR
-		if manifest.Obj.GetNamespace() == "" {
-
-			err = r.Delete(ctx, manifest.Obj)
-			if err != nil && !apierrors.IsNotFound(err) {
-				return errors.Wrapf(err, "Error Deleting Finalizer Resource. Kind: '%s'. Name: '%s'", manifest.GVK.Kind, manifest.Obj.GetName())
-			}
-		}
-
-	}
-
-	reqLogger.Info("Successfully finalized Gatekeeper")
-	return err
-}
-
-func (r *GatekeeperReconciler) addFinalizer(reqLogger logr.Logger, g *operatorv1alpha1.Gatekeeper) error {
-	ctx := context.Background()
-
-	controllerutil.AddFinalizer(g, gatekeeperFinalizer)
-
-	// Update CR
-	err := r.Update(ctx, g)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to update Gatekeeper with finalizer. Name: '%s'", g.Name)
-	}
-	return nil
 }
 
 var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.GatekeeperSpec) error{
