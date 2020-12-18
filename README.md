@@ -29,18 +29,11 @@ Then proceed to the installation method you prefer below.
 
 ### Outside the Cluster
 
-If you would like to run the Operator outside the cluster, you'll have to set the
-`WATCH_NAMESPACE` environment variable to the namespace you want the
-Operator to monitor:
+If you would like to run the Operator outside the cluster you just execute:
 
-1. Set the WATCH_NAMESPACE environment variable:
-    ```shell
-    export WATCH_NAMESPACE=gatekeeper-system
-    ```
-1. You then run the Operator with:
-    ```shell
-    make run
-    ```
+```shell
+make run
+```
 
 ### Inside the Cluster
 
