@@ -13,9 +13,9 @@ const OperatorResourcesYaml string = "./resources/operator.yaml"
 var _ = Describe("Test gatekeeper", func() {
 	Describe("Test gatekeeper operator", func() {
 		It("gatekeeper operator resources should be created on managed", func() {
-			By("Creating resources on hub")
+			By("Creating resources on cluster")
 			Kubectl("apply", "-f", OperatorResourcesYaml)
-			crd := GetClusterLevelWithTimeout(clientHubDynamic, gvrCRD, "gatekeepers.operator.gatekeeper.sh", true, 360)
+			crd := GetClusterLevelWithTimeout(clientManagedDynamic, gvrCRD, "gatekeepers.operator.gatekeeper.sh", true, 360)
 			Expect(crd).NotTo(BeNil())
 			Kubectl("apply", "-f", "./resources/cr.yaml")
 		})
