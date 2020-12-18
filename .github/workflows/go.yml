@@ -75,7 +75,7 @@ jobs:
       run: |
         kind delete cluster
         kind create cluster
-        sleep 60
+        sleep 120
         make kind-deploy-olm
         make bundle IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         make bundle-build REPO=localhost:5000/gatekeeper-operator VERSION=$GITHUB_SHA
