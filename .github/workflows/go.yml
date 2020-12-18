@@ -60,7 +60,8 @@ jobs:
 
     - name: E2E Tests
       run: |
-        make deploy-ci NAMESPACE=mygatekeeper IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA 
+        make deploy-ci NAMESPACE=mygatekeeper IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        sleep 60
         make test-e2e
         kubectl delete --wait namespace mygatekeeper
 
@@ -74,7 +75,7 @@ jobs:
       run: |
         kind delete cluster
         kind create cluster
-        sleep 90
+        sleep 60
         make kind-deploy-olm
         make bundle IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         make bundle-build REPO=localhost:5000/gatekeeper-operator VERSION=$GITHUB_SHA
