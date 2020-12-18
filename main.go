@@ -24,11 +24,15 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
+	"github.com/pkg/errors"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -55,7 +59,8 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
@@ -64,6 +69,12 @@ func main() {
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	namespace, err := gatekeeperNamespace(cfg)
+	if err != nil {
+		setupLog.Error(err, "unable to get Gatekeeper namespace")
 		os.Exit(1)
 	}
 
@@ -82,5 +93,26 @@ func main() {
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
+	}
+}
+
+func gatekeeperNamespace(config *rest.Config) (string, error) {
+	ns, err := util.GetOperatorNamespace()
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to get operator namespace")
+	}
+
+	platformName, err := openshift.GetPlatformName(config)
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to get platform name")
+	}
+
+	switch util.PlatformType(platformName) {
+	case util.OpenShift:
+		return util.GetPlatformNamespace(platformName), nil
+	case util.Kubernetes:
+		fallthrough
+	default:
+		return ns, nil
 	}
 }
