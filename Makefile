@@ -142,7 +142,6 @@ manifests: controller-gen
 .PHONY: import-manifests
 import-manifests: kustomize
 	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR)
-	rm -f ./$(GATEKEEPER_MANIFEST_DIR)/v1_namespace_gatekeeper-system.yaml
 
 # Run go fmt against code
 .PHONY: fmt
