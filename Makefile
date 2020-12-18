@@ -99,11 +99,25 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: generate fmt vet manifests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); GOFLAGS=$(GOFLAGS) go test -v ./... -coverprofile cover.out
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); GOFLAGS=$(GOFLAGS) go test -v `go list ./... | grep -v ./test/e2e-olm` -coverprofile cover.out
 
 .PHONY: test-e2e
 test-e2e: generate fmt vet
 	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace
+
+.PHONY: test-e2e-olm
+test-e2e-olm:
+	ginkgo -v --slowSpecThreshold=10 test/e2e-olm
+
+.PHONY: kind-deploy-olm
+kind-deploy-olm:
+	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/crds.yaml
+	sleep 5
+	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/olm.yaml
+
+.PHONY: set-olm-e2e-img
+set-olm-e2e-img:
+	sed -i '' 's/<IMAGE>/$(INDEX_IMAGE)/g' test/e2e-olm/resources/operator.yaml
 
 # Build manager binary
 .PHONY: manager
