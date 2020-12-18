@@ -85,6 +85,15 @@ rules:
 - apiGroups:
   - operator.gatekeeper.sh
   resources:
+  - gatekeepers/finalizers
+  verbs:
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - operator.gatekeeper.sh
+  resources:
   - gatekeepers/status
   verbs:
   - get
