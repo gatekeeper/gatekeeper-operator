@@ -13,6 +13,7 @@
 // config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
 // config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml
+// config/gatekeeper/v1_namespace_gatekeeper-system.yaml
 // config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml
 // config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml
 // config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml
@@ -1132,6 +1133,31 @@ func configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRole
 	return a, nil
 }
 
+var _configGatekeeperV1_namespace_gatekeeperSystemYaml = []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    admission.gatekeeper.sh/ignore: no-self-managing
+    control-plane: controller-manager
+    gatekeeper.sh/system: "yes"
+  name: gatekeeper-system
+`)
+
+func configGatekeeperV1_namespace_gatekeeperSystemYamlBytes() ([]byte, error) {
+	return _configGatekeeperV1_namespace_gatekeeperSystemYaml, nil
+}
+
+func configGatekeeperV1_namespace_gatekeeperSystemYaml() (*asset, error) {
+	bytes, err := configGatekeeperV1_namespace_gatekeeperSystemYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper/v1_namespace_gatekeeper-system.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml = []byte(`apiVersion: v1
 kind: Secret
 metadata:
@@ -1277,6 +1303,7 @@ var _bindata = map[string]func() (*asset, error){
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                                  configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                       configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
 	"config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                         configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml,
+	"config/gatekeeper/v1_namespace_gatekeeper-system.yaml":                                                                                  configGatekeeperV1_namespace_gatekeeperSystemYaml,
 	"config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                        configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml,
 	"config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml":                                                                           configGatekeeperV1_service_gatekeeperWebhookServiceYaml,
 	"config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml":                                                                              configGatekeeperV1_serviceaccount_gatekeeperAdminYaml,
@@ -1340,6 +1367,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml": {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                      {configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
 			"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":        {configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
+			"v1_namespace_gatekeeper-system.yaml":                                                 {configGatekeeperV1_namespace_gatekeeperSystemYaml, map[string]*bintree{}},
 			"v1_secret_gatekeeper-webhook-server-cert.yaml":                                       {configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml, map[string]*bintree{}},
 			"v1_service_gatekeeper-webhook-service.yaml":                                          {configGatekeeperV1_service_gatekeeperWebhookServiceYaml, map[string]*bintree{}},
 			"v1_serviceaccount_gatekeeper-admin.yaml":                                             {configGatekeeperV1_serviceaccount_gatekeeperAdminYaml, map[string]*bintree{}},
