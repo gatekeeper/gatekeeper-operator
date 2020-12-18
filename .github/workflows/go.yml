@@ -73,11 +73,13 @@ jobs:
 
     - name: OLM E2E Tests
       run: |
+        kind delete cluster
+        kind create cluster
         make kind-deploy-olm
         make bundle IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
-        make bundle-build REPO=localhost:5000/gatekeeper-operator VERSION=$GITHUB_SHA
-        kind load docker-image localhost:5000/gatekeeper-operator/gatekeeper-operator-bundle:$GITHUB_SHA
-        make bundle-index-build REPO=localhost:5000/gatekeeper-operator VERSION=$GITHUB_SHA
-        kind load docker-image localhost:5000/gatekeeper-operator/gatekeeper-operator-bundle-index:$GITHUB_SHA
+        make bundle-build REPO=localhost:5000 VERSION=$GITHUB_SHA
+        kind load docker-image localhost:5000/gatekeeper-operator-bundle:$GITHUB_SHA
+        make bundle-index-build REPO=localhost:5000 VERSION=$GITHUB_SHA
+        kind load docker-image localhost:5000/gatekeeper-operator-bundle-index:$GITHUB_SHA
         make set-olm-e2e-img INDEX_IMAGE=localhost:5000/gatekeeper-operator/gatekeeper-operator-bundle-index:$GITHUB_SHA
         make test-e2e-olm
