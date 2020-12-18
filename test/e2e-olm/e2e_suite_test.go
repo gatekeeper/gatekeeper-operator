@@ -1,22 +1,15 @@
-// Copyright (c) 2020 Red Hat, Inc.
-
 package e2eolm
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -51,7 +44,6 @@ func TestE2e(t *testing.T) {
 func init() {
 	klog.SetOutput(GinkgoWriter)
 	klog.InitFlags(nil)
-	flag.StringVar(&kubeconfigHub, "kubeconfig_hub", "", "Location of the kubeconfig to use; defaults to KUBECONFIG if not set")
 	flag.StringVar(&kubeconfigManaged, "kubeconfig_managed", "", "Location of the kubeconfig to use; defaults to KUBECONFIG if not set")
 
 }
@@ -60,35 +52,8 @@ var _ = BeforeSuite(func() {
 	By("Setup hub and managed client")
 	gvrPod = schema.GroupVersionResource{Version: "v1", Resource: "pods"}
 	gvrCRD = schema.GroupVersionResource{Group: "apiextensions.k8s.io", Version: "v1", Resource: "customresourcedefinitions"}
-	gvrNS = schema.GroupVersionResource{Version: "v1", Resource: "namespaces"}
-	clientHub = NewKubeClient("", kubeconfigHub, "")
-	clientHubDynamic = NewKubeClientDynamic("", kubeconfigHub, "")
 	clientManaged = NewKubeClient("", kubeconfigManaged, "")
 	clientManagedDynamic = NewKubeClientDynamic("", kubeconfigManaged, "")
-	defaultImageRegistry = "quay.io/open-cluster-management"
-	defaultImagePullSecretName = "multiclusterhub-operator-pull-secret"
-	userNamespace = "policy-test"
-	clusterNamespace = "managed"
-	timeoutStr, found := os.LookupEnv("E2E_TIMEOUT_SECONDS")
-	if !found {
-		defaultTimeoutSeconds = 30
-	} else {
-		if n, err := strconv.Atoi(timeoutStr); err == nil {
-			defaultTimeoutSeconds = n
-		} else {
-			defaultTimeoutSeconds = 30
-		}
-	}
-	By("Create Namesapce if needed")
-	namespaces := clientHub.CoreV1().Namespaces()
-	if _, err := namespaces.Get(context.TODO(), userNamespace, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
-		Expect(namespaces.Create(context.TODO(), &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: userNamespace,
-			},
-		}, metav1.CreateOptions{})).NotTo(BeNil())
-	}
-	Expect(namespaces.Get(context.TODO(), userNamespace, metav1.GetOptions{})).NotTo(BeNil())
 })
 
 func NewKubeClient(url, kubeconfig, context string) kubernetes.Interface {
