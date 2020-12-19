@@ -18,7 +18,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,8 +27,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
+	"github.com/pkg/errors"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -56,30 +58,37 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	watchNamespace, err := getWatchNamespace()
-	if err != nil {
-		setupLog.Error(err, "unable to get WatchNamespace, ")
-		os.Exit(1)
-	}
-
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "6ccdc528.gatekeeper.sh",
-		Namespace:          watchNamespace, // namespaced-scope when the value is not an empty string
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
+	platformName, err := openshift.GetPlatformName(cfg)
+	if err != nil {
+		setupLog.Error(err, "unable to get platform name")
+		os.Exit(1)
+	}
+
+	namespace, err := gatekeeperNamespace(platformName)
+	if err != nil {
+		setupLog.Error(err, "unable to get Gatekeeper namespace")
+		os.Exit(1)
+	}
+
 	if err = (&controllers.GatekeeperReconciler{
-		Client:    mgr.GetClient(),
-		Log:       ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
-		Scheme:    mgr.GetScheme(),
-		Namespace: watchNamespace,
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
+		Scheme:       mgr.GetScheme(),
+		Namespace:    namespace,
+		PlatformName: util.PlatformType(platformName),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Gatekeeper")
 		os.Exit(1)
@@ -93,17 +102,18 @@ func main() {
 	}
 }
 
-// getWatchNamespace returns the Namespace the operator should be watching for
-// changes.
-func getWatchNamespace() (string, error) {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch. An empty value means the
-	// operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+func gatekeeperNamespace(platformName string) (string, error) {
+	ns, err := util.GetOperatorNamespace()
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to get operator namespace")
 	}
-	return ns, nil
+
+	switch util.PlatformType(platformName) {
+	case util.OpenShift:
+		return util.GetPlatformNamespace(platformName), nil
+	case util.Kubernetes:
+		fallthrough
+	default:
+		return ns, nil
+	}
 }

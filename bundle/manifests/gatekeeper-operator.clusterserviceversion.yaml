@@ -206,6 +206,18 @@ spec:
           - patch
           - update
         - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - security.openshift.io
           resourceNames:
           - anyuid
@@ -256,11 +268,6 @@ spec:
                 - --enable-leader-election
                 command:
                 - /manager
-                env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 image: quay.io/gatekeeper/gatekeeper-operator:latest
                 imagePullPolicy: Always
                 name: manager
