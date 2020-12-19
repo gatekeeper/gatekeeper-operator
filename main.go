@@ -24,7 +24,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -72,17 +71,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	namespace, err := gatekeeperNamespace(cfg)
+	platformName, err := openshift.GetPlatformName(cfg)
+	if err != nil {
+		setupLog.Error(err, "unable to get platform name")
+		os.Exit(1)
+	}
+
+	namespace, err := gatekeeperNamespace(platformName)
 	if err != nil {
 		setupLog.Error(err, "unable to get Gatekeeper namespace")
 		os.Exit(1)
 	}
 
 	if err = (&controllers.GatekeeperReconciler{
-		Client:    mgr.GetClient(),
-		Log:       ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
-		Scheme:    mgr.GetScheme(),
-		Namespace: namespace,
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
+		Scheme:       mgr.GetScheme(),
+		Namespace:    namespace,
+		PlatformName: util.PlatformType(platformName),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Gatekeeper")
 		os.Exit(1)
@@ -96,15 +102,10 @@ func main() {
 	}
 }
 
-func gatekeeperNamespace(config *rest.Config) (string, error) {
+func gatekeeperNamespace(platformName string) (string, error) {
 	ns, err := util.GetOperatorNamespace()
 	if err != nil {
 		return "", errors.Wrapf(err, "Failed to get operator namespace")
-	}
-
-	platformName, err := openshift.GetPlatformName(config)
-	if err != nil {
-		return "", errors.Wrapf(err, "Failed to get platform name")
 	}
 
 	switch util.PlatformType(platformName) {

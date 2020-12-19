@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	"github.com/go-logr/logr"
 	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
@@ -35,7 +34,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -47,6 +45,7 @@ import (
 var (
 	defaultGatekeeperCrName        = "gatekeeper"
 	openshiftAssetsDir             = "openshift/"
+	NamespaceFile                  = "v1_namespace_gatekeeper-system.yaml"
 	RoleFile                       = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	AuditFile                      = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                    = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
@@ -55,6 +54,7 @@ var (
 	ServerCertFile                 = "v1_secret_gatekeeper-webhook-server-cert.yaml"
 	ValidatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
 	orderedStaticAssets            = []string{
+		NamespaceFile,
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
@@ -89,9 +89,10 @@ const (
 // GatekeeperReconciler reconciles a Gatekeeper object
 type GatekeeperReconciler struct {
 	client.Client
-	Log       logr.Logger
-	Scheme    *runtime.Scheme
-	Namespace string
+	Log          logr.Logger
+	Scheme       *runtime.Scheme
+	Namespace    string
+	PlatformName util.PlatformType
 }
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
@@ -127,15 +128,6 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	logger := r.Log.WithValues("gatekeeper", req.NamespacedName)
 	logger.Info("Reconciling Gatekeeper")
 
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	platformName, err := openshift.GetPlatformName(cfg)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	if req.Name != defaultGatekeeperCrName {
 		err := fmt.Errorf("Gatekeeper resource name must be '%s'", defaultGatekeeperCrName)
 		logger.Error(err, "Invalid Gatekeeper resource name")
@@ -144,7 +136,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	}
 
 	gatekeeper := &operatorv1alpha1.Gatekeeper{}
-	err = r.Get(ctx, req.NamespacedName, gatekeeper)
+	err := r.Get(ctx, req.NamespacedName, gatekeeper)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 
@@ -154,7 +146,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, err
 	}
 
-	err = r.deployGatekeeperResources(gatekeeper, platformName)
+	err = r.deployGatekeeperResources(gatekeeper)
 	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
 	}
@@ -180,16 +172,24 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper, platformName string) error {
+func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
 	for _, a := range getStaticAssets(gatekeeper) {
-		if a == RoleFile && platformName == "OpenShift" {
+		// Handle special cases in switch below.
+		switch {
+		case a == NamespaceFile && !r.isOpenShift():
+			// Ignore the namespace resource on Kubernetes as we default to use
+			// the same namespace as the operator, which by definition is
+			// already created as a result of executing this code.
+			continue
+		case a == RoleFile && r.isOpenShift():
 			a = openshiftAssetsDir + a
 		}
+
 		manifest, err := util.GetManifest(a)
 		if err != nil {
 			return err
 		}
-		if err = crOverrides(gatekeeper, a, manifest, r.Namespace, (platformName == "OpenShift")); err != nil {
+		if err = crOverrides(gatekeeper, a, manifest, r.Namespace, r.isOpenShift()); err != nil {
 			return err
 		}
 
@@ -262,6 +262,10 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 	return err
 }
 
+func (r *GatekeeperReconciler) isOpenShift() bool {
+	return util.IsOpenShift(r.PlatformName)
+}
+
 var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.GatekeeperSpec) error{
 	setAffinity,
 	setNodeSelector,
@@ -275,8 +279,12 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 
 // crOverrides
 func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest, namespace string, isOpenshift bool) error {
-	// set current namespace
-	if err := setCurrentNamespace(manifest.Obj, asset, namespace); err != nil {
+	if asset == NamespaceFile {
+		manifest.Obj.SetName(namespace)
+		return nil
+	}
+	// set resource's namespace
+	if err := setNamespace(manifest.Obj, asset, namespace); err != nil {
 		return err
 	}
 	// audit overrides
@@ -597,7 +605,7 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 	})
 }
 
-func setCurrentNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
+func setNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
 	if obj.GetNamespace() != "" {
 		obj.SetNamespace(namespace)
 	}

@@ -20,3 +20,7 @@ const (
 	OpenShift  PlatformType = "OpenShift"
 	Kubernetes PlatformType = "Kubernetes"
 )
+
+func IsOpenShift(platformName PlatformType) bool {
+	return platformName == OpenShift
+}
