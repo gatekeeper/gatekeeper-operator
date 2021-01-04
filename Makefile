@@ -16,6 +16,8 @@ NAMESPACE ?= gatekeeper-system
 # Default Kubernetes distribution
 KUBE_DISTRIBUTION ?= vanilla
 # Options for 'bundle-build'
+CHANNELS ?= stable
+DEFAULT_CHANNEL ?= stable
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
