@@ -99,6 +99,8 @@ type WebhookConfig struct {
 	// +optional
 	FailurePolicy *admregv1.FailurePolicyType `json:"failurePolicy,omitempty"`
 	// +optional
+	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
+	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
