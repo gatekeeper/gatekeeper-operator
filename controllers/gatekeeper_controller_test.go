@@ -89,17 +89,13 @@ func TestCustomNamespace(t *testing.T) {
 	g.Expect(webhookConfig).ToNot(BeNil())
 	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig, expectedNamespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	webhooks, found, err := unstructured.NestedSlice(webhookConfig.Obj.Object, "webhooks")
-	g.Expect(found).To(BeTrue())
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(webhooks).ToNot(BeNil())
-	for _, w := range webhooks {
-		webhook := w.(map[string]interface{})
+
+	assertWebhooksWithFn(g, webhookConfig, func(webhook map[string]interface{}) {
 		ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		g.Expect(ns).To(Equal(expectedNamespace))
-	}
+	})
 }
 
 func TestReplicas(t *testing.T) {
@@ -582,15 +578,9 @@ func TestFailurePolicy(t *testing.T) {
 }
 
 func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admregv1.FailurePolicyType) {
-	g.Expect(manifest).NotTo(BeNil())
-	webhooks, found, err := unstructured.NestedSlice(manifest.Obj.Object, "webhooks")
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(found).To(BeTrue())
-
-	for _, w := range webhooks {
-		webhook := w.(map[string]interface{})
+	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
 		if webhook["name"] == ValidationGatekeeperWebhook {
-			current, found, err := unstructured.NestedString(util.ToMap(w), "failurePolicy")
+			current, found, err := unstructured.NestedString(webhook, "failurePolicy")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
 			if expected == nil {
@@ -599,6 +589,19 @@ func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admreg
 				g.Expect(*expected).To(BeEquivalentTo(current))
 			}
 		}
+	})
+}
+
+func assertWebhooksWithFn(g *WithT, manifest *manifest.Manifest, webhookFn func(map[string]interface{})) {
+	g.Expect(manifest).NotTo(BeNil())
+	webhooks, found, err := unstructured.NestedSlice(manifest.Obj.Object, "webhooks")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(webhooks).ToNot(BeNil())
+
+	for _, w := range webhooks {
+		webhook := w.(map[string]interface{})
+		webhookFn(webhook)
 	}
 }
 
