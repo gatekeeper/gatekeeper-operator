@@ -24,13 +24,14 @@ import (
 )
 
 type defaultConfig struct {
-	AuditReplicas   int32
-	WebhookReplicas int32
-	Affinity        *corev1.Affinity
-	NodeSelector    map[string]string
-	PodAnnotations  map[string]string
-	Resources       *corev1.ResourceRequirements
-	FailurePolicy   admregv1.FailurePolicyType
+	AuditReplicas     int32
+	WebhookReplicas   int32
+	Affinity          *corev1.Affinity
+	NodeSelector      map[string]string
+	PodAnnotations    map[string]string
+	Resources         *corev1.ResourceRequirements
+	FailurePolicy     admregv1.FailurePolicyType
+	NamespaceSelector *metav1.LabelSelector
 }
 
 // DefaultDeployment is the expected default configuration to be deployed
@@ -77,4 +78,12 @@ var DefaultDeployment = defaultConfig{
 		},
 	},
 	FailurePolicy: admregv1.Ignore,
+	NamespaceSelector: &metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "admission.gatekeeper.sh/ignore",
+				Operator: metav1.LabelSelectorOpDoesNotExist,
+			},
+		},
+	},
 }

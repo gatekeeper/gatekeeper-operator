@@ -592,6 +592,57 @@ func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admreg
 	})
 }
 
+func TestNamespaceSelector(t *testing.T) {
+	g := NewWithT(t)
+
+	namespaceSelector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "admission.gatekeeper.sh/enabled",
+				Operator: metav1.LabelSelectorOpExists,
+			},
+		},
+	}
+	webhook := operatorv1alpha1.WebhookConfig{
+		NamespaceSelector: &namespaceSelector,
+	}
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+	// test default namespaceSelector
+	manifest, err := util.GetManifest(ValidatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, nil)
+
+	// test nil namespaceSelector
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, nil)
+
+	// test namespaceSelector override
+	gatekeeper.Spec.Webhook = &webhook
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, &namespaceSelector)
+}
+
+func assertNamespaceSelector(g *WithT, manifest *manifest.Manifest, expected *metav1.LabelSelector) {
+	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
+		if webhook["name"] == ValidationGatekeeperWebhook {
+			current, found, err := unstructured.NestedFieldCopy(webhook, "namespaceSelector")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeTrue())
+			if expected == nil {
+				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
+			} else {
+				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
+			}
+		}
+	})
+}
+
 func assertWebhooksWithFn(g *WithT, manifest *manifest.Manifest, webhookFn func(map[string]interface{})) {
 	g.Expect(manifest).NotTo(BeNil())
 	webhooks, found, err := unstructured.NestedSlice(manifest.Obj.Object, "webhooks")
