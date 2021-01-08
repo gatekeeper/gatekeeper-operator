@@ -732,7 +732,6 @@ spec:
                 type: object
               type: array
             validatingWebhook:
-              default: Enabled
               enum:
               - Enabled
               - Disabled
