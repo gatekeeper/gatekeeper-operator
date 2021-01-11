@@ -386,6 +386,9 @@ func validatingWebhookConfigurationOverrides(obj *unstructured.Unstructured, web
 		if err := setFailurePolicy(obj, webhook.FailurePolicy); err != nil {
 			return err
 		}
+		if err := setNamespaceSelector(obj, webhook.NamespaceSelector); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -469,25 +472,53 @@ func setEmitEvents(obj *unstructured.Unstructured, argName string, emitEvents *o
 	return nil
 }
 
-func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.FailurePolicyType) error {
-	if failurePolicy != nil {
-		webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
-		if err != nil || !found {
-			return errors.Wrapf(err, "Failed to retrieve webhooks definition")
-		}
-		for _, w := range webhooks {
-			webhook := w.(map[string]interface{})
-			if webhook["name"] == ValidationGatekeeperWebhook {
-				if err := unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy"); err != nil {
-					return errors.Wrapf(err, "Failed to set webhook failure policy")
-				}
+func setWebhookConfigurationWithFn(obj *unstructured.Unstructured, webhookName string, webhookFn func(map[string]interface{}) error) error {
+	webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
+	if err != nil || !found {
+		return errors.Wrapf(err, "Failed to retrieve webhooks definition")
+	}
+	for _, w := range webhooks {
+		webhook := w.(map[string]interface{})
+		if webhook["name"] == webhookName {
+			if err := webhookFn(webhook); err != nil {
+				return err
 			}
 		}
-		if err := unstructured.SetNestedSlice(obj.Object, webhooks, "webhooks"); err != nil {
-			return errors.Wrapf(err, "Failed to set webhooks")
-		}
+	}
+	if err := unstructured.SetNestedSlice(obj.Object, webhooks, "webhooks"); err != nil {
+		return errors.Wrapf(err, "Failed to set webhooks")
 	}
 	return nil
+}
+
+func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.FailurePolicyType) error {
+	if failurePolicy == nil {
+		return nil
+	}
+
+	setFailurePolicyFn := func(webhook map[string]interface{}) error {
+		if err := unstructured.SetNestedField(webhook, string(*failurePolicy), "failurePolicy"); err != nil {
+			return errors.Wrapf(err, "Failed to set webhook failure policy")
+		}
+		return nil
+	}
+
+	return setWebhookConfigurationWithFn(obj, ValidationGatekeeperWebhook, setFailurePolicyFn)
+}
+
+func setNamespaceSelector(obj *unstructured.Unstructured, namespaceSelector *metav1.LabelSelector) error {
+	if namespaceSelector == nil {
+		return nil
+	}
+
+	setNamespaceSelectorFn := func(webhook map[string]interface{}) error {
+		if err := unstructured.SetNestedField(webhook, util.ToMap(namespaceSelector), "namespaceSelector"); err != nil {
+			return errors.Wrapf(err, "Failed to set webhook namespace selector")
+		}
+		return nil
+	}
+
+	return setWebhookConfigurationWithFn(obj, ValidationGatekeeperWebhook, setNamespaceSelectorFn)
 }
 
 // Generic setters

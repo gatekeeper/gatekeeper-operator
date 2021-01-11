@@ -89,17 +89,13 @@ func TestCustomNamespace(t *testing.T) {
 	g.Expect(webhookConfig).ToNot(BeNil())
 	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig, expectedNamespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	webhooks, found, err := unstructured.NestedSlice(webhookConfig.Obj.Object, "webhooks")
-	g.Expect(found).To(BeTrue())
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(webhooks).ToNot(BeNil())
-	for _, w := range webhooks {
-		webhook := w.(map[string]interface{})
+
+	assertWebhooksWithFn(g, webhookConfig, func(webhook map[string]interface{}) {
 		ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(found).To(BeTrue())
 		g.Expect(ns).To(Equal(expectedNamespace))
-	}
+	})
 }
 
 func TestReplicas(t *testing.T) {
@@ -582,15 +578,9 @@ func TestFailurePolicy(t *testing.T) {
 }
 
 func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admregv1.FailurePolicyType) {
-	g.Expect(manifest).NotTo(BeNil())
-	webhooks, found, err := unstructured.NestedSlice(manifest.Obj.Object, "webhooks")
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(found).To(BeTrue())
-
-	for _, w := range webhooks {
-		webhook := w.(map[string]interface{})
+	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
 		if webhook["name"] == ValidationGatekeeperWebhook {
-			current, found, err := unstructured.NestedString(util.ToMap(w), "failurePolicy")
+			current, found, err := unstructured.NestedString(webhook, "failurePolicy")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
 			if expected == nil {
@@ -599,6 +589,70 @@ func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admreg
 				g.Expect(*expected).To(BeEquivalentTo(current))
 			}
 		}
+	})
+}
+
+func TestNamespaceSelector(t *testing.T) {
+	g := NewWithT(t)
+
+	namespaceSelector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "admission.gatekeeper.sh/enabled",
+				Operator: metav1.LabelSelectorOpExists,
+			},
+		},
+	}
+	webhook := operatorv1alpha1.WebhookConfig{
+		NamespaceSelector: &namespaceSelector,
+	}
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+	// test default namespaceSelector
+	manifest, err := util.GetManifest(ValidatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, nil)
+
+	// test nil namespaceSelector
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, nil)
+
+	// test namespaceSelector override
+	gatekeeper.Spec.Webhook = &webhook
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, manifest, &namespaceSelector)
+}
+
+func assertNamespaceSelector(g *WithT, manifest *manifest.Manifest, expected *metav1.LabelSelector) {
+	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
+		if webhook["name"] == ValidationGatekeeperWebhook {
+			current, found, err := unstructured.NestedFieldCopy(webhook, "namespaceSelector")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeTrue())
+			if expected == nil {
+				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
+			} else {
+				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
+			}
+		}
+	})
+}
+
+func assertWebhooksWithFn(g *WithT, manifest *manifest.Manifest, webhookFn func(map[string]interface{})) {
+	g.Expect(manifest).NotTo(BeNil())
+	webhooks, found, err := unstructured.NestedSlice(manifest.Obj.Object, "webhooks")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(webhooks).ToNot(BeNil())
+
+	for _, w := range webhooks {
+		webhook := w.(map[string]interface{})
+		webhookFn(webhook)
 	}
 }
 

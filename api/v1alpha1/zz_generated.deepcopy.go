@@ -296,6 +296,11 @@ func (in *WebhookConfig) DeepCopyInto(out *WebhookConfig) {
 		*out = new(admissionregistrationv1.FailurePolicyType)
 		**out = **in
 	}
+	if in.NamespaceSelector != nil {
+		in, out := &in.NamespaceSelector, &out.NamespaceSelector
+		*out = new(metav1.LabelSelector)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Resources != nil {
 		in, out := &in.Resources, &out.Resources
 		*out = new(v1.ResourceRequirements)
