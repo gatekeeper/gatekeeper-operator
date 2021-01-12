@@ -107,6 +107,17 @@ test: generate fmt vet manifests
 test-e2e: generate fmt vet
 	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace
 
+.PHONY: deploy-olm
+deploy-olm:
+	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/crds.yaml
+	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/olm.yaml
+
+.PHONY: deploy-with-olm
+deploy-with-olm:
+	sed -i 's#quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest#$(BUNDLE_INDEX_IMG)#g' config/olm-install/install-resources.yaml
+	(cd config/olm-install && $(KUSTOMIZE) edit set namespace $(NAMESPACE))
+	$(KUSTOMIZE) build config/olm-install | kubectl apply -f -
+
 # Build manager binary
 .PHONY: manager
 manager: generate fmt vet manifests
@@ -273,6 +284,16 @@ bundle-build:
 .PHONY: bundle-index-build
 bundle-index-build: opm
 	$(OPM) index add --bundles $(BUNDLE_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
+
+# Generate and push bundle image and bundle index image
+# Note: OPERATOR_VERSION is an arbitrary number and does not need to match any official versions
+.PHONY: build-and-push-bundle-images
+build-and-push-bundle-images: docker-build docker-push 
+	$(MAKE) bundle VERSION=$(OPERATOR_VERSION)
+	$(MAKE) bundle-build
+	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(MAKE) bundle-index-build
+	$(MAKE) docker-push IMG=$(BUNDLE_INDEX_IMG)
 
 .PHONY: vendor
 vendor:
