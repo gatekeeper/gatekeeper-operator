@@ -319,3 +319,11 @@ deploy-ci: deploy-ci-namespace deploy
 deploy-ci-namespace: install
 	kubectl create namespace --dry-run=client -o yaml $(NAMESPACE) | kubectl apply -f-
 	sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
+
+.PHONY: release
+release: manifests kustomize
+	cd config/default && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
+	cd $(RBAC_DIR) && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	{ $(KUSTOMIZE) build config/default ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } > deploy/gatekeeper-operator.yaml
+
