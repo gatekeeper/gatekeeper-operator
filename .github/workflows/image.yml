@@ -42,15 +42,12 @@ jobs:
         pull: true
         push: true
         tags: |
-          ${{ env.WORKFLOW_IMG }}:latest
           ${{ env.WORKFLOW_IMG }}:master
 
     - name: Build and Push Bundle Image
       run: |
         make bundle-build VERSION=master
-        docker tag ${WORKFLOW_BUNDLE_IMG}:master ${WORKFLOW_BUNDLE_IMG}:latest
         make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:master
-        make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:latest
 
     - name: Set Up Go to Install OPM
       uses: actions/setup-go@v2
@@ -61,6 +58,4 @@ jobs:
     - name: Build and Push Bundle Index Image
       run: |
         make bundle-index-build VERSION=master
-        docker tag ${WORKFLOW_BUNDLE_INDEX_IMG}:master ${WORKFLOW_BUNDLE_INDEX_IMG}:latest
         make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:master
-        make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:latest
