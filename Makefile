@@ -325,5 +325,4 @@ release: manifests kustomize
 	cd config/default && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
 	cd $(RBAC_DIR) && $(KUSTOMIZE) edit set namespace $(NAMESPACE)
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	{ $(KUSTOMIZE) build config/default ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } > deploy/gatekeeper-operator.yaml
-
+	{ $(KUSTOMIZE) build config/default ; echo "---" ; $(KUSTOMIZE) build $(RBAC_DIR) ; } > ./deploy/gatekeeper-operator.yaml
