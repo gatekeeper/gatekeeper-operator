@@ -28,6 +28,16 @@ jobs:
         echo "RELEASE_BUNDLE_INDEX_IMG=${RELEASE_IMG}-bundle-index" >> ${GITHUB_ENV}
 
     - uses: actions/checkout@v2
+
+    - name: Verify release manifest
+      run: |
+        # GitHub Actions obfuscates values of secrets e.g. REPO='quay.io/***',
+        # so pass an unset REPO variable to use the default within the
+        # Makefile.
+        unset REPO
+        make release IMG_TAG=${RELEASE_VERSION}
+        git diff --exit-code ./deploy/gatekeeper-operator.yaml
+
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
       with:
