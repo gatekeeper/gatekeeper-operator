@@ -103,6 +103,10 @@ func main() {
 }
 
 func gatekeeperNamespace(platformName string) (string, error) {
+	if ns := os.Getenv("GATEKEEPER_TARGET_NAMESPACE"); ns != "" {
+		return ns, nil
+	}
+
 	ns, err := util.GetOperatorNamespace()
 	if err != nil {
 		return "", errors.Wrapf(err, "Failed to get operator namespace")

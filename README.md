@@ -29,10 +29,13 @@ Then proceed to the installation method you prefer below.
 
 ### Outside the Cluster
 
-If you would like to run the Operator outside the cluster you just execute:
+If you would like to run the Gatekeeper Operator outside the cluster, the
+operator will use the default namespace to deploy Gatekeeper. If instead you
+would like to have the operator deploy Gatekeeper to a different namespace,
+then set the `NAMESPACE` environment variable. To do that just execute:
 
 ```shell
-make run
+make run NAMESPACE=<namespace>
 ```
 
 ### Inside the Cluster
