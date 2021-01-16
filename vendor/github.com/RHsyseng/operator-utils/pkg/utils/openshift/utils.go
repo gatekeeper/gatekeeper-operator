@@ -28,7 +28,6 @@ func IsOpenShift(cfg *rest.Config) (bool, error) {
 }
 
 /*
-<<<<<<< HEAD
 GetPlatformName is a helper method to return the platform name from GetPlatformInfo results
 Accepts <nil> or instantiated 'cfg' rest config parameter.
 */
@@ -41,8 +40,6 @@ func GetPlatformName(cfg *rest.Config) (string, error) {
 }
 
 /*
-=======
->>>>>>> 39964be... modify role to use nouid scc for openshift
 LookupOpenShiftVersion fetches OpenShift version info from API endpoints
 *** NOTE: OCP 4.1+ requires elevated user permissions, see PlatformVersioner for details
 Accepts <nil> or instantiated 'cfg' rest config parameter.
