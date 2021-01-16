@@ -127,7 +127,7 @@ manager: generate fmt vet manifests
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt vet manifests
-	GOFLAGS=$(GOFLAGS) go run ./main.go
+	GOFLAGS=$(GOFLAGS) GATEKEEPER_TARGET_NAMESPACE=$(NAMESPACE) go run ./main.go
 
 # Install CRDs into a cluster
 .PHONY: install
