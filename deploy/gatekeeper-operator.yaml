@@ -689,6 +689,8 @@ spec:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsNonRoot: true
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

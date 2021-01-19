@@ -278,6 +278,8 @@ spec:
                   requests:
                     cpu: 100m
                     memory: 20Mi
+              securityContext:
+                runAsNonRoot: true
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
