@@ -37,6 +37,8 @@ jobs:
         unset REPO
         make release VERSION=${RELEASE_VERSION}
         git diff --exit-code ./deploy/gatekeeper-operator.yaml
+        # Reset state of git tree modified by kustomize.
+        git reset --hard
 
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
