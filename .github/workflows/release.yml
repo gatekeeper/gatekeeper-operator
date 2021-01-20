@@ -47,16 +47,13 @@ jobs:
         registry: quay.io
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_TOKEN }}
-    - uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        pull: true
-        push: true
-        tags: |
-          ${{ env.RELEASE_IMG }}:${{ env.RELEASE_VERSION }}
-          ${{ env.RELEASE_IMG }}:latest
+
+    - name: Build and Push Operator Image
+      run: |
+        make docker-build VERSION=${RELEASE_VERSION}
+        docker tag ${RELEASE_IMG}:${RELEASE_VERSION} ${RELEASE_IMG}:latest
+        make docker-push IMG=${RELEASE_IMG}:${RELEASE_VERSION}
+        make docker-push IMG=${RELEASE_IMG}:latest
 
     - name: Build and Push Bundle Image
       run: |
