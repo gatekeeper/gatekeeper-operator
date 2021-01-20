@@ -35,7 +35,7 @@ jobs:
         # so pass an unset REPO variable to use the default within the
         # Makefile.
         unset REPO
-        make release IMG_TAG=${RELEASE_VERSION}
+        make release VERSION=${RELEASE_VERSION}
         git diff --exit-code ./deploy/gatekeeper-operator.yaml
 
     - uses: docker/setup-qemu-action@v1

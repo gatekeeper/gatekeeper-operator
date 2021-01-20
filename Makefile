@@ -26,9 +26,8 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-IMG_TAG ?= latest
 # Image URL to use all building/pushing image targets
-IMG ?= $(REPO)/gatekeeper-operator:$(IMG_TAG)
+IMG ?= $(REPO)/gatekeeper-operator:$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1beta1"
 
