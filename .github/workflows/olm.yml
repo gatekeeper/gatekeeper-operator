@@ -26,7 +26,7 @@ jobs:
         make deploy-olm
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
-      run: make build-and-push-bundle-images IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA REPO=localhost:5000 VERSION=$GITHUB_SHA OPERATOR_VERSION=0.0.1
+      run: make build-and-push-bundle-images IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA REPO=localhost:5000 VERSION=$GITHUB_SHA OPERATOR_VERSION=0.0.1-rc.0
 
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
