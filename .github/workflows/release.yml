@@ -28,6 +28,8 @@ jobs:
         echo "RELEASE_BUNDLE_INDEX_IMG=${RELEASE_IMG}-bundle-index" >> ${GITHUB_ENV}
 
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetch all history for all tags and branches
 
     - name: Verify release manifest
       run: |
