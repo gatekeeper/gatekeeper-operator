@@ -2,7 +2,7 @@ SHELL := /bin/bash
 # Detect the OS to set per-OS defaults
 OS_NAME = $(shell uname -s)
 # Current Operator version
-VERSION ?= v0.0.1-rc.1
+VERSION ?= v0.0.1-rc.2
 # Current Gatekeeper version
 GATEKEEPER_VERSION ?= v3.2.2
 # Default image repo
