@@ -35,8 +35,10 @@ jobs:
         # so pass an unset REPO variable to use the default within the
         # Makefile.
         unset REPO
-        make release IMG_TAG=${RELEASE_VERSION}
+        make release VERSION=${RELEASE_VERSION}
         git diff --exit-code ./deploy/gatekeeper-operator.yaml
+        # Reset state of git tree modified by kustomize.
+        git reset --hard
 
     - uses: docker/setup-qemu-action@v1
     - uses: docker/setup-buildx-action@v1
@@ -47,16 +49,13 @@ jobs:
         registry: quay.io
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_TOKEN }}
-    - uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        pull: true
-        push: true
-        tags: |
-          ${{ env.RELEASE_IMG }}:${{ env.RELEASE_VERSION }}
-          ${{ env.RELEASE_IMG }}:latest
+
+    - name: Build and Push Operator Image
+      run: |
+        make docker-build VERSION=${RELEASE_VERSION}
+        docker tag ${RELEASE_IMG}:${RELEASE_VERSION} ${RELEASE_IMG}:latest
+        make docker-push IMG=${RELEASE_IMG}:${RELEASE_VERSION}
+        make docker-push IMG=${RELEASE_IMG}:latest
 
     - name: Build and Push Bundle Image
       run: |

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 # Detect the OS to set per-OS defaults
 OS_NAME = $(shell uname -s)
 # Current Operator version
-VERSION ?= 0.0.1
+VERSION ?= 0.0.1-rc.0
 # Current Gatekeeper version
 GATEKEEPER_VERSION ?= v3.2.2
 # Default image repo
@@ -26,9 +26,8 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-IMG_TAG ?= latest
 # Image URL to use all building/pushing image targets
-IMG ?= $(REPO)/gatekeeper-operator:$(IMG_TAG)
+IMG ?= $(REPO)/gatekeeper-operator:$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1beta1"
 
@@ -92,6 +91,21 @@ endif
 # Use the vendored directory
 GOFLAGS = -mod=vendor
 
+# Set version variables for LDFLAGS
+GIT_VERSION ?= $(shell git describe --always --dirty)
+GIT_TAG ?= $(shell git describe --tags --exact-match 2>/dev/null)
+GIT_HASH ?= $(shell git rev-parse HEAD)
+BUILDDATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+GIT_TREESTATE = "clean"
+DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
+ifeq ($(DIFF), 1)
+    GIT_TREESTATE = "dirty"
+endif
+LDFLAGS = "-X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitVersion=$(GIT_VERSION) \
+             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitCommit=$(GIT_HASH) \
+             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitTreeState=$(GIT_TREESTATE) \
+             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.buildDate=$(BUILDDATE)"
+
 .PHONY: all
 all: manager
 
@@ -121,13 +135,13 @@ deploy-with-olm:
 
 # Build manager binary
 .PHONY: manager
-manager: generate fmt vet manifests
-	GOFLAGS=$(GOFLAGS) go build -o bin/manager main.go
+manager: generate manifests
+	GOFLAGS=$(GOFLAGS) go build -ldflags $(LDFLAGS) -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt vet manifests
-	GOFLAGS=$(GOFLAGS) GATEKEEPER_TARGET_NAMESPACE=$(NAMESPACE) go run ./main.go
+	GOFLAGS=$(GOFLAGS) GATEKEEPER_TARGET_NAMESPACE=$(NAMESPACE) go run -ldflags $(LDFLAGS) ./main.go
 
 # Install CRDs into a cluster
 .PHONY: install
@@ -207,7 +221,7 @@ verify-bindata:
 # Build the docker image
 .PHONY: docker-build
 docker-build:
-	docker build . -t ${IMG}
+	docker build . --build-arg LDFLAGS=${LDFLAGS} -t ${IMG}
 
 # Push the docker image
 .PHONY: docker-push

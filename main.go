@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,6 +32,7 @@ import (
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/version"
 	"github.com/pkg/errors"
 	// +kubebuilder:scaffold:imports
 )
@@ -57,6 +59,8 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	ctrl.Log.WithName("Gatekeeper Operator version").Info(fmt.Sprintf("%#v", version.Get()))
 
 	cfg := ctrl.GetConfigOrDie()
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{

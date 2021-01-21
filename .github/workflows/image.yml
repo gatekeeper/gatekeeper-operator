@@ -34,15 +34,11 @@ jobs:
         registry: quay.io
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_TOKEN }}
-    - uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        pull: true
-        push: true
-        tags: |
-          ${{ env.WORKFLOW_IMG }}:master
+
+    - name: Build and Push Operator Image
+      run: |
+        make bundle-build VERSION=master
+        make docker-push IMG=${WORKFLOW_IMG}:master
 
     - name: Build and Push Bundle Image
       run: |
