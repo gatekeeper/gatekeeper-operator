@@ -37,7 +37,7 @@ jobs:
 
     - name: Build and Push Operator Image
       run: |
-        make bundle-build VERSION=master
+        make docker-build VERSION=master
         make docker-push IMG=${WORKFLOW_IMG}:master
 
     - name: Build and Push Bundle Image
