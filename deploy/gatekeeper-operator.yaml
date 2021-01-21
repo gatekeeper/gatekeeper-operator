@@ -678,7 +678,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: quay.io/gatekeeper/gatekeeper-operator:0.0.1-rc.0
+        image: quay.io/gatekeeper/gatekeeper-operator:0.0.1-rc.1
         imagePullPolicy: Always
         name: manager
         resources:
