@@ -93,7 +93,6 @@ GOFLAGS = -mod=vendor
 
 # Set version variables for LDFLAGS
 GIT_VERSION ?= $(shell git describe --always --dirty)
-GIT_TAG ?= $(shell git describe --tags --exact-match 2>/dev/null)
 GIT_HASH ?= $(shell git rev-parse HEAD)
 BUILDDATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 GIT_TREESTATE = "clean"
