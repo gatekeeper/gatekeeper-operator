@@ -31,6 +31,21 @@ jobs:
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
+    # FIXME: The version tags created in this repo for official releases are
+    # annotated tags. However, this step is necessary to enable matching
+    # lightweight (non-annotated) tags because the GitHub Actions checkout@v2
+    # action (run just prior) will overwrite the annotated tag with a
+    # non-annotated one here
+    # https://github.com/actions/checkout/blob/5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f/src/git-source-provider.ts#L136-L141
+    # as a result of the refspec created at
+    # https://github.com/actions/checkout/blob/5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f/src/ref-helper.ts#L94-L97.
+    # This issue is tracked at https://github.com/actions/checkout/issues/290.
+    # Once the issue is resolved, this step can be removed.
+    - name: Extract Non-Annotated Version Tag
+      run: |
+        GIT_VERSION=$(git describe --tags --match='v*' --always --dirty)
+        echo "GIT_VERSION=${GIT_VERSION}" >> ${GITHUB_ENV}
+
     - name: Verify release manifest
       run: |
         # GitHub Actions obfuscates values of secrets e.g. REPO='quay.io/***',
