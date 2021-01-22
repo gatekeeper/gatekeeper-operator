@@ -92,7 +92,7 @@ endif
 GOFLAGS = -mod=vendor
 
 # Set version variables for LDFLAGS
-GIT_VERSION ?= $(shell git describe --always --dirty)
+GIT_VERSION ?= $(shell git describe --match='v*' --always --dirty)
 GIT_HASH ?= $(shell git rev-parse HEAD)
 BUILDDATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 GIT_TREESTATE = "clean"
