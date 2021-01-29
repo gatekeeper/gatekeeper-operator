@@ -4,7 +4,7 @@ OS_NAME = $(shell uname -s)
 # Current Operator version
 VERSION ?= v0.0.1
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.2.2
+GATEKEEPER_VERSION ?= v3.3.0
 # Default image repo
 REPO ?= quay.io/gatekeeper
 # Default bundle image tag
