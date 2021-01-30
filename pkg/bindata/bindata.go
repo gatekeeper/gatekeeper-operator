@@ -1,6 +1,9 @@
 // Code generated for package bindata by go-bindata DO NOT EDIT. (@generated)
 // sources:
+// config/gatekeeper/admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml
 // config/gatekeeper/admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml
+// config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml
+// config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml
 // config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml
 // config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml
 // config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml
@@ -70,6 +73,47 @@ func (fi bindataFileInfo) Sys() interface{} {
 	return nil
 }
 
+var _configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: gatekeeper-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: gatekeeper-webhook-service
+      namespace: gatekeeper-system
+      path: /v1/mutate
+  failurePolicy: Ignore
+  name: mutation.gatekeeper.sh
+  rules:
+  - apiGroups:
+    - '*'
+    apiVersions:
+    - '*'
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - '*'
+`)
+
+func configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes() ([]byte, error) {
+	return _configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, nil
+}
+
+func configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml() (*asset, error) {
+	bytes, err := configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper/admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _configGatekeeperAdmissionregistrationK8sIo_v1beta1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -134,6 +178,378 @@ func configGatekeeperAdmissionregistrationK8sIo_v1beta1_validatingwebhookconfigu
 	}
 
 	info := bindataFileInfo{name: "config/gatekeeper/admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  labels:
+    gatekeeper.sh/system: "yes"
+  name: assign.mutations.gatekeeper.sh
+spec:
+  group: mutations.gatekeeper.sh
+  names:
+    kind: Assign
+    listKind: AssignList
+    plural: assign
+    singular: assign
+  scope: Cluster
+  validation:
+    openAPIV3Schema:
+      description: Assign is the Schema for the assign API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: AssignSpec defines the desired state of Assign
+          properties:
+            applyTo:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run "make" to regenerate code after modifying this file'
+              items:
+                description: ApplyTo determines what GVKs items the mutation should apply to. Globs are not allowed.
+                properties:
+                  groups:
+                    items:
+                      type: string
+                    type: array
+                  kinds:
+                    items:
+                      type: string
+                    type: array
+                  versions:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              type: array
+            location:
+              type: string
+            match:
+              properties:
+                excludedNamespaces:
+                  items:
+                    type: string
+                  type: array
+                kinds:
+                  items:
+                    description: Kinds accepts a list of objects with apiGroups and kinds fields that list the groups/kinds of objects to which the mutation will apply. If multiple groups/kinds objects are specified, only one match is needed for the resource to be in scope.
+                    properties:
+                      apiGroups:
+                        description: APIGroups is the API groups the resources belong to. '*' is all groups. If '*' is present, the length of the slice must be one. Required.
+                        items:
+                          type: string
+                        type: array
+                      kinds:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  type: array
+                labelSelector:
+                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  properties:
+                    matchExpressions:
+                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      items:
+                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        properties:
+                          key:
+                            description: key is the label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            type: string
+                          values:
+                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+                namespaceSelector:
+                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  properties:
+                    matchExpressions:
+                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      items:
+                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        properties:
+                          key:
+                            description: key is the label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            type: string
+                          values:
+                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+                namespaces:
+                  items:
+                    type: string
+                  type: array
+                scope:
+                  description: ResourceScope is an enum defining the different scopes available to a custom resource
+                  type: string
+              required:
+              - scope
+              type: object
+            parameters:
+              properties:
+                assign:
+                  description: Assign.value holds the value to be assigned
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                ifIn:
+                  description: IfIn Only mutate if the current value is in the supplied list
+                  items:
+                    type: string
+                  type: array
+                ifNotIn:
+                  description: IfNotIn Only mutate if the current value is NOT in the supplied list
+                  items:
+                    type: string
+                  type: array
+                pathTests:
+                  items:
+                    description: "PathTests allows the user to customize how the mutation works if parent paths are missing. It traverses the list in order. All sub paths are tested against the provided condition, if the test fails, the mutation is not applied. All ` + "`" + `subPath` + "`" + ` entries must be a prefix of ` + "`" + `location` + "`" + `. Any glob characters will take on the same value as was used to expand the matching glob in ` + "`" + `location` + "`" + `. \n Available Tests: * MustExist    - the path must exist or do not mutate * MustNotExist - the path must not exist or do not mutate"
+                    properties:
+                      condition:
+                        enum:
+                        - MustExist
+                        - MustNotExist
+                        type: string
+                      subPath:
+                        type: string
+                    type: object
+                  type: array
+              type: object
+          type: object
+        status:
+          description: AssignStatus defines the observed state of Assign
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+`)
+
+func configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYaml, nil
+}
+
+func configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  labels:
+    gatekeeper.sh/system: "yes"
+  name: assignmetadata.mutations.gatekeeper.sh
+spec:
+  group: mutations.gatekeeper.sh
+  names:
+    kind: AssignMetadata
+    listKind: AssignMetadataList
+    plural: assignmetadata
+    singular: assignmetadata
+  scope: Cluster
+  validation:
+    openAPIV3Schema:
+      description: AssignMetadata is the Schema for the assignmetadata API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: AssignMetadataSpec defines the desired state of AssignMetadata
+          properties:
+            location:
+              type: string
+            match:
+              properties:
+                excludedNamespaces:
+                  items:
+                    type: string
+                  type: array
+                kinds:
+                  items:
+                    description: Kinds accepts a list of objects with apiGroups and kinds fields that list the groups/kinds of objects to which the mutation will apply. If multiple groups/kinds objects are specified, only one match is needed for the resource to be in scope.
+                    properties:
+                      apiGroups:
+                        description: APIGroups is the API groups the resources belong to. '*' is all groups. If '*' is present, the length of the slice must be one. Required.
+                        items:
+                          type: string
+                        type: array
+                      kinds:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                  type: array
+                labelSelector:
+                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  properties:
+                    matchExpressions:
+                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      items:
+                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        properties:
+                          key:
+                            description: key is the label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            type: string
+                          values:
+                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+                namespaceSelector:
+                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  properties:
+                    matchExpressions:
+                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      items:
+                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        properties:
+                          key:
+                            description: key is the label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            type: string
+                          values:
+                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+                namespaces:
+                  items:
+                    type: string
+                  type: array
+                scope:
+                  description: ResourceScope is an enum defining the different scopes available to a custom resource
+                  type: string
+              required:
+              - scope
+              type: object
+            parameters:
+              properties:
+                assign:
+                  description: Assign.value holds the value to be assigned
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+              type: object
+          type: object
+        status:
+          description: AssignMetadataStatus defines the observed state of AssignMetadata
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+`)
+
+func configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, nil
+}
+
+func configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1024,6 +1440,20 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resourceNames:
+  - gatekeeper-mutating-webhook-configuration
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 `)
 
 func configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
@@ -1306,7 +1736,10 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
+	"config/gatekeeper/admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml,
 	"config/gatekeeper/admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": configGatekeeperAdmissionregistrationK8sIo_v1beta1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml,
+	"config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYaml,
+	"config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml,
 	"config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_configsConfigGatekeeperShYaml,
 	"config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml,
 	"config/gatekeeper/apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml,
@@ -1368,7 +1801,10 @@ type bintree struct {
 var _bintree = &bintree{nil, map[string]*bintree{
 	"config": {nil, map[string]*bintree{
 		"gatekeeper": {nil, map[string]*bintree{
+			"admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     {configGatekeeperAdmissionregistrationK8sIo_v1beta1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, map[string]*bintree{}},
 			"admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": {configGatekeeperAdmissionregistrationK8sIo_v1beta1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            {configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignMutationsGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    {configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, map[string]*bintree{}},
 			"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              {configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_configsConfigGatekeeperShYaml, map[string]*bintree{}},
 			"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                {configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
 			"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        {configGatekeeperApiextensionsK8sIo_v1beta1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
