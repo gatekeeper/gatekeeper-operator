@@ -571,7 +571,7 @@ var _configGatekeeperApps_v1_deployment_gatekeeperAuditYaml = []byte(`apiVersion
 kind: Deployment
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: audit-controller
     gatekeeper.sh/operation: audit
     gatekeeper.sh/system: "yes"
   name: gatekeeper-audit
@@ -592,6 +592,7 @@ spec:
         gatekeeper.sh/operation: audit
         gatekeeper.sh/system: "yes"
     spec:
+      automountServiceAccountToken: true
       containers:
       - args:
         - --operation=audit
@@ -609,7 +610,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.2.2
+        image: openpolicyagent/gatekeeper:v3.3.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -639,6 +640,7 @@ spec:
           capabilities:
             drop:
             - all
+          readOnlyRootFilesystem: true
           runAsGroup: 999
           runAsNonRoot: true
           runAsUser: 1000
@@ -700,6 +702,7 @@ spec:
                   - webhook
               topologyKey: kubernetes.io/hostname
             weight: 100
+      automountServiceAccountToken: true
       containers:
       - args:
         - --port=8443
@@ -718,7 +721,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.2.2
+        image: openpolicyagent/gatekeeper:v3.3.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -751,6 +754,7 @@ spec:
           capabilities:
             drop:
             - all
+          readOnlyRootFilesystem: true
           runAsGroup: 999
           runAsNonRoot: true
           runAsUser: 1000
@@ -935,6 +939,18 @@ rules:
   - update
 - apiGroups:
   - constraints.gatekeeper.sh
+  resources:
+  - '*'
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mutations.gatekeeper.sh
   resources:
   - '*'
   verbs:
