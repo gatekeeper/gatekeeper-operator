@@ -159,6 +159,11 @@ func (in *GatekeeperSpec) DeepCopyInto(out *GatekeeperSpec) {
 		*out = new(WebhookMode)
 		**out = **in
 	}
+	if in.MutatingWebhook != nil {
+		in, out := &in.MutatingWebhook, &out.MutatingWebhook
+		*out = new(WebhookMode)
+		**out = **in
+	}
 	if in.Webhook != nil {
 		in, out := &in.Webhook, &out.Webhook
 		*out = new(WebhookConfig)
