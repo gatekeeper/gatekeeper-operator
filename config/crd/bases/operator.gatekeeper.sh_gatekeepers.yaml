@@ -684,6 +684,11 @@ spec:
                     container image
                   type: string
               type: object
+            mutatingWebhook:
+              enum:
+              - Enabled
+              - Disabled
+              type: string
             nodeSelector:
               additionalProperties:
                 type: string
