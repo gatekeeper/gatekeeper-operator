@@ -37,6 +37,8 @@ type GatekeeperSpec struct {
 	// +optional
 	ValidatingWebhook *WebhookMode `json:"validatingWebhook,omitempty"`
 	// +optional
+	MutatingWebhook *WebhookMode `json:"mutatingWebhook,omitempty"`
+	// +optional
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
