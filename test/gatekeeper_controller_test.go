@@ -34,6 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
@@ -46,6 +47,8 @@ const (
 	pollInterval = 50 * time.Millisecond
 	// How long to try before giving up.
 	waitTimeout = 30 * time.Second
+	// Longer try before giving up.
+	longWaitTimeout = waitTimeout * 2
 	// Gatekeeper name and namespace
 	gkName      = "gatekeeper"
 	gkNamespace = "mygatekeeper"
@@ -69,6 +72,10 @@ var (
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-validating-webhook-configuration",
 	}
+	mutatingWebhookName = types.NamespacedName{
+		Namespace: gkNamespace,
+		Name:      "gatekeeper-mutating-webhook-configuration",
+	}
 )
 
 var _ = Describe("Gatekeeper", func() {
@@ -80,30 +87,16 @@ var _ = Describe("Gatekeeper", func() {
 	})
 
 	AfterEach(func() {
-		Expect(K8sClient.Delete(ctx, emptyGatekeeper())).Should(Succeed())
+		Expect(K8sClient.Delete(ctx, emptyGatekeeper(), client.PropagationPolicy(v1.DeletePropagationForeground))).Should(Succeed())
+
+		// Once this succeeds, clean up has happened for all owned resources.
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, gatekeeperName, &v1alpha1.Gatekeeper{})
 			if err == nil {
 				return false
 			}
 			return apierrors.IsNotFound(err)
-		}, waitTimeout, pollInterval).Should(BeTrue())
-
-		// wait for reconciliation clean up
-		Eventually(func() bool {
-			err := K8sClient.Get(ctx, auditName, &appsv1.Deployment{})
-			if err == nil {
-				return false
-			}
-			return apierrors.IsNotFound(err)
-		}, waitTimeout, pollInterval).Should(BeTrue())
-		Eventually(func() bool {
-			err := K8sClient.Get(ctx, controllerManagerName, &appsv1.Deployment{})
-			if err == nil {
-				return false
-			}
-			return apierrors.IsNotFound(err)
-		}, waitTimeout, pollInterval).Should(BeTrue())
+		}, longWaitTimeout, pollInterval).Should(BeTrue())
 	})
 
 	Describe("Install", func() {
@@ -253,6 +246,19 @@ var _ = Describe("Gatekeeper", func() {
 				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeFalse())
 			})
+
+			By("Checking mutation disabled", func() {
+				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
+				Expect(found).To(BeFalse())
+			})
+
+			By("Checking MutatingWebhookConfiguration not deployed", func() {
+				mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
+				Eventually(func() bool {
+					err := K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
+					return apierrors.IsNotFound(err)
+				}, waitTimeout, pollInterval).Should(BeTrue())
+			})
 		})
 
 		It("Contains the configured values", func() {
@@ -393,6 +399,35 @@ var _ = Describe("Gatekeeper", func() {
 				err := K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
 				return apierrors.IsNotFound(err)
 			}, waitTimeout, pollInterval).Should(BeTrue())
+		})
+
+		It("Enables Gatekeeper Mutation", func() {
+			gatekeeper := emptyGatekeeper()
+			webhookMode := v1alpha1.WebhookEnabled
+			gatekeeper.Spec.MutatingWebhook = &webhookMode
+			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+
+			auditDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, auditName, auditDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			webhookDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			By("Checking enable mutation argument is set", func() {
+				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
+				Expect(found).To(BeTrue())
+			})
+
+			By("Checking MutatingWebhookConfiguration deployed", func() {
+				mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
+				Eventually(func() error {
+					return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
+				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			})
 		})
 	})
 })
