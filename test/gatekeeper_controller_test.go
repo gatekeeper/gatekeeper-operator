@@ -198,7 +198,7 @@ var _ = Describe("Gatekeeper", func() {
 			By("Checking default failure policy", func() {
 				webhookConfiguration := &unstructured.Unstructured{}
 				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind("ValidatingWebhookConfiguration")
+				webhookConfiguration.SetKind(util.ValidatingWebhookConfigurationKind)
 				Eventually(func() error {
 					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
@@ -318,7 +318,7 @@ var _ = Describe("Gatekeeper", func() {
 			By("Checking expected failure policy", func() {
 				webhookConfiguration := &unstructured.Unstructured{}
 				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind("ValidatingWebhookConfiguration")
+				webhookConfiguration.SetKind(util.ValidatingWebhookConfigurationKind)
 				Eventually(func() error {
 					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
@@ -430,7 +430,7 @@ var _ = Describe("Gatekeeper", func() {
 			By("Checking expected failure policy", func() {
 				webhookConfiguration := &unstructured.Unstructured{}
 				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind("MutatingWebhookConfiguration")
+				webhookConfiguration.SetKind(util.MutatingWebhookConfigurationKind)
 				Eventually(func() error {
 					return K8sClient.Get(ctx, mutatingWebhookName, webhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
