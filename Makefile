@@ -4,7 +4,7 @@ OS_NAME = $(shell uname -s)
 # Current Operator version
 VERSION ?= v0.0.1
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.2.2
+GATEKEEPER_VERSION ?= v3.3.0
 # Default image repo
 REPO ?= quay.io/gatekeeper
 # Default bundle image tag
@@ -165,10 +165,20 @@ deploy: manifests kustomize
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases output:rbac:dir=config/rbac/base
 
+# Path used to import Gatekeeper manifests. For example, this could be a local
+# file system directory if kustomize has errors using the GitHub URL. See
+# https://github.com/kubernetes-sigs/kustomize/issues/3515 for details.
+IMPORT_MANIFESTS_PATH ?= https://github.com/open-policy-agent/gatekeeper
+
 # Import Gatekeeper manifests
 .PHONY: import-manifests
 import-manifests: kustomize
-	$(KUSTOMIZE) build github.com/open-policy-agent/gatekeeper/config/default/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR)
+	if [[ $(IMPORT_MANIFESTS_PATH) =~ https://* ]]; then \
+		$(KUSTOMIZE) build $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR); \
+	else \
+		$(KUSTOMIZE) build $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook -o $(GATEKEEPER_MANIFEST_DIR); \
+		$(KUSTOMIZE) build --load_restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation -o $(GATEKEEPER_MANIFEST_DIR); \
+	fi
 
 # Run go fmt against code
 .PHONY: fmt

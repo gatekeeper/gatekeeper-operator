@@ -33,20 +33,56 @@ import (
 
 var namespace = "testns"
 
-func TestDeployValidatingWebhookConfig(t *testing.T) {
+func TestDeployWebhookConfigs(t *testing.T) {
 	g := NewWithT(t)
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
 	}
+	// Test default (nil) webhook configurations
+	// ValidatingWebhookConfiguration nil
+	// MutatingWebhookConfiguration nil
 	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
-	webhookMode := operatorv1alpha1.WebhookEnabled
-	gatekeeper.Spec.ValidatingWebhook = &webhookMode
+	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(MutatingWebhookConfiguration))
+
+	webhookEnabled := operatorv1alpha1.WebhookEnabled
+	webhookDisabled := operatorv1alpha1.WebhookDisabled
+
+	// ValidatingWebhookConfiguration enabled
+	// MutatingWebhookConfiguration enabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
 	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
-	webhookMode = operatorv1alpha1.WebhookDisabled
-	gatekeeper.Spec.ValidatingWebhook = &webhookMode
+	g.Expect(getStaticAssets(gatekeeper)).To(ContainElements(mutatingStaticAssets))
+
+	// ValidatingWebhookConfiguration enabled
+	// MutatingWebhookConfiguration disabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
+	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElements(mutatingStaticAssets))
+
+	// ValidatingWebhookConfiguration disabled
+	// MutatingWebhookConfiguration enabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
+	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
 	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(getStaticAssets(gatekeeper)).To(ContainElements(mutatingStaticAssets))
+
+	// ValidatingWebhookConfiguration disabled
+	// MutatingWebhookConfiguration disabled
+	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
+	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
+	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElements(mutatingStaticAssets))
+}
+
+func TestGetSubsetOfAssets(t *testing.T) {
+	g := NewWithT(t)
+	g.Expect(getSubsetOfAssets(orderedStaticAssets)).To(Equal(orderedStaticAssets))
+	g.Expect(getSubsetOfAssets(orderedStaticAssets, orderedStaticAssets...)).To(HaveLen(0))
+	g.Expect(getSubsetOfAssets(orderedStaticAssets, mutatingStaticAssets...)).To(HaveLen(len(orderedStaticAssets) - len(mutatingStaticAssets)))
 }
 
 func TestCustomNamespace(t *testing.T) {
@@ -937,6 +973,37 @@ func TestWebhookLogLevel(t *testing.T) {
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
 }
 
+func TestMutationArg(t *testing.T) {
+	g := NewWithT(t)
+
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+
+	// test default
+	webhookManifest, err := util.GetManifest(WebhookFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookManifest).ToNot(BeNil())
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
+	// test nil
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
+	// test disabled override
+	mutation := operatorv1alpha1.WebhookDisabled
+	gatekeeper.Spec.MutatingWebhook = &mutation
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
+	// test enabled override
+	mutation = operatorv1alpha1.WebhookEnabled
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EnableMutationArg, "true"))
+}
+
 func TestAllWebhookArgs(t *testing.T) {
 	g := NewWithT(t)
 	emitEvents := operatorv1alpha1.EmitEventsEnabled
@@ -957,17 +1024,28 @@ func TestAllWebhookArgs(t *testing.T) {
 	g.Expect(webhookManifest).ToNot(BeNil())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
 	// test nil
 	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EmitAdmissionEventsArg))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(LogLevelArg))
-	// test override
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
+	// test override without mutation
 	gatekeeper.Spec.Webhook = &webhookOverride
 	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EmitAdmissionEventsArg, "true"))
 	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).NotTo(HaveKey(EnableMutationArg))
+	// test override with mutation
+	mutatingWebhook := operatorv1alpha1.WebhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &mutatingWebhook
+	err = crOverrides(gatekeeper, WebhookFile, webhookManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EmitAdmissionEventsArg, "true"))
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
+	expectManifestContainerArgument(g, managerContainer, webhookManifest).To(HaveKeyWithValue(EnableMutationArg, "true"))
 }
 
 func expectManifestContainerArgument(g *WithT, containerName string, manifest *manifest.Manifest) Assertion {
@@ -1013,4 +1091,97 @@ func TestSetCertNamespace(t *testing.T) {
 	err = crOverrides(gatekeeper, ServerCertFile, serverCertManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(serverCertManifest.Obj.GetNamespace()).To(Equal(namespace))
+}
+
+func TestMutationRBACConfig(t *testing.T) {
+	g := NewWithT(t)
+
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+
+	clusterRoleManifest, err := util.GetManifest(ClusterRoleFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(clusterRoleManifest).ToNot(BeNil())
+	manifest := &manifest.Manifest{}
+
+	// Test default RBAC config
+	manifest.Obj = clusterRoleManifest.Obj.DeepCopy()
+	err = crOverrides(gatekeeper, ClusterRoleFile, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err := unstructured.NestedSlice(manifest.Obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeFalse())
+		}
+	}
+
+	// Test RBAC config when mutating webhook mode is nil
+	manifest.Obj = clusterRoleManifest.Obj.DeepCopy()
+	err = crOverrides(gatekeeper, ClusterRoleFile, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(manifest.Obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeFalse())
+		}
+	}
+
+	// Test RBAC config when mutating webhook mode is disabled
+	manifest.Obj = clusterRoleManifest.Obj.DeepCopy()
+	mutation := operatorv1alpha1.WebhookDisabled
+	gatekeeper.Spec.MutatingWebhook = &mutation
+	err = crOverrides(gatekeeper, ClusterRoleFile, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(manifest.Obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeFalse())
+		}
+	}
+
+	// Test RBAC config when mutating webhook mode is enabled
+	manifest.Obj = clusterRoleManifest.Obj.DeepCopy()
+	mutation = operatorv1alpha1.WebhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &mutation
+	err = crOverrides(gatekeeper, ClusterRoleFile, manifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(manifest.Obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+
+	matchCount := 0
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			if found {
+				matchCount++
+			}
+		}
+	}
+
+	g.Expect(matchCount).To(Equal(len(matchMutatingRBACRuleFns)))
 }

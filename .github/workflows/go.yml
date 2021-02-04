@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ master ]
 
+defaults:
+  run:
+    shell: bash
+    working-directory: gatekeeper-operator
+
 jobs:
   main:
     runs-on: ubuntu-18.04
@@ -14,9 +19,12 @@ jobs:
         go: [ '1.15' ]
     name: Go ${{ matrix.go }}
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Gatekeeper Operator
+      uses: actions/checkout@v2
       with:
+        path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
+
     - uses: actions/setup-go@v2
       id: go
       with:
@@ -35,9 +43,35 @@ jobs:
         make manifests
         git diff --exit-code
 
+    - name: Set Up Environment Variables
+      run: |
+        GATEKEEPER_VERSION=$(awk '/^GATEKEEPER_VERSION/ {print $3}' Makefile)
+        echo "GATEKEEPER_VERSION=${GATEKEEPER_VERSION}" >> ${GITHUB_ENV}
+
+    # This step is necessary to use a local clone of the Gatekeeper repo.
+    # Otherwise kustomize bulid fails using the go-getter URL format as result
+    # of https://github.com/open-policy-agent/gatekeeper/issues/1112. Also see
+    # https://github.com/kubernetes-sigs/kustomize/issues/3515 for a feature
+    # request.
+    - name: Checkout Gatekeeper to verify imported manifests
+      uses: actions/checkout@v2
+      with:
+        repository: open-policy-agent/gatekeeper
+        ref: ${{ env.GATEKEEPER_VERSION }}
+        path: gatekeeper
+        fetch-depth: 0 # Fetch all history for all tags and branches
+
+    # Build Gatekeeper manifests with some workarounds due to issue described
+    # above.
+    - name: Prepare Gatekeeper manifests for importing
+      working-directory: gatekeeper
+      run: |
+        make patch-image IMG=openpolicyagent/gatekeeper:${GATEKEEPER_VERSION}
+        sed -i '/--emit-\(audit\|admission\)-events/d' config/overlays/dev/manager_image_patch.yaml
+
     - name: Verify imported manifests
       run: |
-        make import-manifests
+        make import-manifests IMPORT_MANIFESTS_PATH=${GITHUB_WORKSPACE}/gatekeeper
         git diff --exit-code
 
     - name: Verify bindata

@@ -440,6 +440,11 @@ spec:
                   description: PullPolicy describes a policy for if/when to pull a container image
                   type: string
               type: object
+            mutatingWebhook:
+              enum:
+              - Enabled
+              - Disabled
+              type: string
             nodeSelector:
               additionalProperties:
                 type: string

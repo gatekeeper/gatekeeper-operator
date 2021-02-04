@@ -27,7 +27,7 @@ spec:
     replicas: 2
     logLevel: ERROR
     emitAdmissionEvents: Enabled
-    failurePolicy: Fail
+    failurePolicy: Ignore
     resources:
       limits:
         cpu: 480m
