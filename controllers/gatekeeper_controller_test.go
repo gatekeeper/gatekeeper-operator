@@ -119,19 +119,25 @@ func TestCustomNamespace(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(getContainerArguments(g, managerContainer, webhookManifest)).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
 
-	// ValidatingWebhookConfiguration namespace overrides
-	webhookConfig, err := util.GetManifest(ValidatingWebhookConfiguration)
-	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(webhookConfig).ToNot(BeNil())
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, webhookConfig, expectedNamespace, false)
-	g.Expect(err).ToNot(HaveOccurred())
-
-	assertWebhooksWithFn(g, webhookConfig, func(webhook map[string]interface{}) {
-		ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
+	// ValidatingWebhookConfiguration and MutatingWebhookConfiguration namespace overrides
+	webhookConfigs := []string{
+		ValidatingWebhookConfiguration,
+		MutatingWebhookConfiguration,
+	}
+	for _, webhookConfigFile := range webhookConfigs {
+		webhookConfig, err := util.GetManifest(webhookConfigFile)
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(found).To(BeTrue())
-		g.Expect(ns).To(Equal(expectedNamespace))
-	})
+		g.Expect(webhookConfig).ToNot(BeNil())
+		err = crOverrides(gatekeeper, webhookConfigFile, webhookConfig, expectedNamespace, false)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		assertWebhooksWithFn(g, webhookConfig, func(webhook map[string]interface{}) {
+			ns, found, err := unstructured.NestedString(webhook, "clientConfig", "service", "namespace")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeTrue())
+			g.Expect(ns).To(Equal(expectedNamespace))
+		})
+	}
 }
 
 func TestReplicas(t *testing.T) {

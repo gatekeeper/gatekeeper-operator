@@ -781,7 +781,7 @@ func setNamespace(obj *unstructured.Unstructured, asset, namespace string) error
 }
 
 func setClientConfigNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
-	if asset != ValidatingWebhookConfiguration {
+	if asset != ValidatingWebhookConfiguration && asset != MutatingWebhookConfiguration {
 		return nil
 	}
 	webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
