@@ -591,31 +591,44 @@ func TestFailurePolicy(t *testing.T) {
 	webhook := operatorv1alpha1.WebhookConfig{
 		FailurePolicy: &failurePolicy,
 	}
+	mutatingWebhook := operatorv1alpha1.WebhookEnabled
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
+		Spec: operatorv1alpha1.GatekeeperSpec{
+			MutatingWebhook: &mutatingWebhook,
+		},
 	}
 	// test default failurePolicy
-	manifest, err := util.GetManifest(ValidatingWebhookConfiguration)
+	valManifest, err := util.GetManifest(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertFailurePolicy(g, manifest, nil)
+	assertFailurePolicy(g, valManifest, ValidationGatekeeperWebhook, nil)
+	mutManifest, err := util.GetManifest(MutatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertFailurePolicy(g, mutManifest, MutatingWebhookConfiguration, nil)
 
 	// test nil failurePolicy
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertFailurePolicy(g, manifest, nil)
+	assertFailurePolicy(g, valManifest, ValidationGatekeeperWebhook, nil)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertFailurePolicy(g, mutManifest, MutationGatekeeperWebhook, nil)
 
 	// test failurePolicy override
 	gatekeeper.Spec.Webhook = &webhook
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertFailurePolicy(g, manifest, &failurePolicy)
+	assertFailurePolicy(g, valManifest, ValidationGatekeeperWebhook, &failurePolicy)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertFailurePolicy(g, mutManifest, MutationGatekeeperWebhook, &failurePolicy)
 }
 
-func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, expected *admregv1.FailurePolicyType) {
+func assertFailurePolicy(g *WithT, manifest *manifest.Manifest, webhookName string, expected *admregv1.FailurePolicyType) {
 	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
-		if webhook["name"] == ValidationGatekeeperWebhook {
+		if webhook["name"] == webhookName {
 			current, found, err := unstructured.NestedString(webhook, "failurePolicy")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
@@ -642,36 +655,59 @@ func TestNamespaceSelector(t *testing.T) {
 	webhook := operatorv1alpha1.WebhookConfig{
 		NamespaceSelector: &namespaceSelector,
 	}
+	mutatingWebhook := operatorv1alpha1.WebhookEnabled
 	gatekeeper := &operatorv1alpha1.Gatekeeper{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
+		Spec: operatorv1alpha1.GatekeeperSpec{
+			MutatingWebhook: &mutatingWebhook,
+		},
 	}
 	// test default namespaceSelector
-	manifest, err := util.GetManifest(ValidatingWebhookConfiguration)
+	valManifest, err := util.GetManifest(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, manifest, nil)
+	assertNamespaceSelector(g, valManifest, ValidationGatekeeperWebhook, nil)
+	mutManifest, err := util.GetManifest(MutatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutManifest, MutationGatekeeperWebhook, nil)
 
 	// test nil namespaceSelector
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, manifest, nil)
+	assertNamespaceSelector(g, valManifest, ValidationGatekeeperWebhook, nil)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutManifest, MutationGatekeeperWebhook, nil)
 
 	// test namespaceSelector override
 	gatekeeper.Spec.Webhook = &webhook
-	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, manifest, namespace, false)
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valManifest, namespace, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, manifest, &namespaceSelector)
+	assertNamespaceSelector(g, valManifest, ValidatingWebhookConfiguration, &namespaceSelector)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutManifest, namespace, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutManifest, MutatingWebhookConfiguration, &namespaceSelector)
 }
 
-func assertNamespaceSelector(g *WithT, manifest *manifest.Manifest, expected *metav1.LabelSelector) {
+func assertNamespaceSelector(g *WithT, manifest *manifest.Manifest, webhookName string, expected *metav1.LabelSelector) {
 	assertWebhooksWithFn(g, manifest, func(webhook map[string]interface{}) {
-		if webhook["name"] == ValidationGatekeeperWebhook {
+		if webhook["name"] == webhookName {
 			current, found, err := unstructured.NestedFieldCopy(webhook, "namespaceSelector")
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(found).To(BeTrue())
 			if expected == nil {
-				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
+				// ValidatingWebhookConfiguration and
+				// MutatingWebhookConfiguration have different defaults so the
+				// following split is necessary.
+				if webhookName == ValidationGatekeeperWebhook {
+					g.Expect(found).To(BeTrue())
+					g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
+				} else {
+					g.Expect(found).To(BeFalse())
+					// Default NamespaceSelector for MutatingWebhookConfiguration
+					// is nil and we already know expected is nil if we reach
+					// this.
+				}
 			} else {
 				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
 			}

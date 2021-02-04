@@ -58,6 +58,7 @@ const (
 	ValidatingWebhookConfiguration = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
 	MutatingWebhookConfiguration   = "admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml"
 	ValidationGatekeeperWebhook    = "validation.gatekeeper.sh"
+	MutationGatekeeperWebhook      = "mutation.gatekeeper.sh"
 	managerContainer               = "manager"
 	LogLevelArg                    = "--log-level"
 	AuditIntervalArg               = "--audit-interval"
@@ -365,9 +366,15 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := validatingWebhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook); err != nil {
+		if err := webhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook); err != nil {
 			return err
 		}
+	// MutatingWebhookConfiguration overrides
+	case MutatingWebhookConfiguration:
+		if err := webhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook); err != nil {
+			return err
+		}
+	// ClusterRole overrides
 	case ClusterRoleFile:
 		if !mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
 			if err := removeMutatingRBACRules(manifest.Obj); err != nil {
@@ -435,12 +442,12 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 	return nil
 }
 
-func validatingWebhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig) error {
+func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string) error {
 	if webhook != nil {
-		if err := setFailurePolicy(obj, webhook.FailurePolicy); err != nil {
+		if err := setFailurePolicy(obj, webhook.FailurePolicy, webhookName); err != nil {
 			return err
 		}
-		if err := setNamespaceSelector(obj, webhook.NamespaceSelector); err != nil {
+		if err := setNamespaceSelector(obj, webhook.NamespaceSelector, webhookName); err != nil {
 			return err
 		}
 	}
@@ -615,7 +622,7 @@ func setWebhookConfigurationWithFn(obj *unstructured.Unstructured, webhookName s
 	return nil
 }
 
-func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.FailurePolicyType) error {
+func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.FailurePolicyType, webhookName string) error {
 	if failurePolicy == nil {
 		return nil
 	}
@@ -627,10 +634,10 @@ func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.Fa
 		return nil
 	}
 
-	return setWebhookConfigurationWithFn(obj, ValidationGatekeeperWebhook, setFailurePolicyFn)
+	return setWebhookConfigurationWithFn(obj, webhookName, setFailurePolicyFn)
 }
 
-func setNamespaceSelector(obj *unstructured.Unstructured, namespaceSelector *metav1.LabelSelector) error {
+func setNamespaceSelector(obj *unstructured.Unstructured, namespaceSelector *metav1.LabelSelector, webhookName string) error {
 	if namespaceSelector == nil {
 		return nil
 	}
@@ -642,7 +649,7 @@ func setNamespaceSelector(obj *unstructured.Unstructured, namespaceSelector *met
 		return nil
 	}
 
-	return setWebhookConfigurationWithFn(obj, ValidationGatekeeperWebhook, setNamespaceSelectorFn)
+	return setWebhookConfigurationWithFn(obj, webhookName, setNamespaceSelectorFn)
 }
 
 // Generic setters
