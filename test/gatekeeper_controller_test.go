@@ -196,15 +196,13 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking default failure policy", func() {
-				validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+				webhookConfiguration := &unstructured.Unstructured{}
+				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
+				webhookConfiguration.SetKind("ValidatingWebhookConfiguration")
 				Eventually(func() error {
-					return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				for _, wh := range validatingWebhookConfiguration.Webhooks {
-					if wh.Name == controllers.ValidationGatekeeperWebhook {
-						Expect(wh.FailurePolicy).To(Equal(&test.DefaultDeployment.FailurePolicy))
-					}
-				}
+				assertFailurePolicy(webhookConfiguration, controllers.ValidationGatekeeperWebhook, &test.DefaultDeployment.FailurePolicy)
 			})
 
 			By("Checking default audit interval", func() {
@@ -318,15 +316,13 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking expected failure policy", func() {
-				validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+				webhookConfiguration := &unstructured.Unstructured{}
+				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
+				webhookConfiguration.SetKind("ValidatingWebhookConfiguration")
 				Eventually(func() error {
-					return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				for _, wh := range validatingWebhookConfiguration.Webhooks {
-					if wh.Name == controllers.ValidationGatekeeperWebhook {
-						Expect(wh.FailurePolicy).To(Equal(gatekeeper.Spec.Webhook.FailurePolicy))
-					}
-				}
+				assertFailurePolicy(webhookConfiguration, controllers.ValidationGatekeeperWebhook, gatekeeper.Spec.Webhook.FailurePolicy)
 			})
 
 			By("Checking expected audit interval", func() {
@@ -403,6 +399,8 @@ var _ = Describe("Gatekeeper", func() {
 
 		It("Enables Gatekeeper Mutation", func() {
 			gatekeeper := emptyGatekeeper()
+			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
+			Expect(err).ToNot(HaveOccurred())
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
@@ -428,6 +426,17 @@ var _ = Describe("Gatekeeper", func() {
 					return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
 				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 			})
+
+			By("Checking expected failure policy", func() {
+				webhookConfiguration := &unstructured.Unstructured{}
+				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
+				webhookConfiguration.SetKind("MutatingWebhookConfiguration")
+				Eventually(func() error {
+					return K8sClient.Get(ctx, mutatingWebhookName, webhookConfiguration)
+				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+				assertFailurePolicy(webhookConfiguration, controllers.MutationGatekeeperWebhook, gatekeeper.Spec.Webhook.FailurePolicy)
+			})
+
 		})
 	})
 })
@@ -437,6 +446,18 @@ func assertResources(expected, current corev1.ResourceRequirements) {
 	Expect(expected.Limits.Memory().Cmp(*current.Limits.Memory())).To(BeZero())
 	Expect(expected.Requests.Cpu().Cmp(*current.Requests.Cpu())).To(BeZero())
 	Expect(expected.Requests.Memory().Cmp(*current.Requests.Memory())).To(BeZero())
+}
+
+func assertFailurePolicy(obj *unstructured.Unstructured, webhookName string, expected *admregv1.FailurePolicyType) {
+	webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(found).To(BeTrue())
+	for _, webhook := range webhooks {
+		w := webhook.(map[string]interface{})
+		if w["name"] == webhookName {
+			Expect(w["failurePolicy"]).To(BeEquivalentTo(string(*expected)))
+		}
+	}
 }
 
 func getContainerArg(args []string, argPrefix string) (arg string, found bool) {
