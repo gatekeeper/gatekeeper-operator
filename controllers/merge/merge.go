@@ -21,6 +21,8 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 )
 
 // RetainClusterObjectFields updates the desired object with values retained
@@ -30,12 +32,16 @@ func RetainClusterObjectFields(desiredObj, clusterObj *unstructured.Unstructured
 	// operation, otherwise operation will fail.
 	desiredObj.SetResourceVersion(clusterObj.GetResourceVersion())
 
-	if desiredObj.GetKind() == "Service" {
+	switch desiredObj.GetKind() {
+	case util.ServiceKind:
 		return retainServiceFields(desiredObj, clusterObj)
-	} else if desiredObj.GetKind() == "ValidatingWebhookConfiguration" {
-		return retainValidatingWebhookConfigurationFields(desiredObj, clusterObj)
+	case util.ValidatingWebhookConfigurationKind:
+		fallthrough
+	case util.MutatingWebhookConfigurationKind:
+		return retainWebhookConfigurationFields(desiredObj, clusterObj)
+	default:
+		return nil
 	}
-	return nil
 }
 func retainServiceFields(desiredObj, clusterObj *unstructured.Unstructured) error {
 	// ClusterIP is allocated to Service by cluster, so if it exists, retain it
@@ -53,15 +59,15 @@ func retainServiceFields(desiredObj, clusterObj *unstructured.Unstructured) erro
 	return nil
 }
 
-func retainValidatingWebhookConfigurationFields(desiredObj, clusterObj *unstructured.Unstructured) error {
+func retainWebhookConfigurationFields(desiredObj, clusterObj *unstructured.Unstructured) error {
 	// Retain each webhook's CABundle
 	clusterWebhooks, ok, err := unstructured.NestedSlice(clusterObj.Object, "webhooks")
 	if err != nil {
-		return errors.Wrap(err, "Error retrieving webhooks from cluster object validatingwebhookconfiguration")
+		return errors.Wrapf(err, "Error retrieving webhooks from cluster object %s", clusterObj.GetKind())
 	} else if ok && len(clusterWebhooks) == 0 {
 		err = unstructured.SetNestedSlice(desiredObj.Object, nil, "webhooks")
 		if err != nil {
-			return errors.Wrap(err, "Error setting webhooks for validatingwebhookconfiguration")
+			return errors.Wrapf(err, "Error setting webhooks for desired object %s", desiredObj.GetKind())
 		}
 		return nil
 	} else if !ok {
@@ -70,10 +76,10 @@ func retainValidatingWebhookConfigurationFields(desiredObj, clusterObj *unstruct
 
 	desiredWebhooks, ok, err := unstructured.NestedSlice(desiredObj.Object, "webhooks")
 	if err != nil {
-		return errors.Wrap(err, "Error retrieving webhooks from desired object validatingwebhookconfiguration")
+		return errors.Wrapf(err, "Error retrieving webhooks from desired object %s", desiredObj.GetKind())
 	} else if !ok {
 		// Should never happen
-		return errors.New("webhooks field not found for desired object validatingwebhookconfiguration")
+		return fmt.Errorf("webhooks field not found for desired object %s", desiredObj.GetKind())
 	}
 
 	for i := range desiredWebhooks {
@@ -86,14 +92,14 @@ func retainValidatingWebhookConfigurationFields(desiredObj, clusterObj *unstruct
 
 			caBundle, ok, err := unstructured.NestedFieldNoCopy(clusterWebhook, "clientConfig", "caBundle")
 			if err != nil {
-				return errors.Wrapf(err, "Error retrieving webhooks[%d].clientConfig.caBundle from cluster object validatingwebhookconfiguration", j)
+				return errors.Wrapf(err, "Error retrieving webhooks[%d].clientConfig.caBundle from cluster object %s", j, clusterObj.GetKind())
 			} else if !ok {
-				return fmt.Errorf("webhooks[%d].clientConfig.caBundle field not found for cluster object validatingwebhookconfiguration", j)
+				return fmt.Errorf("webhooks[%d].clientConfig.caBundle field not found for cluster object %s", j, clusterObj.GetKind())
 			}
 
 			err = unstructured.SetNestedField(desiredWebhook, caBundle, "clientConfig", "caBundle")
 			if err != nil {
-				return errors.Wrapf(err, "Error setting webhooks[%d].clientConfig.caBundle for desired object validatingwebhookconfiguration", i)
+				return errors.Wrapf(err, "Error setting webhooks[%d].clientConfig.caBundle for desired object %s", i, desiredObj.GetKind())
 			}
 			break
 		}
@@ -101,7 +107,7 @@ func retainValidatingWebhookConfigurationFields(desiredObj, clusterObj *unstruct
 
 	err = unstructured.SetNestedSlice(desiredObj.Object, desiredWebhooks, "webhooks")
 	if err != nil {
-		return errors.Wrap(err, "Error setting webhooks for desired object validatingwebhookconfiguration")
+		return errors.Wrapf(err, "Error setting webhooks for desired object %s", desiredObj.GetKind())
 	}
 	return nil
 }
