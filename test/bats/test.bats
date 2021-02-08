@@ -150,7 +150,6 @@ __required_labels_audit_test() {
 }
 
 @test "emit events test" {
-  skip "This test requires enabling emitting events in audit and webhook deployments."
   # list events for easy debugging
   kubectl get events -n gatekeeper-system
   events=$(kubectl get events -n gatekeeper-system --field-selector reason=FailedAdmission -o json | jq -r '.items[] | select(.metadata.annotations.constraint_kind=="K8sRequiredLabels" )' | jq -s '. | length')
