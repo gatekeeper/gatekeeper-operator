@@ -11,6 +11,12 @@ teardown() {
   bash -c "${CLEAN_CMD}"
 }
 
+teardown_file() {
+  kubectl delete ns gatekeeper-test-playground gatekeeper-excluded-namespace || true
+  kubectl delete constrainttemplates k8scontainerlimits k8srequiredlabels k8suniquelabel || true
+  kubectl delete configs.config.gatekeeper.sh config -n gatekeeper-system || true
+}
+
 @test "gatekeeper-controller-manager is running" {
   wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl -n gatekeeper-system wait --for=condition=Ready --timeout=60s pod -l control-plane=controller-manager"
 }
@@ -36,8 +42,36 @@ teardown() {
   wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl wait --for condition=established --timeout=60s crd/constrainttemplates.templates.gatekeeper.sh"
 }
 
+@test "mutation crds are established" {
+  if [ -z $ENABLE_MUTATION_TESTS ]; then
+    skip "skipping mutation tests"
+  fi
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl wait --for condition=established --timeout=60s crd/assign.mutations.gatekeeper.sh"
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl wait --for condition=established --timeout=60s crd/assignmetadata.mutations.gatekeeper.sh"
+}
+
 @test "waiting for validating webhook" {
   wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io gatekeeper-validating-webhook-configuration"
+}
+
+@test "gatekeeper mutation test" {
+  if [ -z $ENABLE_MUTATION_TESTS ]; then
+    skip "skipping mutation tests"
+  fi
+
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl apply -f ${BATS_TESTS_DIR}/mutations/k8sownerlabel_assignmetadata.yaml"
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl apply -f ${BATS_TESTS_DIR}/mutations/mutate_cm.yaml"
+  run kubectl get cm mutate-cm -o jsonpath="{.metadata.labels.owner}"
+  assert_equal 'gatekeeper' "${output}"
+
+  kubectl delete --ignore-not-found cm mutate-cm
+
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl apply -f ${BATS_TESTS_DIR}/mutations/k8sexternalip_assign.yaml"
+  wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "kubectl apply -f ${BATS_TESTS_DIR}/mutations/mutate_svc.yaml"
+  run kubectl get svc mutate-svc -o jsonpath="{.spec.externalIPs}"
+  assert_equal "" "${output}"
+
+  kubectl delete --ignore-not-found svc mutate-svc
 }
 
 @test "applying sync config" {
@@ -78,7 +112,7 @@ teardown() {
   kubectl apply -f ${BATS_TESTS_DIR}/constraints/all_cm_must_have_gatekeeper-dryrun.yaml
   wait_for_process ${WAIT_TIME} ${SLEEP_TIME} "constraint_enforced k8srequiredlabels cm-must-have-gk"
 
-  # deploying a violation with dryrun enforcement action will be accepted
+  # deploying a violation with dryrun enforcement action will be accepted
   kubectl apply -f ${BATS_TESTS_DIR}/bad/bad_cm.yaml
 
   kubectl delete --ignore-not-found -f ${BATS_TESTS_DIR}/bad/bad_cm.yaml
@@ -150,7 +184,6 @@ __required_labels_audit_test() {
 }
 
 @test "emit events test" {
-  skip "This test requires enabling emitting events in audit and webhook deployments."
   # list events for easy debugging
   kubectl get events -n gatekeeper-system
   events=$(kubectl get events -n gatekeeper-system --field-selector reason=FailedAdmission -o json | jq -r '.items[] | select(.metadata.annotations.constraint_kind=="K8sRequiredLabels" )' | jq -s '. | length')

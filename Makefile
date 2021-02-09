@@ -334,7 +334,7 @@ test-cluster:
 
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e:
-	kubectl -n $(NAMESPACE) apply -f ./config/samples/operator_v1alpha1_gatekeeper.yaml
+	kubectl -n $(NAMESPACE) apply -f ./config/samples/gatekeeper_e2e_test.yaml
 	bats -t test/bats/test.bats
 
 .PHONY: deploy-ci
