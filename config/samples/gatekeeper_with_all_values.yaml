@@ -28,6 +28,10 @@ spec:
     logLevel: ERROR
     emitAdmissionEvents: Enabled
     failurePolicy: Ignore
+    namespaceSelector:
+      matchExpressions:
+      - key: admission.gatekeeper.sh/enabled
+        operator: Exists
     resources:
       limits:
         cpu: 480m
