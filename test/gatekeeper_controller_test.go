@@ -50,8 +50,9 @@ const (
 	// Longer try before giving up.
 	longWaitTimeout = waitTimeout * 2
 	// Gatekeeper name and namespace
-	gkName      = "gatekeeper"
-	gkNamespace = "mygatekeeper"
+	gkName                      = "gatekeeper"
+	gkNamespace                 = "mygatekeeper"
+	gatekeeperWithAllValuesFile = "gatekeeper_with_all_values.yaml"
 )
 
 var (
@@ -262,7 +263,7 @@ var _ = Describe("Gatekeeper", func() {
 		It("Contains the configured values", func() {
 			gatekeeper := &v1alpha1.Gatekeeper{}
 			gatekeeper.Namespace = gkNamespace
-			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
+			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 
@@ -399,7 +400,7 @@ var _ = Describe("Gatekeeper", func() {
 
 		It("Enables Gatekeeper Mutation", func() {
 			gatekeeper := emptyGatekeeper()
-			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
+			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
