@@ -49,7 +49,7 @@ const (
 	// How long to try before giving up.
 	waitTimeout = 30 * time.Second
 	// Longer try before giving up.
-	longWaitTimeout = waitTimeout * 2
+	longWaitTimeout = waitTimeout * 4
 	// Gatekeeper name and namespace
 	gkName                      = "gatekeeper"
 	gkNamespace                 = "mygatekeeper"
