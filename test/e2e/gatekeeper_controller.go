@@ -40,7 +40,7 @@ import (
 	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
-	test "github.com/gatekeeper/gatekeeper-operator/test/util"
+	test "github.com/gatekeeper/gatekeeper-operator/test/e2e/util"
 )
 
 const (
@@ -587,7 +587,7 @@ func getContainerArg(args []string, argPrefix string) (arg string, found bool) {
 }
 
 func loadGatekeeperFromFile(gatekeeper *v1alpha1.Gatekeeper, fileName string) error {
-	f, err := os.Open(fmt.Sprintf("../config/samples/%s", fileName))
+	f, err := os.Open(fmt.Sprintf("../../config/samples/%s", fileName))
 	if err != nil {
 		return err
 	}

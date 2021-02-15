@@ -41,7 +41,7 @@ var cfg *rest.Config
 var K8sClient client.Client
 var testEnv *envtest.Environment
 
-func TestAPIs(t *testing.T) {
+func RunE2ETests(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecsWithDefaultAndCustomReporters(t,
