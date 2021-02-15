@@ -28,7 +28,7 @@ import (
 
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
-	test "github.com/gatekeeper/gatekeeper-operator/test/util"
+	test "github.com/gatekeeper/gatekeeper-operator/test/e2e/util"
 )
 
 var namespace = "testns"

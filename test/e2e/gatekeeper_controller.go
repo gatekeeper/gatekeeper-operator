@@ -40,7 +40,7 @@ import (
 	"github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
-	test "github.com/gatekeeper/gatekeeper-operator/test/util"
+	test "github.com/gatekeeper/gatekeeper-operator/test/e2e/util"
 )
 
 const (
@@ -52,12 +52,24 @@ const (
 	longWaitTimeout = waitTimeout * 4
 	// Gatekeeper name and namespace
 	gkName                      = "gatekeeper"
-	gkNamespace                 = "mygatekeeper"
 	gatekeeperWithAllValuesFile = "gatekeeper_with_all_values.yaml"
 )
 
 var (
-	ctx       = context.Background()
+	ctx                   = context.Background()
+	globalsInitialized    = false
+	gkNamespace           = ""
+	auditName             = types.NamespacedName{}
+	controllerManagerName = types.NamespacedName{}
+	gatekeeperName        = types.NamespacedName{
+		Name: gkName,
+	}
+	validatingWebhookName = types.NamespacedName{}
+	mutatingWebhookName   = types.NamespacedName{}
+)
+
+func initializeGlobals() {
+	gkNamespace = *GatekeeperNamespace
 	auditName = types.NamespacedName{
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-audit",
@@ -65,10 +77,6 @@ var (
 	controllerManagerName = types.NamespacedName{
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-controller-manager",
-	}
-	gatekeeperName = types.NamespacedName{
-		Namespace: gkNamespace,
-		Name:      gkName,
 	}
 	validatingWebhookName = types.NamespacedName{
 		Namespace: gkNamespace,
@@ -78,13 +86,18 @@ var (
 		Namespace: gkNamespace,
 		Name:      "gatekeeper-mutating-webhook-configuration",
 	}
-)
+}
 
 var _ = Describe("Gatekeeper", func() {
 
 	BeforeEach(func() {
 		if !useExistingCluster() {
 			Skip("Test requires existing cluster. Set environment variable USE_EXISTING_CLUSTER=true and try again.")
+		}
+
+		if !globalsInitialized {
+			initializeGlobals()
+			globalsInitialized = true
 		}
 	})
 
@@ -574,7 +587,7 @@ func getContainerArg(args []string, argPrefix string) (arg string, found bool) {
 }
 
 func loadGatekeeperFromFile(gatekeeper *v1alpha1.Gatekeeper, fileName string) error {
-	f, err := os.Open(fmt.Sprintf("../config/samples/%s", fileName))
+	f, err := os.Open(fmt.Sprintf("../../config/samples/%s", fileName))
 	if err != nil {
 		return err
 	}

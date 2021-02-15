@@ -38,5 +38,5 @@ jobs:
 
     - name: E2E Tests
       run: |
-        make test-e2e
+        make test-e2e NAMESPACE=mygatekeeper
         kubectl delete --wait namespace mygatekeeper

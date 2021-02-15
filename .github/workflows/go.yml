@@ -97,7 +97,7 @@ jobs:
     - name: E2E Tests
       run: |
         make deploy-ci NAMESPACE=mygatekeeper IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
-        make test-e2e
+        make test-e2e NAMESPACE=mygatekeeper
         kubectl delete --wait namespace mygatekeeper
 
     - name: Gatekeeper E2E Tests
