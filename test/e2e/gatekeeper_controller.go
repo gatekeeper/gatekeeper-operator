@@ -29,6 +29,7 @@ import (
 	admregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -426,6 +427,32 @@ var _ = Describe("Gatekeeper", func() {
 				controllers.MutationGatekeeperWebhook,
 				gatekeeper.Spec.Webhook.NamespaceSelector)
 		})
+
+		It("Enables then disables Gatekeeper mutation", func() {
+			gatekeeper := emptyGatekeeper()
+			By("First creating Gatekeeper CR with mutation enabled", func() {
+				webhookMode := v1alpha1.WebhookEnabled
+				gatekeeper.Spec.MutatingWebhook = &webhookMode
+				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+			})
+
+			_, webhookDeployment := gatekeeperDeployments()
+			byCheckingMutationEnabled(webhookDeployment)
+
+			By("Getting Gatekeeper CR for updating", func() {
+				err := K8sClient.Get(ctx, gatekeeperName, gatekeeper)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("Then updating Gatekeeper CR with mutation disabled", func() {
+				webhookMode := v1alpha1.WebhookDisabled
+				gatekeeper.Spec.MutatingWebhook = &webhookMode
+				Expect(K8sClient.Update(ctx, gatekeeper)).Should(Succeed())
+			})
+
+			_, webhookDeployment = gatekeeperDeployments()
+			byCheckingMutationDisabled(webhookDeployment)
+		})
 	})
 })
 
@@ -435,11 +462,15 @@ func gatekeeperDeployments() (auditDeployment, webhookDeployment *appsv1.Deploym
 		return K8sClient.Get(ctx, auditName, auditDeployment)
 	}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 
+	webhookDeployment = gatekeeperWebhookDeployment()
+	return
+}
+
+func gatekeeperWebhookDeployment() (webhookDeployment *appsv1.Deployment) {
 	webhookDeployment = &appsv1.Deployment{}
 	Eventually(func() error {
 		return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
 	}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
 	return
 }
 
@@ -463,6 +494,76 @@ func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 	})
 
+	mutatingCRDs := []struct {
+		kind string
+		name string
+	}{
+		{
+			"Assign",
+			"assign.mutations.gatekeeper.sh",
+		},
+		{
+			"AssignMetadata",
+			"assignmetadata.mutations.gatekeeper.sh",
+		},
+	}
+
+	for _, crd := range mutatingCRDs {
+		crdNamespacedName := types.NamespacedName{
+			Name: crd.name,
+		}
+		By(fmt.Sprintf("Checking %s CRD deployed", crd.kind), func() {
+			mutatingAssignCRD := &extv1beta1.CustomResourceDefinition{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, crdNamespacedName, mutatingAssignCRD)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+		})
+	}
+}
+
+func byCheckingMutationDisabled(webhookDeployment *appsv1.Deployment) {
+	By("Checking enable mutation argument is not set", func() {
+		Eventually(func() bool {
+			webhookDeployment = gatekeeperWebhookDeployment()
+			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
+			return found
+		}, waitTimeout, pollInterval).Should(BeFalse())
+	})
+
+	By("Checking MutatingWebhookConfiguration not deployed", func() {
+		mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
+		Eventually(func() bool {
+			err := K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
+			return apierrors.IsNotFound(err)
+		}, waitTimeout, pollInterval).Should(BeTrue())
+	})
+
+	mutatingCRDs := []struct {
+		kind string
+		name string
+	}{
+		{
+			"Assign",
+			"assign.mutations.gatekeeper.sh",
+		},
+		{
+			"AssignMetadata",
+			"assignmetadata.mutations.gatekeeper.sh",
+		},
+	}
+
+	for _, crd := range mutatingCRDs {
+		crdNamespacedName := types.NamespacedName{
+			Name: crd.name,
+		}
+		By(fmt.Sprintf("Checking %s CRD not deployed", crd.kind), func() {
+			mutatingAssignCRD := &extv1beta1.CustomResourceDefinition{}
+			Eventually(func() bool {
+				err := K8sClient.Get(ctx, crdNamespacedName, mutatingAssignCRD)
+				return apierrors.IsNotFound(err)
+			}, waitTimeout, pollInterval).Should(BeTrue())
+		})
+	}
 }
 
 func byCheckingFailurePolicy(webhookNamespacedName *types.NamespacedName,
