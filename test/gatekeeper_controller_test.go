@@ -30,6 +30,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,10 +49,11 @@ const (
 	// How long to try before giving up.
 	waitTimeout = 30 * time.Second
 	// Longer try before giving up.
-	longWaitTimeout = waitTimeout * 2
+	longWaitTimeout = waitTimeout * 4
 	// Gatekeeper name and namespace
-	gkName      = "gatekeeper"
-	gkNamespace = "mygatekeeper"
+	gkName                      = "gatekeeper"
+	gkNamespace                 = "mygatekeeper"
+	gatekeeperWithAllValuesFile = "gatekeeper_with_all_values.yaml"
 )
 
 var (
@@ -195,15 +197,15 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(webhookImagePullPolicy))
 			})
 
-			By("Checking default failure policy", func() {
-				webhookConfiguration := &unstructured.Unstructured{}
-				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind(util.ValidatingWebhookConfigurationKind)
-				Eventually(func() error {
-					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
-				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				assertFailurePolicy(webhookConfiguration, controllers.ValidationGatekeeperWebhook, &test.DefaultDeployment.FailurePolicy)
-			})
+			byCheckingFailurePolicy(&validatingWebhookName, "default",
+				util.ValidatingWebhookConfigurationKind,
+				controllers.ValidationGatekeeperWebhook,
+				&test.DefaultDeployment.FailurePolicy)
+
+			byCheckingNamespaceSelector(&validatingWebhookName, "default",
+				util.ValidatingWebhookConfigurationKind,
+				controllers.ValidationGatekeeperWebhook,
+				test.DefaultDeployment.NamespaceSelector)
 
 			By("Checking default audit interval", func() {
 				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
@@ -262,7 +264,7 @@ var _ = Describe("Gatekeeper", func() {
 		It("Contains the configured values", func() {
 			gatekeeper := &v1alpha1.Gatekeeper{}
 			gatekeeper.Namespace = gkNamespace
-			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
+			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 
@@ -315,15 +317,15 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
 			})
 
-			By("Checking expected failure policy", func() {
-				webhookConfiguration := &unstructured.Unstructured{}
-				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind(util.ValidatingWebhookConfigurationKind)
-				Eventually(func() error {
-					return K8sClient.Get(ctx, validatingWebhookName, webhookConfiguration)
-				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				assertFailurePolicy(webhookConfiguration, controllers.ValidationGatekeeperWebhook, gatekeeper.Spec.Webhook.FailurePolicy)
-			})
+			byCheckingFailurePolicy(&validatingWebhookName, "expected",
+				util.ValidatingWebhookConfigurationKind,
+				controllers.ValidationGatekeeperWebhook,
+				gatekeeper.Spec.Webhook.FailurePolicy)
+
+			byCheckingNamespaceSelector(&validatingWebhookName, "expected",
+				util.ValidatingWebhookConfigurationKind,
+				controllers.ValidationGatekeeperWebhook,
+				gatekeeper.Spec.Webhook.NamespaceSelector)
 
 			By("Checking expected audit interval", func() {
 				value, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
@@ -397,9 +399,38 @@ var _ = Describe("Gatekeeper", func() {
 			}, waitTimeout, pollInterval).Should(BeTrue())
 		})
 
-		It("Enables Gatekeeper Mutation", func() {
+		It("Enables Gatekeeper mutation with default values", func() {
 			gatekeeper := emptyGatekeeper()
-			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_with_all_values.yaml")
+			webhookMode := v1alpha1.WebhookEnabled
+			gatekeeper.Spec.MutatingWebhook = &webhookMode
+			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+
+			auditDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, auditName, auditDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			webhookDeployment := &appsv1.Deployment{}
+			Eventually(func() error {
+				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
+			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+			byCheckingMutationEnabled(webhookDeployment)
+
+			byCheckingFailurePolicy(&mutatingWebhookName, "default",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				&test.DefaultDeployment.FailurePolicy)
+
+			byCheckingNamespaceSelector(&mutatingWebhookName, "default",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				nil)
+		})
+
+		It("Enables Gatekeeper mutation with configured values", func() {
+			gatekeeper := emptyGatekeeper()
+			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
@@ -415,28 +446,17 @@ var _ = Describe("Gatekeeper", func() {
 				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 
-			By("Checking enable mutation argument is set", func() {
-				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
-				Expect(found).To(BeTrue())
-			})
+			byCheckingMutationEnabled(webhookDeployment)
 
-			By("Checking MutatingWebhookConfiguration deployed", func() {
-				mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
-				Eventually(func() error {
-					return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
-				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-			})
+			byCheckingFailurePolicy(&mutatingWebhookName, "expected",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				gatekeeper.Spec.Webhook.FailurePolicy)
 
-			By("Checking expected failure policy", func() {
-				webhookConfiguration := &unstructured.Unstructured{}
-				webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
-				webhookConfiguration.SetKind(util.MutatingWebhookConfigurationKind)
-				Eventually(func() error {
-					return K8sClient.Get(ctx, mutatingWebhookName, webhookConfiguration)
-				}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-				assertFailurePolicy(webhookConfiguration, controllers.MutationGatekeeperWebhook, gatekeeper.Spec.Webhook.FailurePolicy)
-			})
-
+			byCheckingNamespaceSelector(&mutatingWebhookName, "expected",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				gatekeeper.Spec.Webhook.NamespaceSelector)
 		})
 	})
 })
@@ -448,14 +468,98 @@ func assertResources(expected, current corev1.ResourceRequirements) {
 	Expect(expected.Requests.Memory().Cmp(*current.Requests.Memory())).To(BeZero())
 }
 
+func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
+	By("Checking enable mutation argument is set", func() {
+		_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
+		Expect(found).To(BeTrue())
+	})
+
+	By("Checking MutatingWebhookConfiguration deployed", func() {
+		mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
+		Eventually(func() error {
+			return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
+		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+	})
+
+}
+
+func byCheckingFailurePolicy(webhookNamespacedName *types.NamespacedName,
+	testName, kind, webhookName string, failurePolicy *admregv1.FailurePolicyType) {
+	By(fmt.Sprintf("Checking %s failure policy", testName), func() {
+		webhookConfiguration := &unstructured.Unstructured{}
+		webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
+		webhookConfiguration.SetKind(kind)
+		Eventually(func() error {
+			return K8sClient.Get(ctx, *webhookNamespacedName, webhookConfiguration)
+		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+		assertFailurePolicy(webhookConfiguration, webhookName, failurePolicy)
+	})
+}
+
 func assertFailurePolicy(obj *unstructured.Unstructured, webhookName string, expected *admregv1.FailurePolicyType) {
+	assertWebhook(obj, webhookName, func(webhook map[string]interface{}) {
+		Expect(webhook["failurePolicy"]).To(BeEquivalentTo(string(*expected)))
+	})
+}
+
+func byCheckingNamespaceSelector(webhookNamespacedName *types.NamespacedName,
+	testName, kind, webhookName string, namespaceSelector *metav1.LabelSelector) {
+	By(fmt.Sprintf("Checking %s namespace selector", testName), func() {
+		webhookConfiguration := &unstructured.Unstructured{}
+		webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
+		webhookConfiguration.SetKind(kind)
+		Eventually(func() error {
+			return K8sClient.Get(ctx, *webhookNamespacedName, webhookConfiguration)
+		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+		assertNamespaceSelector(webhookConfiguration, webhookName, namespaceSelector)
+	})
+}
+
+func assertNamespaceSelector(obj *unstructured.Unstructured, webhookName string, expected *metav1.LabelSelector) {
+	assertWebhook(obj, webhookName, func(webhook map[string]interface{}) {
+		nsSelector, found, err := unstructured.NestedFieldNoCopy(webhook, "namespaceSelector")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(found).To(BeTrue())
+
+		matchExpressions, found, err := unstructured.NestedSlice(nsSelector.(map[string]interface{}), "matchExpressions")
+		Expect(err).NotTo(HaveOccurred())
+		if expected != nil {
+			Expect(found).To(BeTrue())
+		} else {
+			Expect(found).To(BeFalse())
+		}
+
+		currentLabelSelectorRequirements := make([]metav1.LabelSelectorRequirement, len(matchExpressions))
+		for i, me := range matchExpressions {
+			m, ok := me.(map[string]interface{})
+			Expect(ok).To(BeTrue())
+			lsr := metav1.LabelSelectorRequirement{
+				Key:      m["key"].(string),
+				Operator: metav1.LabelSelectorOperator(m["operator"].(string)),
+				// TODO (font): Copy Values field if necessary in the future.
+			}
+			currentLabelSelectorRequirements[i] = lsr
+		}
+
+		var current *metav1.LabelSelector
+		if len(currentLabelSelectorRequirements) > 0 {
+			current = &metav1.LabelSelector{
+				MatchExpressions: currentLabelSelectorRequirements,
+			}
+		}
+		Expect(current).To(BeEquivalentTo(expected))
+	})
+}
+
+func assertWebhook(obj *unstructured.Unstructured, webhookName string, webhookFn func(map[string]interface{})) {
 	webhooks, found, err := unstructured.NestedSlice(obj.Object, "webhooks")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(BeTrue())
 	for _, webhook := range webhooks {
-		w := webhook.(map[string]interface{})
+		w, ok := webhook.(map[string]interface{})
+		Expect(ok).To(BeTrue())
 		if w["name"] == webhookName {
-			Expect(w["failurePolicy"]).To(BeEquivalentTo(string(*expected)))
+			webhookFn(w)
 		}
 	}
 }
