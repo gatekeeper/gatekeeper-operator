@@ -372,18 +372,28 @@ var _ = Describe("Gatekeeper", func() {
 			})
 		})
 
-		It("Does not deploy the validatingWebhookConfiguration", func() {
+		It("Does not deploy the ValidatingWebhookConfiguration", func() {
 			gatekeeper := emptyGatekeeper()
-			webhookMode := v1alpha1.WebhookDisabled
-			gatekeeper.Spec.ValidatingWebhook = &webhookMode
-			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			gatekeeperDeployments()
+			By("First creating Gatekeeper CR with validation enabled", func() {
+				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+			})
 
-			validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
-			Eventually(func() bool {
-				err := K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
-				return apierrors.IsNotFound(err)
-			}, waitTimeout, pollInterval).Should(BeTrue())
+			gatekeeperDeployments()
+			byCheckingValidationEnabled()
+
+			By("Getting Gatekeeper CR for updating", func() {
+				err := K8sClient.Get(ctx, gatekeeperName, gatekeeper)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("Then updating Gatekeeper CR with validation disabled", func() {
+				webhookMode := v1alpha1.WebhookDisabled
+				gatekeeper.Spec.ValidatingWebhook = &webhookMode
+				Expect(K8sClient.Update(ctx, gatekeeper)).Should(Succeed())
+			})
+
+			gatekeeperDeployments()
+			byCheckingValidationDisabled()
 		})
 
 		It("Enables Gatekeeper mutation with default values", func() {
@@ -481,6 +491,15 @@ func assertResources(expected, current corev1.ResourceRequirements) {
 	Expect(expected.Requests.Memory().Cmp(*current.Requests.Memory())).To(BeZero())
 }
 
+func byCheckingValidationEnabled() {
+	By("Checking validation is enabled", func() {
+		validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+		Eventually(func() error {
+			return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+	})
+}
+
 func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 	By("Checking enable mutation argument is set", func() {
 		_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
@@ -519,6 +538,16 @@ func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 		})
 	}
+}
+
+func byCheckingValidationDisabled() {
+	By("Checking validation is disabled", func() {
+		validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+		Eventually(func() bool {
+			err := K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+			return apierrors.IsNotFound(err)
+		}, waitTimeout, pollInterval).Should(BeTrue())
+	})
 }
 
 func byCheckingMutationDisabled(webhookDeployment *appsv1.Deployment) {
