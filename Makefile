@@ -119,7 +119,7 @@ test: generate fmt vet manifests
 
 .PHONY: test-e2e
 test-e2e: generate fmt vet
-	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace
+	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test/e2e -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace -namespace $(NAMESPACE)
 
 .PHONY: deploy-olm
 deploy-olm:
