@@ -156,16 +156,7 @@ var _ = Describe("Gatekeeper", func() {
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-
-			auditDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, auditName, auditDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
-			webhookDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
 			By("Checking default replicas", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
@@ -280,16 +271,7 @@ var _ = Describe("Gatekeeper", func() {
 			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-
-			auditDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, auditName, auditDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
-			webhookDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
 			By("Checking expected replicas", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
@@ -394,16 +376,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookDisabled
 			gatekeeper.Spec.ValidatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-
-			auditDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, auditName, auditDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
-			webhookDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			gatekeeperDeployments()
 
 			validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
 			Eventually(func() bool {
@@ -417,16 +390,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-
-			auditDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, auditName, auditDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
-			webhookDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			_, webhookDeployment := gatekeeperDeployments()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -448,16 +412,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-
-			auditDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, auditName, auditDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
-
-			webhookDeployment := &appsv1.Deployment{}
-			Eventually(func() error {
-				return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-			}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+			_, webhookDeployment := gatekeeperDeployments()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -473,6 +428,20 @@ var _ = Describe("Gatekeeper", func() {
 		})
 	})
 })
+
+func gatekeeperDeployments() (auditDeployment, webhookDeployment *appsv1.Deployment) {
+	auditDeployment = &appsv1.Deployment{}
+	Eventually(func() error {
+		return K8sClient.Get(ctx, auditName, auditDeployment)
+	}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+	webhookDeployment = &appsv1.Deployment{}
+	Eventually(func() error {
+		return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
+	}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
+
+	return
+}
 
 func assertResources(expected, current corev1.ResourceRequirements) {
 	Expect(expected.Limits.Cpu().Cmp(*current.Limits.Cpu())).To(BeZero())
