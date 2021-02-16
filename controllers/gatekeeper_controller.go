@@ -109,6 +109,13 @@ type GatekeeperReconciler struct {
 	PlatformName util.PlatformType
 }
 
+type crudOperation uint32
+
+const (
+	apply  crudOperation = iota
+	delete crudOperation = 1
+)
+
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.gatekeeper.sh,resources=gatekeepers/status,verbs=get;update;patch
@@ -162,8 +169,7 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, err
 	}
 
-	err = r.deployGatekeeperResources(gatekeeper)
-	if err != nil {
+	if err = r.deployGatekeeperResources(gatekeeper); err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
 	}
 
@@ -189,7 +195,20 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
-	for _, a := range getStaticAssets(gatekeeper) {
+	deleteAssets, applyAssets := getStaticAssets(gatekeeper)
+
+	for _, d := range deleteAssets {
+		manifest, err := util.GetManifest(d)
+		if err != nil {
+			return nil
+		}
+
+		if err = r.crudResource(manifest, gatekeeper, delete); err != nil {
+			return err
+		}
+	}
+
+	for _, a := range applyAssets {
 		// Handle special cases in switch below.
 		switch {
 		case a == NamespaceFile && !r.isOpenShift():
@@ -209,33 +228,36 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 			return err
 		}
 
-		if err = r.updateOrCreateResource(manifest, gatekeeper); err != nil {
+		if err = r.crudResource(manifest, gatekeeper, apply); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) []string {
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets []string) {
 	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
 	mutatingWebhookEnabled := mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
 
+	deleteAssets = make([]string, 0)
+	applyAssets = make([]string, 0)
 	// Copy over our set of ordered static assets so we maintain its
 	// immutability.
-	assets := make([]string, 0)
-	assets = append(assets, orderedStaticAssets...)
+	applyAssets = append(applyAssets, orderedStaticAssets...)
 
 	if !validatingWebhookEnabled {
 		// Remove ValidatingWebhookConfiguration resource
-		assets = getSubsetOfAssets(assets, ValidatingWebhookConfiguration)
+		deleteAssets = append(deleteAssets, ValidatingWebhookConfiguration)
+		applyAssets = getSubsetOfAssets(applyAssets, ValidatingWebhookConfiguration)
 	}
 
 	if !mutatingWebhookEnabled {
 		// Remove mutating resources
-		assets = getSubsetOfAssets(assets, mutatingStaticAssets...)
+		deleteAssets = append(deleteAssets, mutatingStaticAssets...)
+		applyAssets = getSubsetOfAssets(applyAssets, mutatingStaticAssets...)
 	}
 
-	return assets
+	return
 }
 
 func mutatingWebhookEnabled(mode *operatorv1alpha1.WebhookMode) bool {
@@ -258,7 +280,7 @@ func getSubsetOfAssets(inputAssets []string, assetsToRemove ...string) []string 
 	return outputAssets
 }
 
-func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper) error {
+func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper, operation crudOperation) error {
 	var err error
 	ctx := context.Background()
 	clusterObj := &unstructured.Unstructured{}
@@ -281,30 +303,37 @@ func (r *GatekeeperReconciler) updateOrCreateResource(manifest *manifest.Manifes
 
 	switch {
 	case err == nil:
-		err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
-		if err != nil {
-			return errors.Wrapf(err, "Unable to retain cluster object fields from %s", namespacedName)
-		}
+		if operation == apply {
+			err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
+			if err != nil {
+				return errors.Wrapf(err, "Unable to retain cluster object fields from %s", namespacedName)
+			}
 
-		err = r.Update(ctx, manifest.Obj)
-		if err != nil {
-			return errors.Wrapf(err, "Error attempting to update resource %s", namespacedName)
-		}
+			if err = r.Update(ctx, manifest.Obj); err != nil {
+				return errors.Wrapf(err, "Error attempting to update resource %s", namespacedName)
+			}
 
-		logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
+			logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
+		} else if operation == delete {
+			if err = r.Delete(ctx, manifest.Obj); err != nil {
+				return errors.Wrapf(err, "Error attempting to delete resource %s", namespacedName)
+			}
+			logger.Info(fmt.Sprintf("Deleted Gatekeeper resource"))
+		}
 
 	case apierrors.IsNotFound(err):
-		err = r.Create(ctx, manifest.Obj)
-		if err != nil {
-			return errors.Wrapf(err, "Error attempting to create resource %s", namespacedName)
+		if operation == apply {
+			if err = r.Create(ctx, manifest.Obj); err != nil {
+				return errors.Wrapf(err, "Error attempting to create resource %s", namespacedName)
+			}
+			logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
 		}
-		logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
 
 	case err != nil:
 		return errors.Wrapf(err, "Error attempting to get resource %s", namespacedName)
 	}
 
-	return err
+	return nil
 }
 
 func (r *GatekeeperReconciler) isOpenShift() bool {

@@ -43,8 +43,11 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// Test default (nil) webhook configurations
 	// ValidatingWebhookConfiguration nil
 	// MutatingWebhookConfiguration nil
-	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(MutatingWebhookConfiguration))
+	deleteAssets, applyAssets := getStaticAssets(gatekeeper)
+	g.Expect(applyAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyAssets).NotTo(ContainElements(mutatingStaticAssets))
+	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteAssets).To(ContainElements(mutatingStaticAssets))
 
 	webhookEnabled := operatorv1alpha1.WebhookEnabled
 	webhookDisabled := operatorv1alpha1.WebhookDisabled
@@ -53,29 +56,41 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(getStaticAssets(gatekeeper)).To(ContainElements(mutatingStaticAssets))
+	deleteAssets, applyAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyAssets).To(ContainElements(mutatingStaticAssets))
+	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteAssets).NotTo(ContainElements(mutatingStaticAssets))
 
 	// ValidatingWebhookConfiguration enabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	g.Expect(getStaticAssets(gatekeeper)).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElements(mutatingStaticAssets))
+	deleteAssets, applyAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyAssets).NotTo(ContainElements(mutatingStaticAssets))
+	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteAssets).To(ContainElements(mutatingStaticAssets))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(getStaticAssets(gatekeeper)).To(ContainElements(mutatingStaticAssets))
+	deleteAssets, applyAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyAssets).To(ContainElements(mutatingStaticAssets))
+	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteAssets).NotTo(ContainElements(mutatingStaticAssets))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(getStaticAssets(gatekeeper)).NotTo(ContainElements(mutatingStaticAssets))
+	deleteAssets, applyAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyAssets).NotTo(ContainElements(mutatingStaticAssets))
+	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteAssets).To(ContainElements(mutatingStaticAssets))
 }
 
 func TestGetSubsetOfAssets(t *testing.T) {
