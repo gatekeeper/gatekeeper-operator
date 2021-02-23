@@ -2,9 +2,9 @@ name: OLM
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, release-0.1 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, release-0.1 ]
 
 jobs:
   main:
