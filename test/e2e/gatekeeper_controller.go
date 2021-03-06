@@ -708,11 +708,11 @@ func emptyGatekeeper() *v1alpha1.Gatekeeper {
 }
 
 func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPolicy, err error) {
-	manifest, err := util.GetManifest(file)
+	obj, err := util.GetManifestObject(file)
 	if err != nil {
 		return "", "", err
 	}
-	containers, found, err := unstructured.NestedSlice(manifest.Obj.Object, "spec", "template", "spec", "containers")
+	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
 	if err != nil {
 		return "", "", err
 	}
