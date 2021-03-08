@@ -47,7 +47,7 @@ func GetManifest(asset string) (*manifest.Manifest, error) {
 func ToMap(obj interface{}) map[string]interface{} {
 	var result map[string]interface{}
 	resultRec, _ := json.Marshal(obj)
-	json.Unmarshal(resultRec, &result)
+	_ = json.Unmarshal(resultRec, &result)
 	return result
 }
 

@@ -504,8 +504,7 @@ func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
 	})
 
-	var crdFn getCRDFunc
-	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
+	crdFn := func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
 		Eventually(func() error {
 			return K8sClient.Get(ctx, crdName, mutatingCRD)
 		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
@@ -540,8 +539,7 @@ func byCheckingMutationDisabled(webhookDeployment *appsv1.Deployment) {
 		}, waitTimeout, pollInterval).Should(BeTrue())
 	})
 
-	var crdFn getCRDFunc
-	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
+	crdFn := func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, crdName, mutatingCRD)
 			return apierrors.IsNotFound(err)

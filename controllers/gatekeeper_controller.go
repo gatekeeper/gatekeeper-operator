@@ -313,12 +313,12 @@ func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekee
 				return errors.Wrapf(err, "Error attempting to update resource %s", namespacedName)
 			}
 
-			logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
+			logger.Info("Updated Gatekeeper resource")
 		} else if operation == delete {
 			if err = r.Delete(ctx, manifest.Obj); err != nil {
 				return errors.Wrapf(err, "Error attempting to delete resource %s", namespacedName)
 			}
-			logger.Info(fmt.Sprintf("Deleted Gatekeeper resource"))
+			logger.Info("Deleted Gatekeeper resource")
 		}
 
 	case apierrors.IsNotFound(err):
@@ -326,7 +326,7 @@ func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekee
 			if err = r.Create(ctx, manifest.Obj); err != nil {
 				return errors.Wrapf(err, "Error attempting to create resource %s", namespacedName)
 			}
-			logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
+			logger.Info("Created Gatekeeper resource")
 		}
 
 	case err != nil:
