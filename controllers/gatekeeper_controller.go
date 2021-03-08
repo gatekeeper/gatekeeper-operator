@@ -112,7 +112,7 @@ type crudOperation uint32
 
 const (
 	apply  crudOperation = iota
-	delete crudOperation = 1
+	delete crudOperation = iota
 )
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
