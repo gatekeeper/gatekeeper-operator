@@ -38,6 +38,12 @@ jobs:
         make fmt
         git diff --exit-code
 
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+        version: v1.37.1
+
     - name: Verify manifests
       run: |
         make manifests
