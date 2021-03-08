@@ -8,9 +8,9 @@ require (
 	github.com/go-logr/logr v0.2.1
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
-	github.com/openshift/library-go v0.0.0-20201006230840-f360b9835cc8
 	github.com/pkg/errors v0.9.1
 	k8s.io/api v0.19.0
+	k8s.io/apiextensions-apiserver v0.19.0
 	k8s.io/apimachinery v0.19.0
 	k8s.io/client-go v0.19.0
 	sigs.k8s.io/controller-runtime v0.6.3
