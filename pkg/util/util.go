@@ -16,10 +16,12 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
-	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
 )
@@ -28,19 +30,35 @@ var (
 	staticAssetsDir = "config/gatekeeper/"
 )
 
-func GetManifest(asset string) (*manifest.Manifest, error) {
-	manifest := &manifest.Manifest{}
+func GetManifestObject(asset string) (*unstructured.Unstructured, error) {
 	assetName := staticAssetsDir + asset
 	bytes, err := bindata.Asset(assetName)
 	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
+		return nil, errors.Wrapf(err, "Unable to retrieve bindata asset %s", assetName)
 	}
 
-	err = manifest.UnmarshalJSON(bytes)
+	obj, err := unmarshalJSON(bytes)
 	if err != nil {
-		return manifest, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
+		return nil, errors.Wrapf(err, "Unable to unmarshal YAML bytes for asset name %s", assetName)
 	}
-	return manifest, nil
+	return obj, nil
+}
+
+func unmarshalJSON(in []byte) (*unstructured.Unstructured, error) {
+	if in == nil {
+		return nil, errors.New("input bytes is nil")
+	}
+
+	objInterface, _, err := scheme.Codecs.UniversalDecoder().Decode(in, nil, &unstructured.Unstructured{})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to decode bytes")
+	}
+	obj, ok := objInterface.(*unstructured.Unstructured)
+	if !ok {
+		return nil, fmt.Errorf("type assertion of object interface to *unstructured.Unstructured failed, got %T", obj)
+	}
+
+	return obj, nil
 }
 
 // ToMap Convenience method to convert any struct into a map

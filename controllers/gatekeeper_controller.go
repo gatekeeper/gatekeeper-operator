@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/openshift/library-go/pkg/manifest"
 	"github.com/pkg/errors"
 	admregv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -113,7 +112,7 @@ type crudOperation uint32
 
 const (
 	apply  crudOperation = iota
-	delete crudOperation = 1
+	delete crudOperation = iota
 )
 
 // Gatekeeper Operator RBAC permissions to manager Gatekeeper custom resource
@@ -198,12 +197,12 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 	deleteAssets, applyAssets := getStaticAssets(gatekeeper)
 
 	for _, d := range deleteAssets {
-		manifest, err := util.GetManifest(d)
+		obj, err := util.GetManifestObject(d)
 		if err != nil {
 			return nil
 		}
 
-		if err = r.crudResource(manifest, gatekeeper, delete); err != nil {
+		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
 			return err
 		}
 	}
@@ -220,15 +219,15 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 			a = openshiftAssetsDir + a
 		}
 
-		manifest, err := util.GetManifest(a)
+		obj, err := util.GetManifestObject(a)
 		if err != nil {
 			return err
 		}
-		if err = crOverrides(gatekeeper, a, manifest, r.Namespace, r.isOpenShift()); err != nil {
+		if err = crOverrides(gatekeeper, a, obj, r.Namespace, r.isOpenShift()); err != nil {
 			return err
 		}
 
-		if err = r.crudResource(manifest, gatekeeper, apply); err != nil {
+		if err = r.crudResource(obj, gatekeeper, apply); err != nil {
 			return err
 		}
 	}
@@ -280,21 +279,21 @@ func getSubsetOfAssets(inputAssets []string, assetsToRemove ...string) []string 
 	return outputAssets
 }
 
-func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekeeper *operatorv1alpha1.Gatekeeper, operation crudOperation) error {
+func (r *GatekeeperReconciler) crudResource(obj *unstructured.Unstructured, gatekeeper *operatorv1alpha1.Gatekeeper, operation crudOperation) error {
 	var err error
 	ctx := context.Background()
 	clusterObj := &unstructured.Unstructured{}
-	clusterObj.SetAPIVersion(manifest.Obj.GetAPIVersion())
-	clusterObj.SetKind(manifest.Obj.GetKind())
+	clusterObj.SetAPIVersion(obj.GetAPIVersion())
+	clusterObj.SetKind(obj.GetKind())
 
 	namespacedName := types.NamespacedName{
-		Namespace: manifest.Obj.GetNamespace(),
-		Name:      manifest.Obj.GetName(),
+		Namespace: obj.GetNamespace(),
+		Name:      obj.GetName(),
 	}
 
 	logger := r.Log.WithValues("Gatekeeper resource", namespacedName)
 
-	err = ctrl.SetControllerReference(gatekeeper, manifest.Obj, r.Scheme)
+	err = ctrl.SetControllerReference(gatekeeper, obj, r.Scheme)
 	if err != nil {
 		return errors.Wrapf(err, "Unable to set controller reference for %s", namespacedName)
 	}
@@ -304,18 +303,18 @@ func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekee
 	switch {
 	case err == nil:
 		if operation == apply {
-			err = merge.RetainClusterObjectFields(manifest.Obj, clusterObj)
+			err = merge.RetainClusterObjectFields(obj, clusterObj)
 			if err != nil {
 				return errors.Wrapf(err, "Unable to retain cluster object fields from %s", namespacedName)
 			}
 
-			if err = r.Update(ctx, manifest.Obj); err != nil {
+			if err = r.Update(ctx, obj); err != nil {
 				return errors.Wrapf(err, "Error attempting to update resource %s", namespacedName)
 			}
 
 			logger.Info(fmt.Sprintf("Updated Gatekeeper resource"))
 		} else if operation == delete {
-			if err = r.Delete(ctx, manifest.Obj); err != nil {
+			if err = r.Delete(ctx, obj); err != nil {
 				return errors.Wrapf(err, "Error attempting to delete resource %s", namespacedName)
 			}
 			logger.Info(fmt.Sprintf("Deleted Gatekeeper resource"))
@@ -323,7 +322,7 @@ func (r *GatekeeperReconciler) crudResource(manifest *manifest.Manifest, gatekee
 
 	case apierrors.IsNotFound(err):
 		if operation == apply {
-			if err = r.Create(ctx, manifest.Obj); err != nil {
+			if err = r.Create(ctx, obj); err != nil {
 				return errors.Wrapf(err, "Error attempting to create resource %s", namespacedName)
 			}
 			logger.Info(fmt.Sprintf("Created Gatekeeper resource"))
@@ -352,61 +351,61 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 }
 
 // crOverrides
-func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, manifest *manifest.Manifest, namespace string, isOpenshift bool) error {
+func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *unstructured.Unstructured, namespace string, isOpenshift bool) error {
 	if asset == NamespaceFile {
-		manifest.Obj.SetName(namespace)
+		obj.SetName(namespace)
 		return nil
 	}
 	// set resource's namespace
-	if err := setNamespace(manifest.Obj, asset, namespace); err != nil {
+	if err := setNamespace(obj, asset, namespace); err != nil {
 		return err
 	}
 	switch asset {
 	// audit overrides
 	case AuditFile:
-		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
+		if err := commonOverrides(obj, gatekeeper.Spec); err != nil {
 			return err
 		}
-		if err := auditOverrides(manifest.Obj, gatekeeper.Spec.Audit); err != nil {
+		if err := auditOverrides(obj, gatekeeper.Spec.Audit); err != nil {
 			return err
 		}
 		if isOpenshift {
-			if err := removeAnnotations(manifest.Obj); err != nil {
+			if err := removeAnnotations(obj); err != nil {
 				return err
 			}
 		}
 	// webhook overrides
 	case WebhookFile:
-		if err := commonOverrides(manifest.Obj, gatekeeper.Spec); err != nil {
+		if err := commonOverrides(obj, gatekeeper.Spec); err != nil {
 			return err
 		}
-		if err := webhookOverrides(manifest.Obj, gatekeeper.Spec.Webhook); err != nil {
+		if err := webhookOverrides(obj, gatekeeper.Spec.Webhook); err != nil {
 			return err
 		}
 		if isOpenshift {
-			if err := removeAnnotations(manifest.Obj); err != nil {
+			if err := removeAnnotations(obj); err != nil {
 				return err
 			}
 		}
 		if mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
-			if err := setEnableMutation(manifest.Obj); err != nil {
+			if err := setEnableMutation(obj); err != nil {
 				return err
 			}
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook); err != nil {
 			return err
 		}
 	// MutatingWebhookConfiguration overrides
 	case MutatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(manifest.Obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook); err != nil {
 			return err
 		}
 	// ClusterRole overrides
 	case ClusterRoleFile:
 		if !mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
-			if err := removeMutatingRBACRules(manifest.Obj); err != nil {
+			if err := removeMutatingRBACRules(obj); err != nil {
 				return err
 			}
 		}

@@ -109,9 +109,6 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
 github.com/openshift/api/console/v1
-# github.com/openshift/library-go v0.0.0-20201006230840-f360b9835cc8
-## explicit
-github.com/openshift/library-go/pkg/manifest
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -287,6 +284,7 @@ k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
 # k8s.io/apiextensions-apiserver v0.19.0
+## explicit
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
