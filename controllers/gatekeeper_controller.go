@@ -395,15 +395,15 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true); err != nil {
 			return err
 		}
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false); err != nil {
 			return err
 		}
 	// MutatingWebhookConfiguration overrides
 	case MutatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true); err != nil {
 			return err
 		}
 	// ClusterRole overrides
@@ -474,10 +474,12 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 	return nil
 }
 
-func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string) error {
+func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool) error {
 	if webhook != nil {
-		if err := setFailurePolicy(obj, webhook.FailurePolicy, webhookName); err != nil {
-			return err
+		if updateFailurePolicy {
+			if err := setFailurePolicy(obj, webhook.FailurePolicy, webhookName); err != nil {
+				return err
+			}
 		}
 		if err := setNamespaceSelector(obj, webhook.NamespaceSelector, webhookName); err != nil {
 			return err
