@@ -90,13 +90,15 @@ var (
 		AuditFile,
 		WebhookFile,
 		"v1_service_gatekeeper-webhook-service.yaml",
+	}
+	webhookStaticAssets = []string{
 		ValidatingWebhookConfiguration,
 		MutatingWebhookConfiguration,
 	}
-	mutatingStaticAssets = []string{
+
+	mutatingCRDs = []string{
 		AssignCRDFile,
 		AssignMetadataCRDFile,
-		MutatingWebhookConfiguration,
 	}
 )
 
@@ -169,8 +171,11 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, err
 	}
 
-	if err = r.deployGatekeeperResources(gatekeeper); err != nil {
+	err, requeue := r.deployGatekeeperResources(gatekeeper)
+	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
+	} else if requeue {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 
 	return ctrl.Result{}, nil
@@ -194,40 +199,65 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
-	deleteAssets, applyAssets := getStaticAssets(gatekeeper)
+func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) (error, bool) {
+	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
 
 	for _, d := range deleteAssets {
 		obj, err := util.GetManifestObject(d)
 		if err != nil {
-			return nil
+			return err, false
 		}
 
 		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
-			return err
+			return err, false
 		}
 	}
 
-	for _, a := range applyAssets {
-		// Handle special cases in switch below.
-		switch {
-		case a == NamespaceFile && !r.isOpenShift():
-			// Ignore the namespace resource on Kubernetes as we default to use
-			// the same namespace as the operator, which by definition is
-			// already created as a result of executing this code.
-			continue
-		case a == RoleFile && r.isOpenShift():
-			a = openshiftAssetsDir + a
+	for _, asset := range applyAssets {
+		err := r.applyAsset(gatekeeper, asset)
+		if err != nil {
+			return err, false
 		}
+	}
+	r.preApplyWebhooks(gatekeeper, webhookAssets)
+	err, requeue := r.validateWebhookDeployment()
+	if err != nil {
+		return err, false
+	} else if requeue {
+		return nil, true
+	}
+	for _, asset := range webhookAssets {
+		err := r.applyAsset(gatekeeper, asset)
+		if err != nil {
+			return err, false
+		}
+	}
 
-		obj, err := util.GetManifestObject(a)
+	return nil, false
+}
+
+func (r *GatekeeperReconciler) preApplyWebhooks(gatekeeper *operatorv1alpha1.Gatekeeper, webhookAssets []string) error {
+	for _, asset := range webhookAssets {
+		obj, err := util.GetManifestObject(asset)
 		if err != nil {
 			return err
 		}
-		if err = crOverrides(gatekeeper, a, obj, r.Namespace, r.isOpenShift()); err != nil {
+		webhookExists, err := r.doesWebhookExist(asset, obj.GetName())
+		if err != nil {
 			return err
 		}
-
+		if webhookExists {
+			continue
+		}
+		ignore := admregv1.Ignore
+		// Temporarily set the failure policy for all newly created policies to Ignore, this will be changed to the actual value
+		// once the gatekeeper controller deployment are running
+		if asset == ValidatingWebhookConfiguration {
+			setFailurePolicy(obj, &ignore, ValidationGatekeeperWebhook)
+			setFailurePolicy(obj, &ignore, CheckIgnoreLabelGatekeeperWebhook)
+		} else {
+			setFailurePolicy(obj, &ignore, MutationGatekeeperWebhook)
+		}
 		if err = r.crudResource(obj, gatekeeper, apply); err != nil {
 			return err
 		}
@@ -235,26 +265,123 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 	return nil
 }
 
-func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets []string) {
-	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
-	mutatingWebhookEnabled := mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
+func (r *GatekeeperReconciler) doesWebhookExist(asset string, name string) (bool, error) {
+	var err error
+	switch asset {
+	case ValidatingWebhookConfiguration:
+		err = r.Get(context.TODO(), types.NamespacedName{Namespace: r.Namespace, Name: name}, &admregv1.ValidatingWebhookConfiguration{})
+	case MutatingWebhookConfiguration:
+		err = r.Get(context.TODO(), types.NamespacedName{Namespace: r.Namespace, Name: name}, &admregv1.MutatingWebhookConfiguration{})
+	default:
+		return false, fmt.Errorf("Asset not recognized. No such webhook")
+	}
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
 
+func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeeper, asset string) error {
+	// Handle special cases in switch below.
+	switch {
+	case asset == NamespaceFile && !r.isOpenShift():
+		// Ignore the namespace resource on Kubernetes as we default to use
+		// the same namespace as the operator, which by definition is
+		// already created as a result of executing this code.
+		return nil
+	case asset == RoleFile && r.isOpenShift():
+		asset = openshiftAssetsDir + asset
+	}
+
+	obj, err := util.GetManifestObject(asset)
+	if err != nil {
+		return err
+	}
+
+	if err = crOverrides(gatekeeper, asset, obj, r.Namespace, r.isOpenShift()); err != nil {
+		return err
+	}
+
+	if err = r.crudResource(obj, gatekeeper, apply); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
+	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookFile))
+
+	ctx := context.Background()
+	obj, err := util.GetManifestObject(WebhookFile)
+	if err != nil {
+		return err, false
+	}
+	deployment := &unstructured.Unstructured{}
+	deployment.SetAPIVersion(obj.GetAPIVersion())
+	deployment.SetKind(obj.GetKind())
+	namespacedName := types.NamespacedName{
+		Namespace: r.Namespace,
+		Name:      obj.GetName(),
+	}
+
+	err = r.Get(ctx, namespacedName, deployment)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.Log.Info("Deployment not found, requeuing ...")
+			return err, true
+		}
+		return err, false
+	}
+	r.Log.Info("Deployment found, checking replicas ...")
+
+	replicas, ok, err := unstructured.NestedInt64(deployment.Object, "status", "replicas")
+	if err != nil {
+		return err, false
+	}
+	if !ok {
+		return fmt.Errorf("replicas not found in Deployment"), false
+	}
+	readyReplicas, ok, err := unstructured.NestedInt64(deployment.Object, "status", "readyReplicas")
+	if err != nil {
+		return err, false
+	}
+	if !ok {
+		return fmt.Errorf("readyReplicas not found in Deployment"), false
+	}
+	if replicas == readyReplicas {
+		r.Log.Info("Deployment validation successful, all replicas ready", "replicas", replicas, "readyReplicas", readyReplicas)
+		return nil, false
+	}
+	r.Log.Info("Deployment replicas not ready, requeuing ...", "replicas", replicas, "readyReplicas", readyReplicas)
+	return nil, true
+}
+
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets, webhookAssets []string) {
+	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
+	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
 	deleteAssets = make([]string, 0)
 	applyAssets = make([]string, 0)
+	webhookAssets = make([]string, 0)
 	// Copy over our set of ordered static assets so we maintain its
 	// immutability.
 	applyAssets = append(applyAssets, orderedStaticAssets...)
+	webhookAssets = append(webhookAssets, webhookStaticAssets...)
 
 	if !validatingWebhookEnabled {
 		// Remove ValidatingWebhookConfiguration resource
 		deleteAssets = append(deleteAssets, ValidatingWebhookConfiguration)
-		applyAssets = getSubsetOfAssets(applyAssets, ValidatingWebhookConfiguration)
+		webhookAssets = getSubsetOfAssets(webhookAssets, ValidatingWebhookConfiguration)
 	}
 
 	if !mutatingWebhookEnabled {
 		// Remove mutating resources
-		deleteAssets = append(deleteAssets, mutatingStaticAssets...)
-		applyAssets = getSubsetOfAssets(applyAssets, mutatingStaticAssets...)
+		deleteAssets = append(deleteAssets, mutatingCRDs...)
+		deleteAssets = append(deleteAssets, MutatingWebhookConfiguration)
+		applyAssets = getSubsetOfAssets(applyAssets, mutatingCRDs...)
+		webhookAssets = getSubsetOfAssets(webhookAssets, MutatingWebhookConfiguration)
 	}
 
 	return

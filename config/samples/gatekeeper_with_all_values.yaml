@@ -5,7 +5,7 @@ metadata:
 spec:
   # Add fields here
   image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.2.2
+    image: docker.io/openpolicyagent/gatekeeper:v3.3.0
     imagePullPolicy: Always
   audit:
     replicas: 1
@@ -17,11 +17,11 @@ spec:
     emitAuditEvents: Enabled
     resources:
       limits:
-        cpu: 500m
-        memory: 150Mi
+        cpu: 100m
+        memory: 20Mi
       requests:
-        cpu: 500m
-        memory: 130Mi
+        cpu: 100m
+        memory: 20Mi
   validatingWebhook: Enabled
   webhook:
     replicas: 2
@@ -34,11 +34,11 @@ spec:
         operator: Exists
     resources:
       limits:
-        cpu: 480m
-        memory: 140Mi
+        cpu: 100m
+        memory: 20Mi
       requests:
-        cpu: 400m
-        memory: 120Mi
+        cpu: 100m
+        memory: 20Mi
   nodeSelector:
     region: "EMEA"
   affinity:

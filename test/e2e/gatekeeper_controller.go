@@ -46,9 +46,9 @@ import (
 
 const (
 	// The length of time between polls.
-	pollInterval = 50 * time.Millisecond
+	pollInterval = time.Second
 	// How long to try before giving up.
-	waitTimeout = 30 * time.Second
+	waitTimeout = 60 * time.Second
 	// Longer try before giving up.
 	longWaitTimeout = waitTimeout * 4
 	// Gatekeeper name and namespace
@@ -128,6 +128,12 @@ var _ = Describe("Gatekeeper", func() {
 					Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 				})
 
+				By("Creating an affinity pod for testing gatekeeper affinity settings", func() {
+					affinityPod, err := loadAffinityPodFromFile(gkNamespace)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(K8sClient.Create(ctx, affinityPod)).Should(Succeed())
+				})
+
 				By("Checking gatekeeper-controller-manager readiness", func() {
 					Eventually(func() (int32, error) {
 						return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
@@ -149,6 +155,7 @@ var _ = Describe("Gatekeeper", func() {
 					Expect(validatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
 					Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
 				})
+
 			})
 		})
 	})
@@ -157,6 +164,7 @@ var _ = Describe("Gatekeeper", func() {
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+
 			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
 			By("Checking default replicas", func() {
@@ -300,6 +308,17 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(auditDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(*gatekeeper.Spec.Image.Image))
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
+			})
+
+			By("Checking ready replicas", func() {
+				gkDeployment := &appsv1.Deployment{}
+				Eventually(func() (int32, error) {
+					return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
+				}, longWaitTimeout, pollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
+			})
+
+			By("Checking webhook is available", func() {
+				byCheckingValidationEnabled()
 			})
 
 			byCheckingFailurePolicy(&validatingWebhookName, "expected",
@@ -734,4 +753,16 @@ func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPoli
 		return "", "", fmt.Errorf("ImagePullPolicy not found")
 	}
 	return image, corev1.PullPolicy(policy), nil
+}
+
+func loadAffinityPodFromFile(namespace string) (*corev1.Pod, error) {
+	f, err := os.Open("../../config/samples/affinity_pod.yaml")
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	pod := &corev1.Pod{}
+	err = decodeYAML(f, pod)
+	pod.ObjectMeta.Namespace = namespace
+	return pod, err
 }
