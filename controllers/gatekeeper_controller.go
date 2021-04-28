@@ -212,7 +212,7 @@ func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1a
 			return err, false
 		}
 	}
-	// Checking for deployment before deploying assets to avoid cert rotator erors
+	// Checking for deployment before deploying assets to avoid cert rotator errors
 	err, requeue := r.validateWebhookDeployment()
 	if err != nil {
 		return err, false
