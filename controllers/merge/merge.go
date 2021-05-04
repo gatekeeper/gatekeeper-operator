@@ -39,6 +39,8 @@ func RetainClusterObjectFields(desiredObj, clusterObj *unstructured.Unstructured
 		fallthrough
 	case util.MutatingWebhookConfigurationKind:
 		return retainWebhookConfigurationFields(desiredObj, clusterObj)
+	case util.SecretKind:
+		return retainSecretFields(desiredObj, clusterObj)
 	default:
 		return nil
 	}
@@ -56,6 +58,19 @@ func retainServiceFields(desiredObj, clusterObj *unstructured.Unstructured) erro
 		}
 	} // !ok could indicate that a clusterIP was not assigned
 
+	return nil
+}
+
+func retainSecretFields(desiredObj, clusterObj *unstructured.Unstructured) error {
+	data, ok, err := unstructured.NestedMap(clusterObj.Object, "data")
+	if err != nil {
+		return errors.Wrap(err, "Error retrieving data from secret")
+	} else if ok && len(data) != 0 {
+		err := unstructured.SetNestedMap(desiredObj.Object, data, "data")
+		if err != nil {
+			return errors.Wrap(err, "Error setting data for secret")
+		}
+	}
 	return nil
 }
 

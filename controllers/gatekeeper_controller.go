@@ -90,13 +90,15 @@ var (
 		AuditFile,
 		WebhookFile,
 		"v1_service_gatekeeper-webhook-service.yaml",
+	}
+	webhookStaticAssets = []string{
 		ValidatingWebhookConfiguration,
 		MutatingWebhookConfiguration,
 	}
-	mutatingStaticAssets = []string{
+
+	mutatingCRDs = []string{
 		AssignCRDFile,
 		AssignMetadataCRDFile,
-		MutatingWebhookConfiguration,
 	}
 )
 
@@ -169,8 +171,11 @@ func (r *GatekeeperReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, err
 	}
 
-	if err = r.deployGatekeeperResources(gatekeeper); err != nil {
+	err, requeue := r.deployGatekeeperResources(gatekeeper)
+	if err != nil {
 		return ctrl.Result{}, errors.Wrap(err, "Unable to deploy Gatekeeper resources")
+	} else if requeue {
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 
 	return ctrl.Result{}, nil
@@ -194,69 +199,137 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) error {
-	deleteAssets, applyAssets := getStaticAssets(gatekeeper)
+func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) (error, bool) {
+	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
 
 	for _, d := range deleteAssets {
 		obj, err := util.GetManifestObject(d)
 		if err != nil {
-			return nil
+			return err, false
 		}
 
 		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
-			return err
+			return err, false
+		}
+	}
+	// Checking for deployment before deploying assets to avoid cert rotator errors
+	err, requeue := r.validateWebhookDeployment()
+	if err != nil {
+		return err, false
+	}
+	for _, asset := range applyAssets {
+		err := r.applyAsset(gatekeeper, asset, false)
+		if err != nil {
+			return err, false
 		}
 	}
 
-	for _, a := range applyAssets {
-		// Handle special cases in switch below.
-		switch {
-		case a == NamespaceFile && !r.isOpenShift():
-			// Ignore the namespace resource on Kubernetes as we default to use
-			// the same namespace as the operator, which by definition is
-			// already created as a result of executing this code.
-			continue
-		case a == RoleFile && r.isOpenShift():
-			a = openshiftAssetsDir + a
-		}
-
-		obj, err := util.GetManifestObject(a)
+	for _, asset := range webhookAssets {
+		err := r.applyAsset(gatekeeper, asset, requeue)
 		if err != nil {
-			return err
+			return err, false
 		}
-		if err = crOverrides(gatekeeper, a, obj, r.Namespace, r.isOpenShift()); err != nil {
-			return err
-		}
+	}
+	return nil, requeue
+}
 
-		if err = r.crudResource(obj, gatekeeper, apply); err != nil {
-			return err
-		}
+func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, controllerDeploymentPending bool) error {
+	// Handle special cases in switch below.
+	switch {
+	case asset == NamespaceFile && !r.isOpenShift():
+		// Ignore the namespace resource on Kubernetes as we default to use
+		// the same namespace as the operator, which by definition is
+		// already created as a result of executing this code.
+		return nil
+	case asset == RoleFile && r.isOpenShift():
+		asset = openshiftAssetsDir + asset
+	}
+
+	obj, err := util.GetManifestObject(asset)
+	if err != nil {
+		return err
+	}
+
+	if err = crOverrides(gatekeeper, asset, obj, r.Namespace, r.isOpenShift(), controllerDeploymentPending); err != nil {
+		return err
+	}
+
+	if err = r.crudResource(obj, gatekeeper, apply); err != nil {
+		return err
 	}
 	return nil
 }
 
-func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets []string) {
-	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
-	mutatingWebhookEnabled := mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
+func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
+	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookFile))
 
+	ctx := context.Background()
+	obj, err := util.GetManifestObject(WebhookFile)
+	if err != nil {
+		return err, false
+	}
+	deployment := &unstructured.Unstructured{}
+	deployment.SetAPIVersion(obj.GetAPIVersion())
+	deployment.SetKind(obj.GetKind())
+	namespacedName := types.NamespacedName{
+		Namespace: r.Namespace,
+		Name:      obj.GetName(),
+	}
+
+	err = r.Get(ctx, namespacedName, deployment)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.Log.Info("Deployment not found, requeuing ...")
+			return nil, true
+		}
+		return err, false
+	}
+	r.Log.Info("Deployment found, checking replicas ...")
+
+	replicas, ok, err := unstructured.NestedInt64(deployment.Object, "status", "replicas")
+	if err != nil {
+		return err, false
+	}
+
+	readyReplicas, ok, err := unstructured.NestedInt64(deployment.Object, "status", "readyReplicas")
+	if err != nil {
+		return err, false
+	}
+	if !ok {
+		return nil, true // State/readyReplicas might not yet be populated
+	}
+	if replicas == readyReplicas {
+		r.Log.Info("Deployment validation successful, all replicas ready", "replicas", replicas, "readyReplicas", readyReplicas)
+		return nil, false
+	}
+	r.Log.Info("Deployment replicas not ready, requeuing ...", "replicas", replicas, "readyReplicas", readyReplicas)
+	return nil, true
+}
+
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets, webhookAssets []string) {
+	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
+	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
 	deleteAssets = make([]string, 0)
 	applyAssets = make([]string, 0)
+	webhookAssets = make([]string, 0)
 	// Copy over our set of ordered static assets so we maintain its
 	// immutability.
 	applyAssets = append(applyAssets, orderedStaticAssets...)
+	webhookAssets = append(webhookAssets, webhookStaticAssets...)
 
 	if !validatingWebhookEnabled {
 		// Remove ValidatingWebhookConfiguration resource
 		deleteAssets = append(deleteAssets, ValidatingWebhookConfiguration)
-		applyAssets = getSubsetOfAssets(applyAssets, ValidatingWebhookConfiguration)
+		webhookAssets = getSubsetOfAssets(webhookAssets, ValidatingWebhookConfiguration)
 	}
 
 	if !mutatingWebhookEnabled {
 		// Remove mutating resources
-		deleteAssets = append(deleteAssets, mutatingStaticAssets...)
-		applyAssets = getSubsetOfAssets(applyAssets, mutatingStaticAssets...)
+		deleteAssets = append(deleteAssets, mutatingCRDs...)
+		deleteAssets = append(deleteAssets, MutatingWebhookConfiguration)
+		applyAssets = getSubsetOfAssets(applyAssets, mutatingCRDs...)
+		webhookAssets = getSubsetOfAssets(webhookAssets, MutatingWebhookConfiguration)
 	}
-
 	return
 }
 
@@ -352,7 +425,7 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 }
 
 // crOverrides
-func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *unstructured.Unstructured, namespace string, isOpenshift bool) error {
+func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *unstructured.Unstructured, namespace string, isOpenshift bool, controllerDeploymentPending bool) error {
 	if asset == NamespaceFile {
 		obj.SetName(namespace)
 		return nil
@@ -395,15 +468,15 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
 			return err
 		}
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false, controllerDeploymentPending); err != nil {
 			return err
 		}
 	// MutatingWebhookConfiguration overrides
 	case MutatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
 			return err
 		}
 	// ClusterRole overrides
@@ -474,10 +547,15 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 	return nil
 }
 
-func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool) error {
+func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool, controllerDeploymentPending bool) error {
 	if webhook != nil {
-		if updateFailurePolicy {
-			if err := setFailurePolicy(obj, webhook.FailurePolicy, webhookName); err != nil {
+		if updateFailurePolicy || controllerDeploymentPending {
+			failurePolicy := webhook.FailurePolicy
+			if controllerDeploymentPending {
+				ignore := admregv1.Ignore
+				failurePolicy = &ignore
+			}
+			if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
 				return err
 			}
 		}
