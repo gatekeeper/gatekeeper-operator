@@ -29,7 +29,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: gatekeeper-operator.v0.1.1
+  name: gatekeeper-operator.v0.1.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -292,7 +292,7 @@ spec:
                 - --enable-leader-election
                 command:
                 - /manager
-                image: quay.io/gatekeeper/gatekeeper-operator:v0.1.1
+                image: quay.io/gatekeeper/gatekeeper-operator:v0.1.2
                 imagePullPolicy: Always
                 name: manager
                 resources:
@@ -393,4 +393,5 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat
-  version: 0.1.1
+  replaces: gatekeeper-operator.v0.1.1
+  version: 0.1.2
