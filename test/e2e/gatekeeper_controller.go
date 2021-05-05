@@ -46,9 +46,9 @@ import (
 
 const (
 	// The length of time between polls.
-	pollInterval = 50 * time.Millisecond
+	pollInterval = 1 * time.Second
 	// How long to try before giving up.
-	waitTimeout = 30 * time.Second
+	waitTimeout = 1 * time.Minute
 	// Longer try before giving up.
 	longWaitTimeout = waitTimeout * 4
 	// Gatekeeper name and namespace
