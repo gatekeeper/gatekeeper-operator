@@ -29,6 +29,8 @@ jobs:
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
       run: |
+        # TODO: Use operator-sdk run bundle commands for testing with OLM.
+        sed -i '/  replaces:/d' ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml
         OPERATOR_VERSION=$(awk '/^VERSION/ {print $3}' Makefile)
         make build-and-push-bundle-images IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA REPO=localhost:5000 VERSION=$GITHUB_SHA OPERATOR_VERSION=${OPERATOR_VERSION}
 
