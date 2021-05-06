@@ -89,7 +89,8 @@ jobs:
 
     - name: Build and Push Bundle Index Image
       run: |
-        make bundle-index-build VERSION=${RELEASE_VERSION}
+        PREV_BUNDLE_INDEX_IMG_VERSION=$(make prev-bundle-index-image-version)
+        make bundle-index-build VERSION=${RELEASE_VERSION} REPLACES_VERSION=${PREV_BUNDLE_INDEX_IMG_VERSION}
         docker tag ${RELEASE_BUNDLE_INDEX_IMG}:${RELEASE_VERSION} ${RELEASE_BUNDLE_INDEX_IMG}:latest
         make docker-push IMG=${RELEASE_BUNDLE_INDEX_IMG}:${RELEASE_VERSION}
         make docker-push IMG=${RELEASE_BUNDLE_INDEX_IMG}:latest

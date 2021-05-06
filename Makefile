@@ -3,6 +3,8 @@ SHELL := /bin/bash
 OS_NAME = $(shell uname -s)
 # Current Operator version
 VERSION ?= v0.1.2-rc.0
+# Replaces Operator version
+REPLACES_VERSION ?= $(VERSION)
 # Current Gatekeeper version
 GATEKEEPER_VERSION ?= v3.3.0
 # Default image repo
@@ -11,6 +13,8 @@ REPO ?= quay.io/gatekeeper
 BUNDLE_IMG ?= $(REPO)/gatekeeper-operator-bundle:$(VERSION)
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(REPO)/gatekeeper-operator-bundle-index:$(VERSION)
+# Default previous bundle index image tag
+PREV_BUNDLE_INDEX_IMG ?= $(REPO)/gatekeeper-operator-bundle-index:$(REPLACES_VERSION)
 # Default namespace
 NAMESPACE ?= gatekeeper-system
 # Default Kubernetes distribution
@@ -305,10 +309,16 @@ bundle: operator-sdk manifests
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
+# Get previous index image version
+.PHONY: prev-bundle-index-image-version
+prev-bundle-index-image-version:
+	@REPLACES=$$(grep replaces ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml); \
+	echo $${REPLACES#*.}
+
 # Build the bundle index image.
 .PHONY: bundle-index-build
 bundle-index-build: opm
-	$(OPM) index add --bundles $(BUNDLE_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
+	$(OPM) index add --bundles $(BUNDLE_IMG) --from-index $(PREV_BUNDLE_INDEX_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
 
 # Generate and push bundle image and bundle index image
 # Note: OPERATOR_VERSION is an arbitrary number and does not need to match any official versions
