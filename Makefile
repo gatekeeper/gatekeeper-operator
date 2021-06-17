@@ -136,7 +136,7 @@ deploy-olm:
 .PHONY: deploy-with-olm
 deploy-with-olm:
 	sed -i 's#quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest#$(BUNDLE_INDEX_IMG)#g' config/olm-install/install-resources.yaml
-	(cd config/olm-install && $(KUSTOMIZE) edit set namespace $(NAMESPACE))
+	sed -i 's#mygatekeeper#$(NAMESPACE)#g' config/olm-install/install-resources.yaml
 	$(KUSTOMIZE) build config/olm-install | kubectl apply -f -
 
 # Build manager binary
