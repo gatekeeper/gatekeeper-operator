@@ -280,7 +280,7 @@ $(OPM):
 	export GOPATH=$${OPM_GEN_TMP_DIR} ;\
 	go get github.com/operator-framework/operator-registry || true;\
 	cd src/github.com/operator-framework/operator-registry ;\
-	git checkout -b v1.15.1 ;\
+	git checkout v1.15.1 ;\
 	make bin/opm ;\
 	mv bin/opm $@ ;\
 	rm -rf $$OPM_GEN_TMP_DIR ;\
