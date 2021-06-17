@@ -237,7 +237,7 @@ verify-bindata:
 # Build the docker image
 .PHONY: docker-build
 docker-build:
-	docker build . --build-arg LDFLAGS=${LDFLAGS} -t ${IMG}
+	docker build . --build-arg GOOS=${GOOS} --build-arg GOARCH=${GOARCH} --build-arg LDFLAGS=${LDFLAGS} -t ${IMG}
 
 # Push the docker image
 .PHONY: docker-push
