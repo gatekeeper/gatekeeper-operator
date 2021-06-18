@@ -92,6 +92,9 @@ else
 OPERATOR_SDK=$(shell which operator-sdk)
 endif
 
+# kind variables
+KIND_VERSION ?= 0.10.0
+
 # Use the vendored directory
 GOFLAGS = -mod=vendor
 
@@ -341,6 +344,11 @@ tidy:
 .PHONY: test-cluster
 test-cluster:
 	./scripts/kind-with-registry.sh
+
+.PHONY: e2e-bootstrap
+e2e-bootstrap:
+	# Download and install kind
+	curl -L https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-linux-amd64 --output ${GITHUB_WORKSPACE}/bin/kind && chmod +x ${GITHUB_WORKSPACE}/bin/kind
 
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e:
