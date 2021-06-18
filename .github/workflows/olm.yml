@@ -22,6 +22,12 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
 
+    - name: Bootstrap e2e
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/bin
+        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
+        make e2e-bootstrap
+
     - name: Create and set up K8s KinD Cluster
       run: |
         ./scripts/kind-with-registry.sh
