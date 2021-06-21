@@ -14,6 +14,8 @@ if [ "${running}" != 'true' ]; then
     registry:2
 fi
 
+kind version
+
 # create a cluster with the local registry enabled in containerd
 cat <<EOF | kind create cluster --image kindest/node:v1.19.7 --name "${KIND_CLUSTER_NAME}" --config=-
 kind: Cluster

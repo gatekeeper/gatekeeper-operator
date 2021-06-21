@@ -90,7 +90,9 @@ jobs:
         make e2e-bootstrap
 
     - name: Create K8s KinD Cluster
-      run: kind create cluster --image kindest/node:v1.19.7
+      run: |
+        kind version
+        kind create cluster --image kindest/node:v1.19.7
 
     - name: Build and Push Test Container Image to KIND node
       run: |
