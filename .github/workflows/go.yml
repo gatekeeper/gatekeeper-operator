@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   main:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         go: [ '1.15' ]
@@ -83,8 +83,16 @@ jobs:
         make bundle
         git diff --exit-code
 
+    - name: Bootstrap e2e
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/bin
+        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
+        make e2e-bootstrap
+
     - name: Create K8s KinD Cluster
-      run: kind create cluster --image kindest/node:v1.19.7
+      run: |
+        kind version
+        kind create cluster --image kindest/node:v1.19.7
 
     - name: Build and Push Test Container Image to KIND node
       run: |

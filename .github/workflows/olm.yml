@@ -8,7 +8,7 @@ on:
 
 jobs:
   main:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         go: [ '1.15' ]
@@ -21,6 +21,12 @@ jobs:
       id: go
       with:
         go-version: ${{ matrix.go }}
+
+    - name: Bootstrap e2e
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/bin
+        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
+        make e2e-bootstrap
 
     - name: Create and set up K8s KinD Cluster
       run: |

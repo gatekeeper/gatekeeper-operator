@@ -50,7 +50,7 @@ const (
 	// How long to try before giving up.
 	waitTimeout = 1 * time.Minute
 	// Longer try before giving up.
-	longWaitTimeout = waitTimeout * 4
+	longWaitTimeout = waitTimeout * 5
 	// Gatekeeper name and namespace
 	gkName                      = "gatekeeper"
 	gatekeeperWithAllValuesFile = "gatekeeper_with_all_values.yaml"
