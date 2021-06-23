@@ -8,12 +8,26 @@ on:
 
 jobs:
   main:
-    runs-on: ubuntu-20.04
     name: Run tests
+    runs-on: ubuntu-20.04
+
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
+
+    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+    - uses: actions/cache@v2
+      with:
+        # In order:
+        # * Module download cache
+        # * Build cache (Linux)
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
     - uses: actions/setup-go@v2
       with:
