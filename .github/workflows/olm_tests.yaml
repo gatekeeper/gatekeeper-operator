@@ -1,4 +1,4 @@
-name: OLM
+name: OLM-Tests
 
 on:
   push:
@@ -9,18 +9,20 @@ on:
 jobs:
   main:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        go: [ '1.15' ]
-    name: Go ${{ matrix.go }}
+    name: Run tests
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
+
     - uses: actions/setup-go@v2
-      id: go
       with:
-        go-version: ${{ matrix.go }}
+        go-version: '1.15.13'
+
+    - name: Verify bundle
+      run: |
+        make bundle
+        git diff --exit-code
 
     - name: Bootstrap e2e
       run: |

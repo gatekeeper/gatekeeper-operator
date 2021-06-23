@@ -1,4 +1,4 @@
-name: Go
+name: CI-Tests
 
 on:
   push:
@@ -9,26 +9,25 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: gatekeeper-operator
 
 jobs:
-  main:
+  verify-tests:
+    name: Run verify tests
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        go: [ '1.15' ]
-    name: Go ${{ matrix.go }}
+
+    defaults:
+      run:
+        working-directory: gatekeeper-operator
+
     steps:
-    - name: Checkout Gatekeeper Operator
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
       with:
         path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
 
     - uses: actions/setup-go@v2
-      id: go
       with:
-        go-version: ${{ matrix.go }}
+        go-version: '1.15.13'
 
     - name: Verify modules
       run: go mod verify
@@ -78,10 +77,21 @@ jobs:
       run: |
         make verify-bindata
 
-    - name: Verify bundle
-      run: |
-        make bundle
-        git diff --exit-code
+  ci-tests:
+    name: Run unit and e2e tests
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetch all history for all tags and branches
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.13'
+
+    - name: Unit and Integration Tests
+      run: make test
 
     - name: Bootstrap e2e
       run: |
@@ -98,9 +108,6 @@ jobs:
       run: |
         make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         kind load docker-image localhost:5000/gatekeeper-operator:$GITHUB_SHA
-
-    - name: Unit and Integration Tests
-      run: make test
 
     - name: E2E Tests
       run: |
