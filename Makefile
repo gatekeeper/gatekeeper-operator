@@ -107,10 +107,12 @@ DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"
 ifeq ($(DIFF), 1)
     GIT_TREESTATE = "dirty"
 endif
-LDFLAGS = "-X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitVersion=$(GIT_VERSION) \
-             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitCommit=$(GIT_HASH) \
-             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.gitTreeState=$(GIT_TREESTATE) \
-             -X github.com/gatekeeper/gatekeeper-operator/pkg/version.buildDate=$(BUILDDATE)"
+
+VERSION_PKG = "github.com/gatekeeper/gatekeeper-operator/pkg/version"
+LDFLAGS = "-X $(VERSION_PKG).gitVersion=$(GIT_VERSION) \
+             -X $(VERSION_PKG).gitCommit=$(GIT_HASH) \
+             -X $(VERSION_PKG).gitTreeState=$(GIT_TREESTATE) \
+             -X $(VERSION_PKG).buildDate=$(BUILDDATE)"
 
 .PHONY: all
 all: manager
@@ -237,7 +239,7 @@ verify-bindata:
 # Build the docker image
 .PHONY: docker-build
 docker-build:
-	docker build . --build-arg LDFLAGS=${LDFLAGS} -t ${IMG}
+	docker build . --build-arg GOOS=${GOOS} --build-arg GOARCH=${GOARCH} --build-arg LDFLAGS=${LDFLAGS} -t ${IMG}
 
 # Push the docker image
 .PHONY: docker-push
@@ -326,7 +328,7 @@ bundle-index-build: opm
 # Generate and push bundle image and bundle index image
 # Note: OPERATOR_VERSION is an arbitrary number and does not need to match any official versions
 .PHONY: build-and-push-bundle-images
-build-and-push-bundle-images: docker-build docker-push 
+build-and-push-bundle-images: docker-build docker-push
 	$(MAKE) bundle VERSION=$(OPERATOR_VERSION)
 	$(MAKE) bundle-build
 	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
