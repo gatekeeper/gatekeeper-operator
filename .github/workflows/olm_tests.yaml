@@ -62,7 +62,7 @@ jobs:
 
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
-        make deploy-with-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
+        make deploy-using-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
 
     - name: E2E Tests
       run: |

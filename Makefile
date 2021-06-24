@@ -135,8 +135,8 @@ deploy-olm:
 	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/crds.yaml
 	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/olm.yaml
 
-.PHONY: deploy-with-olm
-deploy-with-olm:
+.PHONY: deploy-using-olm
+deploy-using-olm:
 	sed -i 's#quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest#$(BUNDLE_INDEX_IMG)#g' config/olm-install/install-resources.yaml
 	sed -i 's#mygatekeeper#$(NAMESPACE)#g' config/olm-install/install-resources.yaml
 	$(KUSTOMIZE) build config/olm-install | kubectl apply -f -
