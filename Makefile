@@ -358,11 +358,10 @@ test-gatekeeper-e2e:
 	bats -t test/bats/test.bats
 
 .PHONY: deploy-ci
-deploy-ci: deploy-ci-namespace deploy
+deploy-ci: install patch-image deploy
 
-.PHONY: deploy-ci-namespace
-deploy-ci-namespace: install
-	kubectl create namespace --dry-run=client -o yaml $(NAMESPACE) | kubectl apply -f-
+.PHONY: patch-image
+patch-image:
 	sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
 
 .PHONY: release
