@@ -18,6 +18,7 @@ package e2e
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -87,6 +88,7 @@ var _ = BeforeSuite(func(done Done) {
 
 	if affinityNode != nil {
 		Expect(labelNode(affinityNode)).Should(Succeed())
+		createAffinityPod()
 	}
 	close(done)
 }, 60)
@@ -131,8 +133,14 @@ func unlabelNode(node *corev1.Node) error {
 	return K8sClient.Patch(context.TODO(), node, patch)
 }
 
+func createAffinityPod() {
+	affinityPod, err := loadAffinityPodFromFile(*GatekeeperNamespace)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(K8sClient.Create(ctx, affinityPod)).Should(Succeed())
+}
+
 func deleteAffinityPod() error {
-	affinityPodFromFile, err := loadAffinityPodFromFile(gkNamespace)
+	affinityPodFromFile, err := loadAffinityPodFromFile(*GatekeeperNamespace)
 	if err != nil {
 		return err
 	}
@@ -150,4 +158,16 @@ func deleteAffinityPod() error {
 		return err
 	}
 	return K8sClient.Delete(ctx, pod)
+}
+
+func loadAffinityPodFromFile(namespace string) (*corev1.Pod, error) {
+	f, err := os.Open("../../config/samples/affinity_pod.yaml")
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	pod := &corev1.Pod{}
+	err = decodeYAML(f, pod)
+	pod.ObjectMeta.Namespace = namespace
+	return pod, err
 }

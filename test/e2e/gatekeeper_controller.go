@@ -128,12 +128,6 @@ var _ = Describe("Gatekeeper", func() {
 					Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 				})
 
-				By("Creating an affinity pod for testing gatekeeper affinity settings", func() {
-					affinityPod, err := loadAffinityPodFromFile(gkNamespace)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(K8sClient.Create(ctx, affinityPod)).Should(Succeed())
-				})
-
 				By("Checking gatekeeper-controller-manager readiness", func() {
 					Eventually(func() (int32, error) {
 						return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
@@ -753,16 +747,4 @@ func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPoli
 		return "", "", fmt.Errorf("ImagePullPolicy not found")
 	}
 	return image, corev1.PullPolicy(policy), nil
-}
-
-func loadAffinityPodFromFile(namespace string) (*corev1.Pod, error) {
-	f, err := os.Open("../../config/samples/affinity_pod.yaml")
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	pod := &corev1.Pod{}
-	err = decodeYAML(f, pod)
-	pod.ObjectMeta.Namespace = namespace
-	return pod, err
 }
