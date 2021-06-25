@@ -368,6 +368,7 @@ e2e-bootstrap:
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e:
 	kubectl -n $(NAMESPACE) apply -f ./config/samples/gatekeeper_e2e_test.yaml
+	bats --version
 	bats -t test/bats/test.bats
 
 .PHONY: deploy-ci
