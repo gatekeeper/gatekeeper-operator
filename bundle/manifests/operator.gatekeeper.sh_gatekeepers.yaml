@@ -4,6 +4,8 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.0
   creationTimestamp: null
+  labels:
+    control-plane: gatekeeper-operator-controller-manager
   name: gatekeepers.operator.gatekeeper.sh
 spec:
   additionalPrinterColumns:

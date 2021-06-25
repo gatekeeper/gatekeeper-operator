@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
+  labels:
+    control-plane: gatekeeper-operator-controller-manager
   name: gatekeeper-operator-metrics-reader
 rules:
 - nonResourceURLs:

@@ -268,12 +268,12 @@ spec:
           replicas: 1
           selector:
             matchLabels:
-              control-plane: controller-manager
+              control-plane: gatekeeper-operator-controller-manager
           strategy: {}
           template:
             metadata:
               labels:
-                control-plane: controller-manager
+                control-plane: gatekeeper-operator-controller-manager
             spec:
               containers:
               - args:
