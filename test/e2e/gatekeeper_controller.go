@@ -403,7 +403,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -425,7 +425,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -448,7 +448,7 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 			})
 
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 			byCheckingMutationEnabled(webhookDeployment)
 
 			By("Getting Gatekeeper CR for updating", func() {
@@ -462,7 +462,7 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(K8sClient.Update(ctx, gatekeeper)).Should(Succeed())
 			})
 
-			_, webhookDeployment = gatekeeperDeployments()
+			webhookDeployment = gatekeeperWebhookDeployment()
 			byCheckingMutationDisabled(webhookDeployment)
 		})
 	})
