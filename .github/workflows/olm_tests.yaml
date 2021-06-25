@@ -47,7 +47,6 @@ jobs:
     - name: Create and set up K8s KinD Cluster
       run: |
         ./scripts/kind-with-registry.sh
-        make deploy-olm
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
       run: |
@@ -59,6 +58,10 @@ jobs:
         IMG=${REPO}/gatekeeper-operator:${GITHUB_SHA}
         PREV_BUNDLE_INDEX_IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:${PREV_BUNDLE_INDEX_IMG_VERSION}
         make build-and-push-bundle-images IMG=${IMG} REPO=${REPO} VERSION=${GITHUB_SHA} OPERATOR_VERSION=${OPERATOR_VERSION} PREV_BUNDLE_INDEX_IMG=${PREV_BUNDLE_INDEX_IMG}
+
+    - name: Deploy OLM
+      run: |
+        make deploy-olm
 
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
