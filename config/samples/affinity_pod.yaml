@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: affinity-pod 
+  name: affinity-pod
   labels:
     auditKey: auditValue
 spec:
   containers:
   - name: affinity-pod
-    image: docker.io/openpolicyagent/gatekeeper:v3.3.0
+    image: busybox
     command: ["/bin/sh", "-c", "sleep INF"]
   nodeSelector:
     topology.kubernetes.io/zone: test
