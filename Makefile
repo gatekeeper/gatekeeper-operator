@@ -97,6 +97,7 @@ KIND_VERSION ?= v0.10.0
 # note: k8s version pinned since KIND image availability lags k8s releases
 KUBERNETES_VERSION ?= v1.19.7
 BATS_VERSION ?= 1.2.1
+OLM_VERSION ?= v0.17.0
 
 # Use the vendored directory
 GOFLAGS = -mod=vendor
@@ -135,8 +136,7 @@ test-e2e: generate fmt vet
 
 .PHONY: deploy-olm
 deploy-olm:
-	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/crds.yaml
-	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/olm.yaml
+	$(OPERATOR_SDK) olm install --version $(OLM_VERSION)
 
 .PHONY: deploy-using-olm
 deploy-using-olm:
