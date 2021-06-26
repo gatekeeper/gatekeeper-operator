@@ -9,9 +9,7 @@ jobs:
   build:
     name: Create Release
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        go: [ '1.15' ]
+
     steps:
     - name: Set Up Environment Variables
       env:
@@ -83,9 +81,8 @@ jobs:
 
     - name: Set Up Go to Install OPM
       uses: actions/setup-go@v2
-      id: go
       with:
-        go-version: ${{ matrix.go }}
+        go-version: '1.15.13'
 
     - name: Build and Push Bundle Index Image
       run: |

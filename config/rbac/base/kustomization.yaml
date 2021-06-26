@@ -8,6 +8,10 @@ namespace: gatekeeper-system
 # field above.
 namePrefix: gatekeeper-operator-
 
+# Labels to add to all resources and selectors.
+commonLabels:
+  control-plane: gatekeeper-operator-controller-manager
+
 resources:
 - role.yaml
 - role_binding.yaml

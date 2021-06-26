@@ -93,7 +93,11 @@ OPERATOR_SDK=$(shell which operator-sdk)
 endif
 
 # kind variables
-KIND_VERSION ?= 0.10.0
+KIND_VERSION ?= v0.10.0
+# note: k8s version pinned since KIND image availability lags k8s releases
+KUBERNETES_VERSION ?= v1.19.7
+BATS_VERSION ?= 1.2.1
+OLM_VERSION ?= v0.17.0
 
 # Use the vendored directory
 GOFLAGS = -mod=vendor
@@ -128,15 +132,14 @@ test: generate fmt vet manifests
 
 .PHONY: test-e2e
 test-e2e: generate fmt vet
-	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test/e2e -coverprofile cover.out -race -args -ginkgo.v -ginkgo.trace -namespace $(NAMESPACE)
+	GOFLAGS=$(GOFLAGS) USE_EXISTING_CLUSTER=true go test -v ./test/e2e -coverprofile cover.out -race -args -ginkgo.v -ginkgo.progress -ginkgo.trace -namespace $(NAMESPACE)
 
 .PHONY: deploy-olm
 deploy-olm:
-	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/crds.yaml
-	kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.17.0/olm.yaml
+	$(OPERATOR_SDK) olm install --version $(OLM_VERSION)
 
-.PHONY: deploy-with-olm
-deploy-with-olm:
+.PHONY: deploy-using-olm
+deploy-using-olm:
 	sed -i 's#quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest#$(BUNDLE_INDEX_IMG)#g' config/olm-install/install-resources.yaml
 	sed -i 's#mygatekeeper#$(NAMESPACE)#g' config/olm-install/install-resources.yaml
 	$(KUSTOMIZE) build config/olm-install | kubectl apply -f -
@@ -261,6 +264,8 @@ $(CONTROLLER_GEN):
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 
+KUSTOMIZE_VERSION ?= v4.0.5
+
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE)
 
@@ -270,7 +275,7 @@ $(KUSTOMIZE):
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v4@v4.0.5 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION) ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 
@@ -350,19 +355,27 @@ test-cluster:
 .PHONY: e2e-bootstrap
 e2e-bootstrap:
 	# Download and install kind
-	curl -L https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-linux-amd64 --output ${GITHUB_WORKSPACE}/bin/kind && chmod +x ${GITHUB_WORKSPACE}/bin/kind
+	curl -L https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64 --output ${GITHUB_WORKSPACE}/bin/kind && chmod +x ${GITHUB_WORKSPACE}/bin/kind
+	# Download and install kubectl
+	curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl -o ${GITHUB_WORKSPACE}/bin/kubectl && chmod +x ${GITHUB_WORKSPACE}/bin/kubectl
+	# Download and install kustomize
+	curl -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz -o kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && tar -zxvf kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && chmod +x kustomize && mv kustomize ${GITHUB_WORKSPACE}/bin/kustomize
+	# Download and install bats
+	curl -sSLO https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.tar.gz && tar -zxvf v${BATS_VERSION}.tar.gz && bash bats-core-${BATS_VERSION}/install.sh ${GITHUB_WORKSPACE}
+	# Check for existing kind cluster
+	if [ $$(kind get clusters) ]; then kind delete cluster; fi
 
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e:
 	kubectl -n $(NAMESPACE) apply -f ./config/samples/gatekeeper_e2e_test.yaml
+	bats --version
 	bats -t test/bats/test.bats
 
 .PHONY: deploy-ci
-deploy-ci: deploy-ci-namespace deploy
+deploy-ci: install patch-image deploy
 
-.PHONY: deploy-ci-namespace
-deploy-ci-namespace: install
-	kubectl create namespace --dry-run=client -o yaml $(NAMESPACE) | kubectl apply -f-
+.PHONY: patch-image
+patch-image:
 	sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
 
 .PHONY: release

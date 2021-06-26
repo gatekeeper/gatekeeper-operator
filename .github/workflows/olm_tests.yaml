@@ -1,4 +1,4 @@
-name: OLM
+name: OLM-Tests
 
 on:
   push:
@@ -8,19 +8,35 @@ on:
 
 jobs:
   main:
+    name: Run tests
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        go: [ '1.15' ]
-    name: Go ${{ matrix.go }}
+
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
-    - uses: actions/setup-go@v2
-      id: go
+
+    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+    - uses: actions/cache@v2
       with:
-        go-version: ${{ matrix.go }}
+        # In order:
+        # * Module download cache
+        # * Build cache (Linux)
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.13'
+
+    - name: Verify bundle
+      run: |
+        make bundle
+        git diff --exit-code
 
     - name: Bootstrap e2e
       run: |
@@ -31,7 +47,6 @@ jobs:
     - name: Create and set up K8s KinD Cluster
       run: |
         ./scripts/kind-with-registry.sh
-        make deploy-olm
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
       run: |
@@ -44,9 +59,13 @@ jobs:
         PREV_BUNDLE_INDEX_IMG=quay.io/gatekeeper/gatekeeper-operator-bundle-index:${PREV_BUNDLE_INDEX_IMG_VERSION}
         make build-and-push-bundle-images IMG=${IMG} REPO=${REPO} VERSION=${GITHUB_SHA} OPERATOR_VERSION=${OPERATOR_VERSION} PREV_BUNDLE_INDEX_IMG=${PREV_BUNDLE_INDEX_IMG}
 
+    - name: Deploy OLM
+      run: |
+        make deploy-olm
+
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
-        make deploy-with-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
+        make deploy-using-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
 
     - name: E2E Tests
       run: |

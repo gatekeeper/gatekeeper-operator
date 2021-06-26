@@ -11,6 +11,8 @@ namePrefix: gatekeeper-operator-
 # Labels to add to all resources and selectors.
 #commonLabels:
 #  someName: someValue
+commonLabels:
+  control-plane: gatekeeper-operator-controller-manager
 
 bases:
 - ../crd

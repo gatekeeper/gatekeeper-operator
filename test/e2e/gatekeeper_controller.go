@@ -128,12 +128,6 @@ var _ = Describe("Gatekeeper", func() {
 					Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 				})
 
-				By("Creating an affinity pod for testing gatekeeper affinity settings", func() {
-					affinityPod, err := loadAffinityPodFromFile(gkNamespace)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(K8sClient.Create(ctx, affinityPod)).Should(Succeed())
-				})
-
 				By("Checking gatekeeper-controller-manager readiness", func() {
 					Eventually(func() (int32, error) {
 						return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
@@ -275,6 +269,10 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
 				Expect(auditDeployment.Spec.Replicas).To(Equal(gatekeeper.Spec.Audit.Replicas))
 				Expect(webhookDeployment.Spec.Replicas).NotTo(BeNil())
+				// TODO: Remove once flake has been fixed. See
+				// https://github.com/gatekeeper/gatekeeper-operator/pull/168/checks?check_run_id=2918723659
+				// for example failure.
+				fmt.Fprint(GinkgoWriter, "webhookDeployment", webhookDeployment)
 				Expect(webhookDeployment.Spec.Replicas).To(Equal(gatekeeper.Spec.Webhook.Replicas))
 			})
 
@@ -409,7 +407,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -431,7 +429,7 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 
 			byCheckingMutationEnabled(webhookDeployment)
 
@@ -454,7 +452,7 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
 			})
 
-			_, webhookDeployment := gatekeeperDeployments()
+			webhookDeployment := gatekeeperWebhookDeployment()
 			byCheckingMutationEnabled(webhookDeployment)
 
 			By("Getting Gatekeeper CR for updating", func() {
@@ -468,7 +466,7 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(K8sClient.Update(ctx, gatekeeper)).Should(Succeed())
 			})
 
-			_, webhookDeployment = gatekeeperDeployments()
+			webhookDeployment = gatekeeperWebhookDeployment()
 			byCheckingMutationDisabled(webhookDeployment)
 		})
 	})
@@ -753,16 +751,4 @@ func getDefaultImage(file string) (image string, imagePullPolicy corev1.PullPoli
 		return "", "", fmt.Errorf("ImagePullPolicy not found")
 	}
 	return image, corev1.PullPolicy(policy), nil
-}
-
-func loadAffinityPodFromFile(namespace string) (*corev1.Pod, error) {
-	f, err := os.Open("../../config/samples/affinity_pod.yaml")
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	pod := &corev1.Pod{}
-	err = decodeYAML(f, pod)
-	pod.ObjectMeta.Namespace = namespace
-	return pod, err
 }

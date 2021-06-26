@@ -1,4 +1,4 @@
-name: Go
+name: CI-Tests
 
 on:
   push:
@@ -9,26 +9,38 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: gatekeeper-operator
 
 jobs:
-  main:
+  verify-and-unit-tests:
+    name: Run verify and unit tests
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        go: [ '1.15' ]
-    name: Go ${{ matrix.go }}
+
+    defaults:
+      run:
+        working-directory: gatekeeper-operator
+
     steps:
-    - name: Checkout Gatekeeper Operator
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
       with:
         path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    - uses: actions/setup-go@v2
-      id: go
+    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+    - uses: actions/cache@v2
       with:
-        go-version: ${{ matrix.go }}
+        # In order:
+        # * Module download cache
+        # * Build cache (Linux)
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.13'
 
     - name: Verify modules
       run: go mod verify
@@ -78,10 +90,34 @@ jobs:
       run: |
         make verify-bindata
 
-    - name: Verify bundle
-      run: |
-        make bundle
-        git diff --exit-code
+    - name: Unit and Integration Tests
+      run: make test
+
+  e2e-tests:
+    name: Run e2e tests
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetch all history for all tags and branches
+
+    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+    - uses: actions/cache@v2
+      with:
+        # In order:
+        # * Module download cache
+        # * Build cache (Linux)
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.13'
 
     - name: Bootstrap e2e
       run: |
@@ -92,15 +128,12 @@ jobs:
     - name: Create K8s KinD Cluster
       run: |
         kind version
-        kind create cluster --image kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca
+        kind create cluster --image kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca --wait=5m
 
     - name: Build and Push Test Container Image to KIND node
       run: |
         make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         kind load docker-image localhost:5000/gatekeeper-operator:$GITHUB_SHA
-
-    - name: Unit and Integration Tests
-      run: make test
 
     - name: E2E Tests
       run: |
@@ -108,8 +141,49 @@ jobs:
         make test-e2e NAMESPACE=mygatekeeper
         kubectl delete --wait namespace mygatekeeper
 
+  gatekeeper-e2e-tests:
+    name: Run gatekeeper e2e tests
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Fetch all history for all tags and branches
+
+    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+    - uses: actions/cache@v2
+      with:
+        # In order:
+        # * Module download cache
+        # * Build cache (Linux)
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.13'
+
+    - name: Bootstrap e2e
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/bin
+        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
+        make e2e-bootstrap
+
+    - name: Create K8s KinD Cluster
+      run: |
+        kind version
+        kind create cluster --image kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca --wait=5m
+
+    - name: Build and Push Test Container Image to KIND node
+      run: |
+        make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        kind load docker-image localhost:5000/gatekeeper-operator:$GITHUB_SHA
+
     - name: Gatekeeper E2E Tests
       run: |
-        sudo apt-get install -y bats
         make deploy-ci NAMESPACE=gatekeeper-system IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         make test-gatekeeper-e2e ENABLE_MUTATION_TESTS=y
