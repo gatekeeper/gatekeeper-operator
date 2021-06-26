@@ -269,6 +269,10 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(auditDeployment.Spec.Replicas).NotTo(BeNil())
 				Expect(auditDeployment.Spec.Replicas).To(Equal(gatekeeper.Spec.Audit.Replicas))
 				Expect(webhookDeployment.Spec.Replicas).NotTo(BeNil())
+				// TODO: Remove once flake has been fixed. See
+				// https://github.com/gatekeeper/gatekeeper-operator/pull/168/checks?check_run_id=2918723659
+				// for example failure.
+				fmt.Fprint(GinkgoWriter, "webhookDeployment", webhookDeployment)
 				Expect(webhookDeployment.Spec.Replicas).To(Equal(gatekeeper.Spec.Webhook.Replicas))
 			})
 
