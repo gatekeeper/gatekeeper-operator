@@ -53,4 +53,7 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        env:
+        - name: GATEKEEPER_IMAGE
+          value: openpolicyagent/gatekeeper:v3.3.0
       terminationGracePeriodSeconds: 10
