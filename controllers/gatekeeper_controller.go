@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -178,6 +179,23 @@ func (r *GatekeeperReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 
 		return ctrl.Result{}, err
+	}
+
+	image := os.Getenv("GATEKEEPER_IMAGE")
+	if gatekeeper.Spec.Image == nil {
+		gatekeeper.Spec.Image = &operatorv1alpha1.ImageConfig{}
+	}
+
+	if gatekeeper.Spec.Image.Image == nil {
+		if image != "" {
+			gatekeeper.Spec.Image.Image = &image
+		}
+		// else only should happen in dev/test environments, in which case use
+		// the default image in the Gatekeeper deployment manifests i.e. no
+		// overrides.
+	} else {
+		logger.Info("WARNING: operator.gatekeeper.sh/v1alpha1 Gatekeeper spec.image.image field is deprecated and will be removed in a future release.",
+			"spec.image.image", gatekeeper.Spec.Image.Image)
 	}
 
 	err, requeue := r.deployGatekeeperResources(gatekeeper)
