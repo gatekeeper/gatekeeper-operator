@@ -77,7 +77,7 @@ endif
 
 # operator-sdk variables
 # ======================
-OPERATOR_SDK_VERSION ?= v1.2.0
+OPERATOR_SDK_VERSION ?= v1.3.2
 ifeq ($(OS_NAME), Linux)
     OPERATOR_SDK_URL=https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu
 else ifeq ($(OS_NAME), Darwin)
