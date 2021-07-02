@@ -46,6 +46,7 @@ jobs:
 
     - name: Create and set up K8s KinD Cluster
       run: |
+        export KIND_IMG_TAG=v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
         ./scripts/kind-with-registry.sh
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
