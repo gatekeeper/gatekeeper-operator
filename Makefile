@@ -81,7 +81,7 @@ KIND_VERSION ?= v0.11.1
 # note: k8s version pinned since KIND image availability lags k8s releases
 KUBERNETES_VERSION ?= v1.21.1
 BATS_VERSION ?= 1.2.1
-OLM_VERSION ?= v0.17.0
+OLM_VERSION ?= v0.18.2
 
 # Use the vendored directory
 GOFLAGS = -mod=vendor
@@ -120,7 +120,7 @@ test-e2e: generate fmt vet
 
 .PHONY: deploy-olm
 deploy-olm:
-	$(OPERATOR_SDK) olm install --version $(OLM_VERSION)
+	$(OPERATOR_SDK) olm install --version $(OLM_VERSION) --timeout 5m
 
 .PHONY: deploy-using-olm
 deploy-using-olm:
