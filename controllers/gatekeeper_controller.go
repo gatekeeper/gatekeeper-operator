@@ -196,8 +196,8 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&operatorv1alpha1.Gatekeeper{}).
 		WithEventFilter(predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
-				oldGeneration := e.MetaOld.GetGeneration()
-				newGeneration := e.MetaNew.GetGeneration()
+				oldGeneration := e.ObjectOld.GetGeneration()
+				newGeneration := e.ObjectNew.GetGeneration()
 
 				return oldGeneration != newGeneration
 			},
