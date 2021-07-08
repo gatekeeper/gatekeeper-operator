@@ -337,8 +337,8 @@ tidy:
 test-cluster:
 	./scripts/kind-with-registry.sh
 
-.PHONY: e2e-bootstrap
-e2e-bootstrap:
+.PHONY: download-binaries
+download-binaries:
 	# Download and install kind
 	curl -L https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64 --output ${GITHUB_WORKSPACE}/bin/kind && chmod +x ${GITHUB_WORKSPACE}/bin/kind
 	# Download and install kubectl
@@ -347,8 +347,6 @@ e2e-bootstrap:
 	curl -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz -o kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && tar -zxvf kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && chmod +x kustomize && mv kustomize ${GITHUB_WORKSPACE}/bin/kustomize
 	# Download and install bats
 	curl -sSLO https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.tar.gz && tar -zxvf v${BATS_VERSION}.tar.gz && bash bats-core-${BATS_VERSION}/install.sh ${GITHUB_WORKSPACE}
-	# Check for existing kind cluster
-	if [ $$(kind get clusters) ]; then kind delete cluster; fi
 
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e:

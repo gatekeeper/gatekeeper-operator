@@ -33,16 +33,16 @@ jobs:
       with:
         go-version: '1.15.13'
 
+    - name: Download binaries
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/bin
+        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
+        make download-binaries
+
     - name: Verify bundle
       run: |
         make bundle
         git diff --exit-code
-
-    - name: Bootstrap e2e
-      run: |
-        mkdir -p ${GITHUB_WORKSPACE}/bin
-        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
-        make e2e-bootstrap
 
     - name: Create and set up K8s KinD Cluster
       run: |
