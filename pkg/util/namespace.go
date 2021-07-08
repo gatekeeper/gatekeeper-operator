@@ -19,6 +19,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gatekeeper/gatekeeper-operator/pkg/platform"
 	"github.com/pkg/errors"
 )
 
@@ -42,11 +43,9 @@ func GetOperatorNamespace() (string, error) {
 }
 
 // GetPlatformNamespace returns the namespace for the designated platform.
-func GetPlatformNamespace(platformName string) string {
-	switch PlatformType(platformName) {
-	case OpenShift:
+func GetPlatformNamespace(platformInfo platform.PlatformInfo) string {
+	if platformInfo.IsOpenShift() {
 		return DefaultOpenShiftGatekeeperNamespace
-	default:
-		return DefaultGatekeeperNamespace
 	}
+	return DefaultGatekeeperNamespace
 }

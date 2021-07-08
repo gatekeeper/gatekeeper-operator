@@ -32,9 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/platform"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/version"
 	"github.com/pkg/errors"
@@ -74,25 +74,25 @@ func main() {
 
 	cfg := ctrl.GetConfigOrDie()
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
-		Port:               9443,
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
+		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "5ff985cc.gatekeeper.sh",
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "5ff985cc.gatekeeper.sh",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	platformName, err := openshift.GetPlatformName(cfg)
+	platformInfo, err := platform.GetPlatformInfo(cfg)
 	if err != nil {
 		setupLog.Error(err, "unable to get platform name")
 		os.Exit(1)
 	}
 
-	namespace, err := gatekeeperNamespace(platformName)
+	namespace, err := gatekeeperNamespace(platformInfo)
 	if err != nil {
 		setupLog.Error(err, "unable to get Gatekeeper namespace")
 		os.Exit(1)
@@ -103,7 +103,7 @@ func main() {
 		Log:          ctrl.Log.WithName("controllers").WithName("Gatekeeper"),
 		Scheme:       mgr.GetScheme(),
 		Namespace:    namespace,
-		PlatformName: util.PlatformType(platformName),
+		PlatformInfo: platformInfo,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Gatekeeper")
 		os.Exit(1)
@@ -126,7 +126,7 @@ func main() {
 	}
 }
 
-func gatekeeperNamespace(platformName string) (string, error) {
+func gatekeeperNamespace(platformInfo platform.PlatformInfo) (string, error) {
 	if ns := os.Getenv("GATEKEEPER_TARGET_NAMESPACE"); ns != "" {
 		return ns, nil
 	}
@@ -136,12 +136,9 @@ func gatekeeperNamespace(platformName string) (string, error) {
 		return "", errors.Wrapf(err, "Failed to get operator namespace")
 	}
 
-	switch util.PlatformType(platformName) {
-	case util.OpenShift:
-		return util.GetPlatformNamespace(platformName), nil
-	case util.Kubernetes:
-		fallthrough
-	default:
-		return ns, nil
+	if platformInfo.IsOpenShift() {
+		return util.GetPlatformNamespace(platformInfo), nil
 	}
+
+	return ns, nil
 }

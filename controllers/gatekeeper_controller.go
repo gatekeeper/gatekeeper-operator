@@ -38,6 +38,7 @@ import (
 
 	operatorv1alpha1 "github.com/gatekeeper/gatekeeper-operator/api/v1alpha1"
 	"github.com/gatekeeper/gatekeeper-operator/controllers/merge"
+	"github.com/gatekeeper/gatekeeper-operator/pkg/platform"
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 )
 
@@ -108,7 +109,7 @@ type GatekeeperReconciler struct {
 	Log          logr.Logger
 	Scheme       *runtime.Scheme
 	Namespace    string
-	PlatformName util.PlatformType
+	PlatformInfo platform.PlatformInfo
 }
 
 type crudOperation uint32
@@ -419,7 +420,7 @@ func (r *GatekeeperReconciler) crudResource(obj *unstructured.Unstructured, gate
 }
 
 func (r *GatekeeperReconciler) isOpenShift() bool {
-	return util.IsOpenShift(r.PlatformName)
+	return r.PlatformInfo.IsOpenShift()
 }
 
 var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.GatekeeperSpec) error{

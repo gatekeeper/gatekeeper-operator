@@ -3,7 +3,6 @@ module github.com/gatekeeper/gatekeeper-operator
 go 1.15
 
 require (
-	github.com/RHsyseng/operator-utils v1.4.6-0.20201116165605-e3e8466ece23
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-logr/logr v0.3.0 // indirect
 	github.com/onsi/ginkgo v1.14.1 // indirect
