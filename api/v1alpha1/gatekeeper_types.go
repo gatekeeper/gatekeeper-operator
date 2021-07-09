@@ -51,6 +51,11 @@ type GatekeeperSpec struct {
 }
 
 type ImageConfig struct {
+	// DEPRECATED: Image is deprecated. Its continued use will be honored by
+	// the operator with a warning and removed in a future release. Instead,
+	// the operator will rely on the environment variable set in its manifest
+	// at deployment time and will be the default behavior after this field is
+	// removed.
 	// Image to pull including registry (optional), repository, name, and tag
 	// e.g. quay.io/gatekeeper/gatekeeper-operator:latest
 	// +optional
