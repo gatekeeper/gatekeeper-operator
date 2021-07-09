@@ -29,7 +29,7 @@ import (
 	admregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -506,7 +506,7 @@ func byCheckingValidationEnabled() {
 	})
 }
 
-type getCRDFunc func(types.NamespacedName, *extv1beta1.CustomResourceDefinition)
+type getCRDFunc func(types.NamespacedName, *extv1.CustomResourceDefinition)
 
 func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 	By(fmt.Sprintf("Checking %s argument is set", controllers.EnableMutationArg), func() {
@@ -522,7 +522,7 @@ func byCheckingMutationEnabled(webhookDeployment *appsv1.Deployment) {
 	})
 
 	var crdFn getCRDFunc
-	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
+	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1.CustomResourceDefinition) {
 		Eventually(func() error {
 			return K8sClient.Get(ctx, crdName, mutatingCRD)
 		}, waitTimeout, pollInterval).ShouldNot(HaveOccurred())
@@ -558,7 +558,7 @@ func byCheckingMutationDisabled(webhookDeployment *appsv1.Deployment) {
 	})
 
 	var crdFn getCRDFunc
-	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1beta1.CustomResourceDefinition) {
+	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1.CustomResourceDefinition) {
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, crdName, mutatingCRD)
 			return apierrors.IsNotFound(err)
@@ -587,7 +587,7 @@ func byCheckingMutatingCRDs(deployMsg string, f getCRDFunc) {
 			Name: crd.name,
 		}
 		By(fmt.Sprintf("Checking %s Mutating CRD %s", crd.kind, deployMsg), func() {
-			mutatingAssignCRD := &extv1beta1.CustomResourceDefinition{}
+			mutatingAssignCRD := &extv1.CustomResourceDefinition{}
 			f(crdNamespacedName, mutatingAssignCRD)
 		})
 	}
