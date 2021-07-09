@@ -204,10 +204,14 @@ spec:
       description: Assign is the Schema for the assign API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -215,9 +219,11 @@ spec:
           description: AssignSpec defines the desired state of Assign
           properties:
             applyTo:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run "make" to regenerate code after modifying this file'
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "make" to regenerate code after modifying this file'
               items:
-                description: ApplyTo determines what GVKs items the mutation should apply to. Globs are not allowed.
+                description: ApplyTo determines what GVKs items the mutation should
+                  apply to. Globs are not allowed.
                 properties:
                   groups:
                     items:
@@ -243,10 +249,16 @@ spec:
                   type: array
                 kinds:
                   items:
-                    description: Kinds accepts a list of objects with apiGroups and kinds fields that list the groups/kinds of objects to which the mutation will apply. If multiple groups/kinds objects are specified, only one match is needed for the resource to be in scope.
+                    description: Kinds accepts a list of objects with apiGroups and
+                      kinds fields that list the groups/kinds of objects to which
+                      the mutation will apply. If multiple groups/kinds objects are
+                      specified, only one match is needed for the resource to be in
+                      scope.
                     properties:
                       apiGroups:
-                        description: APIGroups is the API groups the resources belong to. '*' is all groups. If '*' is present, the length of the slice must be one. Required.
+                        description: APIGroups is the API groups the resources belong
+                          to. '*' is all groups. If '*' is present, the length of
+                          the slice must be one. Required.
                         items:
                           type: string
                         type: array
@@ -257,21 +269,34 @@ spec:
                     type: object
                   type: array
                 labelSelector:
-                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  description: A label selector is a label query over a set of resources.
+                    The result of matchLabels and matchExpressions are ANDed. An empty
+                    label selector matches all objects. A null label selector matches
+                    no objects.
                   properties:
                     matchExpressions:
-                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      description: matchExpressions is a list of label selector requirements.
+                        The requirements are ANDed.
                       items:
-                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        description: A label selector requirement is a selector that
+                          contains values, a key, and an operator that relates the
+                          key and values.
                         properties:
                           key:
-                            description: key is the label key that the selector applies to.
+                            description: key is the label key that the selector applies
+                              to.
                             type: string
                           operator:
-                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            description: operator represents a key's relationship
+                              to a set of values. Valid operators are In, NotIn, Exists
+                              and DoesNotExist.
                             type: string
                           values:
-                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            description: values is an array of string values. If the
+                              operator is In or NotIn, the values array must be non-empty.
+                              If the operator is Exists or DoesNotExist, the values
+                              array must be empty. This array is replaced during a
+                              strategic merge patch.
                             items:
                               type: string
                             type: array
@@ -283,25 +308,42 @@ spec:
                     matchLabels:
                       additionalProperties:
                         type: string
-                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      description: matchLabels is a map of {key,value} pairs. A single
+                        {key,value} in the matchLabels map is equivalent to an element
+                        of matchExpressions, whose key field is "key", the operator
+                        is "In", and the values array contains only "value". The requirements
+                        are ANDed.
                       type: object
                   type: object
                 namespaceSelector:
-                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  description: A label selector is a label query over a set of resources.
+                    The result of matchLabels and matchExpressions are ANDed. An empty
+                    label selector matches all objects. A null label selector matches
+                    no objects.
                   properties:
                     matchExpressions:
-                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      description: matchExpressions is a list of label selector requirements.
+                        The requirements are ANDed.
                       items:
-                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        description: A label selector requirement is a selector that
+                          contains values, a key, and an operator that relates the
+                          key and values.
                         properties:
                           key:
-                            description: key is the label key that the selector applies to.
+                            description: key is the label key that the selector applies
+                              to.
                             type: string
                           operator:
-                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            description: operator represents a key's relationship
+                              to a set of values. Valid operators are In, NotIn, Exists
+                              and DoesNotExist.
                             type: string
                           values:
-                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            description: values is an array of string values. If the
+                              operator is In or NotIn, the values array must be non-empty.
+                              If the operator is Exists or DoesNotExist, the values
+                              array must be empty. This array is replaced during a
+                              strategic merge patch.
                             items:
                               type: string
                             type: array
@@ -313,7 +355,11 @@ spec:
                     matchLabels:
                       additionalProperties:
                         type: string
-                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      description: matchLabels is a map of {key,value} pairs. A single
+                        {key,value} in the matchLabels map is equivalent to an element
+                        of matchExpressions, whose key field is "key", the operator
+                        is "In", and the values array contains only "value". The requirements
+                        are ANDed.
                       type: object
                   type: object
                 namespaces:
@@ -321,7 +367,8 @@ spec:
                     type: string
                   type: array
                 scope:
-                  description: ResourceScope is an enum defining the different scopes available to a custom resource
+                  description: ResourceScope is an enum defining the different scopes
+                    available to a custom resource
                   type: string
               required:
               - scope
@@ -333,18 +380,28 @@ spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 ifIn:
-                  description: IfIn Only mutate if the current value is in the supplied list
+                  description: IfIn Only mutate if the current value is in the supplied
+                    list
                   items:
                     type: string
                   type: array
                 ifNotIn:
-                  description: IfNotIn Only mutate if the current value is NOT in the supplied list
+                  description: IfNotIn Only mutate if the current value is NOT in
+                    the supplied list
                   items:
                     type: string
                   type: array
                 pathTests:
                   items:
-                    description: "PathTests allows the user to customize how the mutation works if parent paths are missing. It traverses the list in order. All sub paths are tested against the provided condition, if the test fails, the mutation is not applied. All ` + "`" + `subPath` + "`" + ` entries must be a prefix of ` + "`" + `location` + "`" + `. Any glob characters will take on the same value as was used to expand the matching glob in ` + "`" + `location` + "`" + `. \n Available Tests: * MustExist    - the path must exist or do not mutate * MustNotExist - the path must not exist or do not mutate"
+                    description: "PathTests allows the user to customize how the mutation
+                      works if parent paths are missing. It traverses the list in
+                      order. All sub paths are tested against the provided condition,
+                      if the test fails, the mutation is not applied. All ` + "`" + `subPath` + "`" + `
+                      entries must be a prefix of ` + "`" + `location` + "`" + `. Any glob characters
+                      will take on the same value as was used to expand the matching
+                      glob in ` + "`" + `location` + "`" + `. \n Available Tests: * MustExist    - the
+                      path must exist or do not mutate * MustNotExist - the path must
+                      not exist or do not mutate"
                     properties:
                       condition:
                         enum:
@@ -411,10 +468,14 @@ spec:
       description: AssignMetadata is the Schema for the assignmetadata API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -431,10 +492,16 @@ spec:
                   type: array
                 kinds:
                   items:
-                    description: Kinds accepts a list of objects with apiGroups and kinds fields that list the groups/kinds of objects to which the mutation will apply. If multiple groups/kinds objects are specified, only one match is needed for the resource to be in scope.
+                    description: Kinds accepts a list of objects with apiGroups and
+                      kinds fields that list the groups/kinds of objects to which
+                      the mutation will apply. If multiple groups/kinds objects are
+                      specified, only one match is needed for the resource to be in
+                      scope.
                     properties:
                       apiGroups:
-                        description: APIGroups is the API groups the resources belong to. '*' is all groups. If '*' is present, the length of the slice must be one. Required.
+                        description: APIGroups is the API groups the resources belong
+                          to. '*' is all groups. If '*' is present, the length of
+                          the slice must be one. Required.
                         items:
                           type: string
                         type: array
@@ -445,21 +512,34 @@ spec:
                     type: object
                   type: array
                 labelSelector:
-                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  description: A label selector is a label query over a set of resources.
+                    The result of matchLabels and matchExpressions are ANDed. An empty
+                    label selector matches all objects. A null label selector matches
+                    no objects.
                   properties:
                     matchExpressions:
-                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      description: matchExpressions is a list of label selector requirements.
+                        The requirements are ANDed.
                       items:
-                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        description: A label selector requirement is a selector that
+                          contains values, a key, and an operator that relates the
+                          key and values.
                         properties:
                           key:
-                            description: key is the label key that the selector applies to.
+                            description: key is the label key that the selector applies
+                              to.
                             type: string
                           operator:
-                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            description: operator represents a key's relationship
+                              to a set of values. Valid operators are In, NotIn, Exists
+                              and DoesNotExist.
                             type: string
                           values:
-                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            description: values is an array of string values. If the
+                              operator is In or NotIn, the values array must be non-empty.
+                              If the operator is Exists or DoesNotExist, the values
+                              array must be empty. This array is replaced during a
+                              strategic merge patch.
                             items:
                               type: string
                             type: array
@@ -471,25 +551,42 @@ spec:
                     matchLabels:
                       additionalProperties:
                         type: string
-                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      description: matchLabels is a map of {key,value} pairs. A single
+                        {key,value} in the matchLabels map is equivalent to an element
+                        of matchExpressions, whose key field is "key", the operator
+                        is "In", and the values array contains only "value". The requirements
+                        are ANDed.
                       type: object
                   type: object
                 namespaceSelector:
-                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  description: A label selector is a label query over a set of resources.
+                    The result of matchLabels and matchExpressions are ANDed. An empty
+                    label selector matches all objects. A null label selector matches
+                    no objects.
                   properties:
                     matchExpressions:
-                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      description: matchExpressions is a list of label selector requirements.
+                        The requirements are ANDed.
                       items:
-                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        description: A label selector requirement is a selector that
+                          contains values, a key, and an operator that relates the
+                          key and values.
                         properties:
                           key:
-                            description: key is the label key that the selector applies to.
+                            description: key is the label key that the selector applies
+                              to.
                             type: string
                           operator:
-                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            description: operator represents a key's relationship
+                              to a set of values. Valid operators are In, NotIn, Exists
+                              and DoesNotExist.
                             type: string
                           values:
-                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            description: values is an array of string values. If the
+                              operator is In or NotIn, the values array must be non-empty.
+                              If the operator is Exists or DoesNotExist, the values
+                              array must be empty. This array is replaced during a
+                              strategic merge patch.
                             items:
                               type: string
                             type: array
@@ -501,7 +598,11 @@ spec:
                     matchLabels:
                       additionalProperties:
                         type: string
-                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      description: matchLabels is a map of {key,value} pairs. A single
+                        {key,value} in the matchLabels map is equivalent to an element
+                        of matchExpressions, whose key field is "key", the operator
+                        is "In", and the values array contains only "value". The requirements
+                        are ANDed.
                       type: object
                   type: object
                 namespaces:
@@ -509,7 +610,8 @@ spec:
                     type: string
                   type: array
                 scope:
-                  description: ResourceScope is an enum defining the different scopes available to a custom resource
+                  description: ResourceScope is an enum defining the different scopes
+                    available to a custom resource
                   type: string
               required:
               - scope
@@ -576,10 +678,14 @@ spec:
       description: Config is the Schema for the configs API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -610,7 +716,8 @@ spec:
               description: Configuration for syncing k8s objects
               properties:
                 syncOnly:
-                  description: If non-empty, only entries on this list will be replicated into OPA
+                  description: If non-empty, only entries on this list will be replicated
+                    into OPA
                   items:
                     properties:
                       group:
@@ -626,11 +733,13 @@ spec:
               description: Configuration for validation
               properties:
                 traces:
-                  description: List of requests to trace. Both "user" and "kinds" must be specified
+                  description: List of requests to trace. Both "user" and "kinds"
+                    must be specified
                   items:
                     properties:
                       dump:
-                        description: Also dump the state of OPA with the trace. Set to ` + "`" + `All` + "`" + ` to dump everything.
+                        description: Also dump the state of OPA with the trace. Set
+                          to ` + "`" + `All` + "`" + ` to dump everything.
                         type: string
                       kind:
                         description: Only trace requests of the following GroupVersionKind
@@ -700,13 +809,18 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: ConstraintPodStatus is the Schema for the constraintpodstatuses API
+      description: ConstraintPodStatus is the Schema for the constraintpodstatuses
+        API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -714,13 +828,16 @@ spec:
           description: ConstraintPodStatusStatus defines the observed state of ConstraintPodStatus
           properties:
             constraintUID:
-              description: Storing the constraint UID allows us to detect drift, such as when a constraint has been recreated after its CRD was deleted out from under it, interrupting the watch
+              description: Storing the constraint UID allows us to detect drift, such
+                as when a constraint has been recreated after its CRD was deleted
+                out from under it, interrupting the watch
               type: string
             enforced:
               type: boolean
             errors:
               items:
-                description: Error represents a single error caught while adding a constraint to OPA
+                description: Error represents a single error caught while adding a
+                  constraint to OPA
                 properties:
                   code:
                     type: string
@@ -791,22 +908,29 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: ConstraintTemplatePodStatus is the Schema for the constrainttemplatepodstatuses API
+      description: ConstraintTemplatePodStatus is the Schema for the constrainttemplatepodstatuses
+        API
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
         status:
-          description: ConstraintTemplatePodStatusStatus defines the observed state of ConstraintTemplatePodStatus
+          description: ConstraintTemplatePodStatusStatus defines the observed state
+            of ConstraintTemplatePodStatus
           properties:
             errors:
               items:
-                description: CreateCRDError represents a single error caught during parsing, compiling, etc.
+                description: CreateCRDError represents a single error caught during
+                  parsing, compiling, etc.
                 properties:
                   code:
                     type: string
@@ -820,7 +944,8 @@ spec:
                 type: object
               type: array
             id:
-              description: 'Important: Run "make" to regenerate code after modifying this file'
+              description: 'Important: Run "make" to regenerate code after modifying
+                this file'
               type: string
             observedGeneration:
               format: int64
@@ -830,7 +955,10 @@ spec:
                 type: string
               type: array
             templateUID:
-              description: UID is a type that holds unique ID values, including UUIDs.  Because we don't ONLY use UUIDs, this is an alias to string.  Being a type captures intent and helps make sure that UIDs and names do not get conflated.
+              description: UID is a type that holds unique ID values, including UUIDs.  Because
+                we don't ONLY use UUIDs, this is an alias to string.  Being a type
+                captures intent and helps make sure that UIDs and names do not get
+                conflated.
               type: string
           type: object
       type: object
@@ -882,10 +1010,14 @@ spec:
     openAPIV3Schema:
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
