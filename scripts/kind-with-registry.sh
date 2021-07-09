@@ -3,6 +3,7 @@ set -o errexit
 
 # desired cluster name; default is "kind"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-kind}"
+KIND_IMG_TAG="${KIND_IMG_TAG:-}"
 
 # create registry container unless it already exists
 reg_name='kind-registry'
@@ -16,8 +17,15 @@ fi
 
 kind version
 
+KIND_CMD=
+if [[ -z "${KIND_IMG_TAG}" ]]; then
+  KIND_CMD="kind create cluster ${IMG} --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
+else
+  KIND_CMD="kind create cluster --image kindest/node:${KIND_IMG_TAG} --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
+fi
+
 # create a cluster with the local registry enabled in containerd
-cat <<EOF | kind create cluster --image kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca --name "${KIND_CLUSTER_NAME}" --wait=5m --config=-
+cat <<EOF | ${KIND_CMD}
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:

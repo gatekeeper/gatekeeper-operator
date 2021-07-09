@@ -1,5 +1,5 @@
 /*
-
+Copyright 2021.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-// Important: Run "make" to regenerate code after modifying this file
-
 // GatekeeperSpec defines the desired state of Gatekeeper
 type GatekeeperSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
 	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
 	// +optional
@@ -131,11 +131,11 @@ const (
 	EmitEventsDisabled EmitEventsMode = "Disabled"
 )
 
-// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-// Important: Run "make" to regenerate code after modifying this file
-
 // GatekeeperStatus defines the observed state of Gatekeeper
 type GatekeeperStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
 	// ObservedGeneration is the generation as observed by the operator consuming this API.
 	ObservedGeneration int64             `json:"observedGeneration"`
 	AuditConditions    []StatusCondition `json:"auditConditions"`
