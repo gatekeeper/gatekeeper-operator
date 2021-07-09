@@ -222,7 +222,12 @@ verify-bindata:
 	export TMP_DIR=$$(mktemp -d) ;\
 	export BINDATA_OUTPUT_PREFIX="$${TMP_DIR}/" ;\
 	$(MAKE) .run-bindata ;\
-	diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE) ;\
+	if ! diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE); then \
+		echo "Error: $(BINDATA_OUTPUT_FILE) and $${TMP_DIR}/$(BINDATA_OUTPUT_FILE) files differ. Run 'make update-bindata' and try again." ;\
+		rm -rf "$${TMP_DIR}" ;\
+		rm -rf "$${TMP_GOPATH}" ;\
+		exit 1 ;\
+	fi ;\
 	rm -rf "$${TMP_DIR}" ;\
 	rm -rf "$${TMP_GOPATH}"
 .PHONY: verify-bindata
