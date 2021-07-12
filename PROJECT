@@ -3,7 +3,7 @@ layout: go.kubebuilder.io/v3
 projectName: gatekeeper-operator
 repo: github.com/gatekeeper/gatekeeper-operator
 resources:
-- crdVersion: v1beta1
+- crdVersion: v1
   group: operator
   kind: Gatekeeper
   version: v1alpha1
