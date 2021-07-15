@@ -6,7 +6,7 @@ VERSION ?= v0.1.2
 # Replaces Operator version
 REPLACES_VERSION ?= $(VERSION)
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.3.0
+GATEKEEPER_VERSION ?= v3.5.1
 # Default image repo
 REPO ?= quay.io/gatekeeper
 # Default bundle image tag
