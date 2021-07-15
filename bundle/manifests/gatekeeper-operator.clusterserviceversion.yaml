@@ -126,6 +126,18 @@ spec:
           - update
           - watch
         - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - mutations.gatekeeper.sh
           resources:
           - '*'
@@ -229,18 +241,6 @@ spec:
           - get
           - patch
           - update
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
         - apiGroups:
           - security.openshift.io
           resourceNames:

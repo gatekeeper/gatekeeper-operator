@@ -15,6 +15,7 @@ limitations under the License.
 package util
 
 const (
+	NamespaceKind                      = "Namespace"
 	ServiceKind                        = "Service"
 	ValidatingWebhookConfigurationKind = "ValidatingWebhookConfiguration"
 	MutatingWebhookConfigurationKind   = "MutatingWebhookConfiguration"
