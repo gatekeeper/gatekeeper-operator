@@ -181,7 +181,7 @@ func (r *GatekeeperReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	image := os.Getenv("GATEKEEPER_IMAGE")
+	image := os.Getenv("RELATED_IMAGE_GATEKEEPER")
 	if gatekeeper.Spec.Image == nil {
 		gatekeeper.Spec.Image = &operatorv1alpha1.ImageConfig{}
 	}
