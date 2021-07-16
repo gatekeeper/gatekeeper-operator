@@ -47,8 +47,9 @@ const (
 	defaultGatekeeperCrName           = "gatekeeper"
 	openshiftAssetsDir                = "openshift/"
 	NamespaceFile                     = "v1_namespace_gatekeeper-system.yaml"
-	AssignCRDFile                     = "apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
-	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
+	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
+	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
+	MutatorPodStatusCRDFile           = "apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml"
 	AuditFile                         = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                       = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	ClusterRoleFile                   = "rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml"
@@ -56,8 +57,8 @@ const (
 	RoleFile                          = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	RoleBindingFile                   = "rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml"
 	ServerCertFile                    = "v1_secret_gatekeeper-webhook-server-cert.yaml"
-	ValidatingWebhookConfiguration    = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
-	MutatingWebhookConfiguration      = "admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml"
+	ValidatingWebhookConfiguration    = "admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
+	MutatingWebhookConfiguration      = "admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml"
 	ValidationGatekeeperWebhook       = "validation.gatekeeper.sh"
 	CheckIgnoreLabelGatekeeperWebhook = "check-ignore-label.gatekeeper.sh"
 	MutationGatekeeperWebhook         = "mutation.gatekeeper.sh"
@@ -76,15 +77,18 @@ const (
 var (
 	orderedStaticAssets = []string{
 		NamespaceFile,
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
+		"v1_resourcequota_gatekeeper-critical-pods.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
 		AssignCRDFile,
 		AssignMetadataCRDFile,
+		MutatorPodStatusCRDFile,
 		ServerCertFile,
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
+		"policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml",
 		ClusterRoleFile,
 		ClusterRoleBindingFile,
 		RoleFile,
@@ -101,6 +105,7 @@ var (
 	mutatingCRDs = []string{
 		AssignCRDFile,
 		AssignMetadataCRDFile,
+		MutatorPodStatusCRDFile,
 	}
 )
 
