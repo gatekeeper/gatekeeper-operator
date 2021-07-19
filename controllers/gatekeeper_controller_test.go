@@ -749,17 +749,9 @@ func assertNamespaceSelector(g *WithT, obj *unstructured.Unstructured, webhookNa
 			g.Expect(err).ToNot(HaveOccurred())
 			if expected == nil {
 				// ValidatingWebhookConfiguration and
-				// MutatingWebhookConfiguration have different defaults so the
-				// following split is necessary.
-				if webhookName == ValidationGatekeeperWebhook {
-					g.Expect(found).To(BeTrue())
-					g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
-				} else {
-					g.Expect(found).To(BeFalse())
-					// Default NamespaceSelector for MutatingWebhookConfiguration
-					// is nil and we already know expected is nil if we reach
-					// this.
-				}
+				// MutatingWebhookConfiguration have the same defaults.
+				g.Expect(found).To(BeTrue())
+				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
 			} else {
 				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
 			}
