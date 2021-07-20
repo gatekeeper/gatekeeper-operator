@@ -62,6 +62,8 @@ const (
 	ValidationGatekeeperWebhook       = "validation.gatekeeper.sh"
 	CheckIgnoreLabelGatekeeperWebhook = "check-ignore-label.gatekeeper.sh"
 	MutationGatekeeperWebhook         = "mutation.gatekeeper.sh"
+	AuditDeploymentName               = "gatekeeper-audit"
+	WebhookDeploymentName             = "gatekeeper-controller-manager"
 	managerContainer                  = "manager"
 	LogLevelArg                       = "--log-level"
 	AuditIntervalArg                  = "--audit-interval"
@@ -72,6 +74,8 @@ const (
 	EmitAdmissionEventsArg            = "--emit-admission-events"
 	ExemptNamespaceArg                = "--exempt-namespace"
 	EnableMutationArg                 = "--enable-mutation"
+	OperationArg                      = "--operation"
+	OperationMutationStatus           = "mutation-status"
 )
 
 var (
@@ -452,6 +456,7 @@ var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.
 	setPodAnnotations,
 	setTolerations,
 	containerOverrides,
+	setEnableMutation,
 }
 var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
 	setImage,
@@ -491,11 +496,6 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 		if isOpenshift {
 			if err := removeAnnotations(obj); err != nil {
-				return err
-			}
-		}
-		if mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
-			if err := setEnableMutation(obj); err != nil {
 				return err
 			}
 		}
@@ -744,8 +744,19 @@ func setEmitEvents(obj *unstructured.Unstructured, argName string, emitEvents *o
 	return nil
 }
 
-func setEnableMutation(obj *unstructured.Unstructured) error {
-	return setContainerArg(obj, managerContainer, EnableMutationArg, "true")
+func setEnableMutation(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if !mutatingWebhookEnabled(spec.MutatingWebhook) {
+		return nil
+	}
+
+	switch obj.GetName() {
+	case AuditDeploymentName:
+		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus)
+	case WebhookDeploymentName:
+		return setContainerArg(obj, managerContainer, EnableMutationArg, "true")
+	default:
+		return nil
+	}
 }
 
 func setWebhookConfigurationWithFn(obj *unstructured.Unstructured, webhookName string, webhookFn func(map[string]interface{}) error) error {
