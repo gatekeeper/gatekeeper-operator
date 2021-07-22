@@ -602,13 +602,18 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 }
 
 func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool, controllerDeploymentPending bool) error {
+	// Set failure policy to ignore if deployment is still pending.
+	if controllerDeploymentPending {
+		ignore := admregv1.Ignore
+		failurePolicy := &ignore
+		if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
+			return err
+		}
+	}
+
 	if webhook != nil {
-		if updateFailurePolicy || controllerDeploymentPending {
+		if updateFailurePolicy && !controllerDeploymentPending {
 			failurePolicy := webhook.FailurePolicy
-			if controllerDeploymentPending {
-				ignore := admregv1.Ignore
-				failurePolicy = &ignore
-			}
 			if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
 				return err
 			}
