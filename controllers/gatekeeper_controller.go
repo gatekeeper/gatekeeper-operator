@@ -239,37 +239,57 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) (error, bool) {
-	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets := getStaticAssets(gatekeeper)
 
-	for _, d := range deleteAssets {
-		obj, err := util.GetManifestObject(d)
-		if err != nil {
-			return err, false
-		}
-
-		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
-			return err, false
-		}
+	if err := r.deleteAssets(deleteWebhookAssets, gatekeeper); err != nil {
+		return err, false
 	}
-	// Checking for deployment before deploying assets to avoid cert rotator errors
+
+	// Checking for deployment before deploying assets or deleting CRDs to
+	// avoid transient errors e.g. cert rotator errors, removing required CRD
+	// resources, etc.
 	err, requeue := r.validateWebhookDeployment()
 	if err != nil {
 		return err, false
 	}
-	for _, asset := range applyAssets {
-		err := r.applyAsset(gatekeeper, asset, false)
-		if err != nil {
-			return err, false
-		}
+
+	if err := r.applyAssets(applyOrderedAssets, gatekeeper, false); err != nil {
+		return err, false
 	}
 
-	for _, asset := range webhookAssets {
-		err := r.applyAsset(gatekeeper, asset, requeue)
+	if err := r.applyAssets(applyWebhookAssets, gatekeeper, requeue); err != nil {
+		return err, false
+	}
+
+	if err := r.deleteAssets(deleteCRDAssets, gatekeeper); err != nil {
+		return err, false
+	}
+
+	return nil, requeue
+}
+
+func (r *GatekeeperReconciler) deleteAssets(assets []string, gatekeeper *operatorv1alpha1.Gatekeeper) error {
+	for _, a := range assets {
+		obj, err := util.GetManifestObject(a)
 		if err != nil {
-			return err, false
+			return err
+		}
+
+		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
+			return err
 		}
 	}
-	return nil, requeue
+	return nil
+}
+
+func (r *GatekeeperReconciler) applyAssets(assets []string, gatekeeper *operatorv1alpha1.Gatekeeper, controllerDeploymentPending bool) error {
+	for _, a := range assets {
+		err := r.applyAsset(gatekeeper, a, controllerDeploymentPending)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, controllerDeploymentPending bool) error {
@@ -338,29 +358,30 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 	return nil, true
 }
 
-func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets, webhookAssets []string) {
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets []string) {
 	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
 	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
-	deleteAssets = make([]string, 0)
-	applyAssets = make([]string, 0)
-	webhookAssets = make([]string, 0)
+	deleteWebhookAssets = make([]string, 0)
+	applyOrderedAssets = make([]string, 0)
+	applyWebhookAssets = make([]string, 0)
+	deleteCRDAssets = make([]string, 0)
 	// Copy over our set of ordered static assets so we maintain its
 	// immutability.
-	applyAssets = append(applyAssets, orderedStaticAssets...)
-	webhookAssets = append(webhookAssets, webhookStaticAssets...)
+	applyOrderedAssets = append(applyOrderedAssets, orderedStaticAssets...)
+	applyWebhookAssets = append(applyWebhookAssets, webhookStaticAssets...)
 
 	if !validatingWebhookEnabled {
-		// Remove ValidatingWebhookConfiguration resource
-		deleteAssets = append(deleteAssets, ValidatingWebhookConfiguration)
-		webhookAssets = getSubsetOfAssets(webhookAssets, ValidatingWebhookConfiguration)
+		// Remove and apply ValidatingWebhookConfiguration resource
+		deleteWebhookAssets = append(deleteWebhookAssets, ValidatingWebhookConfiguration)
+		applyWebhookAssets = getSubsetOfAssets(applyWebhookAssets, ValidatingWebhookConfiguration)
 	}
 
 	if !mutatingWebhookEnabled {
-		// Remove mutating resources
-		deleteAssets = append(deleteAssets, mutatingCRDs...)
-		deleteAssets = append(deleteAssets, MutatingWebhookConfiguration)
-		applyAssets = getSubsetOfAssets(applyAssets, mutatingCRDs...)
-		webhookAssets = getSubsetOfAssets(webhookAssets, MutatingWebhookConfiguration)
+		// Remove and apply mutating resources
+		deleteWebhookAssets = append(deleteWebhookAssets, MutatingWebhookConfiguration)
+		applyOrderedAssets = getSubsetOfAssets(applyOrderedAssets, mutatingCRDs...)
+		applyWebhookAssets = getSubsetOfAssets(applyWebhookAssets, MutatingWebhookConfiguration)
+		deleteCRDAssets = append(deleteCRDAssets, mutatingCRDs...)
 	}
 	return
 }
