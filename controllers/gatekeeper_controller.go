@@ -313,7 +313,7 @@ func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeepe
 }
 
 func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
-	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookFile))
+	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookDeploymentName))
 
 	ctx := context.Background()
 	obj, err := util.GetManifestObject(WebhookFile)
@@ -331,7 +331,7 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 	err = r.Get(ctx, namespacedName, deployment)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			r.Log.Info("Deployment not found, requeuing ...")
+			r.Log.Info("Deployment not found, will set webhook failure policy to ignore and requeue...")
 			return nil, true
 		}
 		return err, false
@@ -348,13 +348,15 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 		return err, false
 	}
 	if !ok {
-		return nil, true // State/readyReplicas might not yet be populated
+		r.Log.Info("Deployment status.readyReplicas not found or populated yet, will set webhook failure policy to ignore and requeue ...")
+		return nil, true
 	}
 	if replicas == readyReplicas {
 		r.Log.Info("Deployment validation successful, all replicas ready", "replicas", replicas, "readyReplicas", readyReplicas)
 		return nil, false
 	}
-	r.Log.Info("Deployment replicas not ready, requeuing ...", "replicas", replicas, "readyReplicas", readyReplicas)
+	r.Log.Info("Deployment replicas not ready, will set webhook failure policy to ignore and requeue ...",
+		"replicas", replicas, "readyReplicas", readyReplicas)
 	return nil, true
 }
 
