@@ -15,3 +15,5 @@ spec:
     replicas: 3
     logLevel: INFO
     emitAdmissionEvents: Enabled
+    disabledBuiltins:
+      - http.send

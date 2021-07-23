@@ -39,6 +39,8 @@ spec:
       requests:
         cpu: 100m
         memory: 20Mi
+    disabledBuiltins:
+      - http.send
   nodeSelector:
     region: "EMEA"
   affinity:

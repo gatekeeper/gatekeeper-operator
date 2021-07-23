@@ -254,6 +254,11 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(found).To(BeFalse())
 			})
 
+			By("Checking default disabled builtins", func() {
+				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.DisabledBuiltinArg)
+				Expect(found).To(BeFalse())
+			})
+
 			byCheckingMutationDisabled(auditDeployment, webhookDeployment)
 		})
 
@@ -375,6 +380,12 @@ var _ = Describe("Gatekeeper", func() {
 				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.LogLevelArg)
 				Expect(found).To(BeTrue())
 				Expect(value).To(Equal(util.ToArg(controllers.LogLevelArg, "ERROR")))
+			})
+
+			By("Checking expected disabled builtins", func() {
+				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.DisabledBuiltinArg)
+				Expect(found).To(BeTrue())
+				Expect(value).To(Equal(util.ToArg(controllers.DisabledBuiltinArg, "http.send")))
 			})
 		})
 
