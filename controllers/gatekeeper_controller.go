@@ -76,6 +76,7 @@ const (
 	EnableMutationArg                 = "--enable-mutation"
 	OperationArg                      = "--operation"
 	OperationMutationStatus           = "mutation-status"
+	DisabledBuiltinArg                = "--disable-opa-builtin"
 )
 
 var (
@@ -599,6 +600,9 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 		if err := setResources(obj, webhook.Resources); err != nil {
 			return err
 		}
+		if err := setDisabledBuiltins(obj, webhook.DisabledBuiltins); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -724,21 +728,21 @@ func removeAnnotations(obj *unstructured.Unstructured) error {
 
 func setLogLevel(obj *unstructured.Unstructured, logLevel *operatorv1alpha1.LogLevelMode) error {
 	if logLevel != nil {
-		return setContainerArg(obj, managerContainer, LogLevelArg, string(*logLevel))
+		return setContainerArg(obj, managerContainer, LogLevelArg, string(*logLevel), false)
 	}
 	return nil
 }
 
 func setAuditInterval(obj *unstructured.Unstructured, auditInterval *metav1.Duration) error {
 	if auditInterval != nil {
-		return setContainerArg(obj, managerContainer, AuditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()))
+		return setContainerArg(obj, managerContainer, AuditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()), false)
 	}
 	return nil
 }
 
 func setConstraintViolationLimit(obj *unstructured.Unstructured, constraintViolationLimit *uint64) error {
 	if constraintViolationLimit != nil {
-		return setContainerArg(obj, managerContainer, ConstraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10))
+		return setContainerArg(obj, managerContainer, ConstraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10), false)
 	}
 	return nil
 }
@@ -749,14 +753,14 @@ func setAuditFromCache(obj *unstructured.Unstructured, auditFromCache *operatorv
 		if *auditFromCache == operatorv1alpha1.AuditFromCacheEnabled {
 			auditFromCacheValue = "true"
 		}
-		return setContainerArg(obj, managerContainer, AuditFromCacheArg, auditFromCacheValue)
+		return setContainerArg(obj, managerContainer, AuditFromCacheArg, auditFromCacheValue, false)
 	}
 	return nil
 }
 
 func setAuditChunkSize(obj *unstructured.Unstructured, auditChunkSize *uint64) error {
 	if auditChunkSize != nil {
-		return setContainerArg(obj, managerContainer, AuditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10))
+		return setContainerArg(obj, managerContainer, AuditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10), false)
 	}
 	return nil
 }
@@ -767,7 +771,16 @@ func setEmitEvents(obj *unstructured.Unstructured, argName string, emitEvents *o
 		if *emitEvents == operatorv1alpha1.EmitEventsEnabled {
 			emitArgValue = "true"
 		}
-		return setContainerArg(obj, managerContainer, argName, emitArgValue)
+		return setContainerArg(obj, managerContainer, argName, emitArgValue, false)
+	}
+	return nil
+}
+
+func setDisabledBuiltins(obj *unstructured.Unstructured, disabledBuiltins []string) error {
+	for _, b := range disabledBuiltins {
+		if err := setContainerArg(obj, managerContainer, DisabledBuiltinArg, b, true); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -779,9 +792,9 @@ func setEnableMutation(obj *unstructured.Unstructured, spec operatorv1alpha1.Gat
 
 	switch obj.GetName() {
 	case AuditDeploymentName:
-		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus)
+		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
 	case WebhookDeploymentName:
-		return setContainerArg(obj, managerContainer, EnableMutationArg, "true")
+		return setContainerArg(obj, managerContainer, EnableMutationArg, "true", false)
 	default:
 		return nil
 	}
@@ -930,7 +943,7 @@ func setContainerAttrWithFn(obj *unstructured.Unstructured, containerName string
 	return nil
 }
 
-func setContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string) error {
+func setContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string, isMultiArg bool) error {
 	return setContainerAttrWithFn(obj, containerName, func(container map[string]interface{}) error {
 		args, found, err := unstructured.NestedStringSlice(container, "args")
 		if !found || err != nil {
@@ -938,8 +951,8 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		}
 		exists := false
 		for i, arg := range args {
-			n, _ := util.FromArg(arg)
-			if n == argName {
+			n, v := util.FromArg(arg)
+			if n == argName && (!isMultiArg || isMultiArg && v == argValue) {
 				args[i] = util.ToArg(argName, argValue)
 				exists = true
 			}
@@ -988,7 +1001,7 @@ func setControllerManagerExceptNamespace(obj *unstructured.Unstructured, asset, 
 	if asset != WebhookFile {
 		return nil
 	}
-	return setContainerArg(obj, managerContainer, ExemptNamespaceArg, namespace)
+	return setContainerArg(obj, managerContainer, ExemptNamespaceArg, namespace, false)
 }
 
 func setRoleBindingSubjectNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
