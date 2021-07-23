@@ -156,7 +156,7 @@ func TestCustomNamespace(t *testing.T) {
 	g.Expect(webhookObj).ToNot(BeNil())
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, expectedNamespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(getContainerArguments(g, managerContainer, webhookObj)).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
 
 	// ValidatingWebhookConfiguration and MutatingWebhookConfiguration namespace overrides
 	webhookConfigs := []string{
@@ -1117,6 +1117,37 @@ func TestMutationArg(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 }
 
+func TestDisabledBuiltins(t *testing.T) {
+	g := NewWithT(t)
+	webhookOverride := operatorv1alpha1.WebhookConfig{
+		DisabledBuiltins: []string{
+			"http.send",
+			"crypto.sha1",
+		},
+	}
+
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+
+	// test default
+	webhookObj, err := util.GetManifestObject(WebhookFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookObj).ToNot(BeNil())
+	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	// test nil
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	// test override
+	gatekeeper.Spec.Webhook = &webhookOverride
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(getContainerArgumentsSlice(g, managerContainer, webhookObj)).To(ContainElements(DisabledBuiltinArg+"=http.send", DisabledBuiltinArg+"=crypto.sha1"))
+}
+
 func TestAllWebhookArgs(t *testing.T) {
 	g := NewWithT(t)
 	emitEvents := operatorv1alpha1.EmitEventsEnabled
@@ -1162,11 +1193,21 @@ func TestAllWebhookArgs(t *testing.T) {
 }
 
 func expectObjContainerArgument(g *WithT, containerName string, obj *unstructured.Unstructured) Assertion {
-	args := getContainerArguments(g, containerName, obj)
+	args := getContainerArgumentsMap(g, containerName, obj)
 	return g.Expect(args)
 }
 
-func getContainerArguments(g *WithT, containerName string, obj *unstructured.Unstructured) map[string]string {
+func getContainerArgumentsMap(g *WithT, containerName string, obj *unstructured.Unstructured) map[string]string {
+	argsMap := make(map[string]string)
+	args := getContainerArgumentsSlice(g, containerName, obj)
+	for _, arg := range args {
+		key, value := util.FromArg(arg)
+		argsMap[key] = value
+	}
+	return argsMap
+}
+
+func getContainerArgumentsSlice(g *WithT, containerName string, obj *unstructured.Unstructured) []string {
 	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
@@ -1179,12 +1220,7 @@ func getContainerArguments(g *WithT, containerName string, obj *unstructured.Uns
 			args, found, err := unstructured.NestedStringSlice(util.ToMap(c), "args")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
-			argsMap := make(map[string]string)
-			for _, arg := range args {
-				key, value := util.FromArg(arg)
-				argsMap[key] = value
-			}
-			return argsMap
+			return args
 		}
 	}
 	return nil
