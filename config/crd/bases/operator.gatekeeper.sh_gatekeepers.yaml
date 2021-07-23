@@ -767,6 +767,10 @@ spec:
                 type: string
               webhook:
                 properties:
+                  disabledBuiltins:
+                    items:
+                      type: string
+                    type: array
                   emitAdmissionEvents:
                     enum:
                     - Enabled
