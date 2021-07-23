@@ -42,15 +42,16 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// Test default (nil) webhook configurations
 	// ValidatingWebhookConfiguration nil
 	// MutatingWebhookConfiguration nil
-	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets := getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElements(mutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(mutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(mutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(mutatingCRDs))
 
 	webhookEnabled := operatorv1alpha1.WebhookEnabled
 	webhookDisabled := operatorv1alpha1.WebhookDisabled
@@ -59,57 +60,61 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(applyAssets).To(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyOrderedAssets).To(ContainElements(mutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(mutatingCRDs))
+	g.Expect(deleteCRDAssets).NotTo(ContainElements(mutatingCRDs))
 
 	// ValidatingWebhookConfiguration enabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(mutatingCRDs))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(mutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(mutatingCRDs))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).To(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).To(ContainElements(mutatingCRDs))
+	g.Expect(deleteWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(mutatingCRDs))
+	g.Expect(deleteCRDAssets).NotTo(ContainElements(mutatingCRDs))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(mutatingCRDs))
+	g.Expect(deleteWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(mutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(mutatingCRDs))
 }
 
 func TestGetSubsetOfAssets(t *testing.T) {
