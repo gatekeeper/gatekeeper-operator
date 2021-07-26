@@ -599,25 +599,14 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 }
 
 func byCheckingMutatingCRDs(deployMsg string, f getCRDFunc) {
-	mutatingCRDs := []struct {
-		kind string
-		name string
-	}{
-		{
-			"Assign",
-			"assign.mutations.gatekeeper.sh",
-		},
-		{
-			"AssignMetadata",
-			"assignmetadata.mutations.gatekeeper.sh",
-		},
-	}
+	for _, asset := range controllers.MutatingCRDs {
+		obj, err := util.GetManifestObject(asset)
+		Expect(err).ToNot(HaveOccurred())
 
-	for _, crd := range mutatingCRDs {
 		crdNamespacedName := types.NamespacedName{
-			Name: crd.name,
+			Name: obj.GetName(),
 		}
-		By(fmt.Sprintf("Checking %s Mutating CRD %s", crd.kind, deployMsg), func() {
+		By(fmt.Sprintf("Checking %s Mutating CRD %s", obj.GetName(), deployMsg), func() {
 			mutatingAssignCRD := &extv1.CustomResourceDefinition{}
 			f(crdNamespacedName, mutatingAssignCRD)
 		})

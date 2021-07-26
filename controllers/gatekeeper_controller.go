@@ -107,7 +107,7 @@ var (
 		MutatingWebhookConfiguration,
 	}
 
-	mutatingCRDs = []string{
+	MutatingCRDs = []string{
 		AssignCRDFile,
 		AssignMetadataCRDFile,
 		MutatorPodStatusCRDFile,
@@ -382,9 +382,9 @@ func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAsse
 	if !mutatingWebhookEnabled {
 		// Remove and apply mutating resources
 		deleteWebhookAssets = append(deleteWebhookAssets, MutatingWebhookConfiguration)
-		applyOrderedAssets = getSubsetOfAssets(applyOrderedAssets, mutatingCRDs...)
+		applyOrderedAssets = getSubsetOfAssets(applyOrderedAssets, MutatingCRDs...)
 		applyWebhookAssets = getSubsetOfAssets(applyWebhookAssets, MutatingWebhookConfiguration)
-		deleteCRDAssets = append(deleteCRDAssets, mutatingCRDs...)
+		deleteCRDAssets = append(deleteCRDAssets, MutatingCRDs...)
 	}
 	return
 }
