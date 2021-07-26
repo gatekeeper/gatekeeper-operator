@@ -523,14 +523,17 @@ type getCRDFunc func(types.NamespacedName, *extv1.CustomResourceDefinition)
 
 func byCheckingMutationEnabled(auditDeployment, webhookDeployment *appsv1.Deployment) {
 	By(fmt.Sprintf("Checking %s argument is set", controllers.EnableMutationArg), func() {
-		_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
-		Expect(found).To(BeTrue())
+		Eventually(func() bool {
+			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
+			return found
+		}, waitTimeout, pollInterval).Should(BeTrue())
 	})
 
 	By(fmt.Sprintf("Checking %s=%s argument is set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
-		found := findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
-			controllers.OperationArg, controllers.OperationMutationStatus)
-		Expect(found).To(BeTrue())
+		Eventually(func() bool {
+			return findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
+				controllers.OperationArg, controllers.OperationMutationStatus)
+		}, waitTimeout, pollInterval).Should(BeTrue())
 	})
 
 	By("Checking MutatingWebhookConfiguration deployed", func() {
