@@ -310,7 +310,7 @@ var _ = Describe("Gatekeeper", func() {
 				gkDeployment := &appsv1.Deployment{}
 				Eventually(func() (int32, error) {
 					return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
-				}, Timeout*5, PollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
+				}, Timeout, PollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
 			})
 
 			By("Checking webhook is available", func() {
