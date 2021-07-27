@@ -52,7 +52,6 @@ const (
 var (
 	ctx                   = context.Background()
 	globalsInitialized    = false
-	gkNamespace           = ""
 	auditName             = types.NamespacedName{}
 	controllerManagerName = types.NamespacedName{}
 	gatekeeperName        = types.NamespacedName{
@@ -63,21 +62,20 @@ var (
 )
 
 func initializeGlobals() {
-	gkNamespace = gatekeeperNamespace
 	auditName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-audit",
 	}
 	controllerManagerName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-controller-manager",
 	}
 	validatingWebhookName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-validating-webhook-configuration",
 	}
 	mutatingWebhookName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-mutating-webhook-configuration",
 	}
 }
@@ -112,7 +110,7 @@ var _ = Describe("Gatekeeper", func() {
 		Context("Creating Gatekeeper custom resource", func() {
 			It("Should install Gatekeeper", func() {
 				gatekeeper := &v1alpha1.Gatekeeper{}
-				gatekeeper.Namespace = gkNamespace
+				gatekeeper.Namespace = gatekeeperNamespace
 				err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
 				Expect(err).ToNot(HaveOccurred())
 				gkDeployment := &appsv1.Deployment{}
@@ -257,7 +255,7 @@ var _ = Describe("Gatekeeper", func() {
 
 		It("Contains the configured values", func() {
 			gatekeeper := &v1alpha1.Gatekeeper{}
-			gatekeeper.Namespace = gkNamespace
+			gatekeeper.Namespace = gatekeeperNamespace
 			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
@@ -742,7 +740,7 @@ func emptyGatekeeper() *v1alpha1.Gatekeeper {
 	return &v1alpha1.Gatekeeper{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      gkName,
-			Namespace: gkNamespace,
+			Namespace: gatekeeperNamespace,
 		},
 	}
 }
