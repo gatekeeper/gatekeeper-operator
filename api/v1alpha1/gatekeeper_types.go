@@ -108,6 +108,8 @@ type WebhookConfig struct {
 	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// +optional
+	DisabledBuiltins []string `json:"disabledBuiltins,omitempty"`
 }
 
 // +kubebuilder:validation:Enum:=DEBUG;INFO;WARNING;ERROR

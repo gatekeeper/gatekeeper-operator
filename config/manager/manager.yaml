@@ -55,5 +55,5 @@ spec:
             memory: 20Mi
         env:
         - name: RELATED_IMAGE_GATEKEEPER
-          value: openpolicyagent/gatekeeper:v3.3.0
+          value: openpolicyagent/gatekeeper:v3.5.1
       terminationGracePeriodSeconds: 10

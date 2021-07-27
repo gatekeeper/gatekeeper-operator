@@ -15,14 +15,9 @@ jobs:
     name: Run verify and unit tests
     runs-on: ubuntu-20.04
 
-    defaults:
-      run:
-        working-directory: gatekeeper-operator
-
     steps:
     - uses: actions/checkout@v2
       with:
-        path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
 
     # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
@@ -55,35 +50,9 @@ jobs:
         make manifests
         git diff --exit-code
 
-    - name: Set Up Environment Variables
-      run: |
-        GATEKEEPER_VERSION=$(awk '/^GATEKEEPER_VERSION/ {print $3}' Makefile)
-        echo "GATEKEEPER_VERSION=${GATEKEEPER_VERSION}" >> ${GITHUB_ENV}
-
-    # This step is necessary to use a local clone of the Gatekeeper repo.
-    # Otherwise kustomize bulid fails using the go-getter URL format as result
-    # of https://github.com/open-policy-agent/gatekeeper/issues/1112. Also see
-    # https://github.com/kubernetes-sigs/kustomize/issues/3515 for a feature
-    # request.
-    - name: Checkout Gatekeeper to verify imported manifests
-      uses: actions/checkout@v2
-      with:
-        repository: open-policy-agent/gatekeeper
-        ref: ${{ env.GATEKEEPER_VERSION }}
-        path: gatekeeper
-        fetch-depth: 0 # Fetch all history for all tags and branches
-
-    # Build Gatekeeper manifests with some workarounds due to issue described
-    # above.
-    - name: Prepare Gatekeeper manifests for importing
-      working-directory: gatekeeper
-      run: |
-        make patch-image IMG=openpolicyagent/gatekeeper:${GATEKEEPER_VERSION}
-        sed -i '/--emit-\(audit\|admission\)-events/d' config/overlays/dev/manager_image_patch.yaml
-
     - name: Verify imported manifests
       run: |
-        make import-manifests IMPORT_MANIFESTS_PATH=${GITHUB_WORKSPACE}/gatekeeper
+        make import-manifests
         git diff --exit-code
 
     - name: Verify bindata
@@ -145,9 +114,18 @@ jobs:
     name: Run gatekeeper e2e tests
     runs-on: ubuntu-20.04
 
+    defaults:
+      run:
+        working-directory: gatekeeper-operator
+
+    strategy:
+      matrix:
+        NAMESPACE: ["gatekeeper-system"]
+
     steps:
     - uses: actions/checkout@v2
       with:
+        path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
 
     # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
@@ -183,7 +161,23 @@ jobs:
         make docker-build IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
         kind load docker-image localhost:5000/gatekeeper-operator:$GITHUB_SHA
 
+    - name: Set Up Environment Variables
+      run: |
+        GATEKEEPER_VERSION=$(awk '/^GATEKEEPER_VERSION/ {print $3}' Makefile)
+        echo "GATEKEEPER_VERSION=${GATEKEEPER_VERSION}" >> ${GITHUB_ENV}
+
+    # Checkout a local copy of Gatekeeper to use its bats e2e tests.
+    - name: Checkout Gatekeeper to verify imported manifests
+      uses: actions/checkout@v2
+      with:
+        repository: open-policy-agent/gatekeeper
+        ref: ${{ env.GATEKEEPER_VERSION }}
+        path: gatekeeper
+        fetch-depth: 0 # Fetch all history for all tags and branches
+
     - name: Gatekeeper E2E Tests
       run: |
-        make deploy-ci NAMESPACE=gatekeeper-system IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
-        make test-gatekeeper-e2e ENABLE_MUTATION_TESTS=y
+        make deploy-ci NAMESPACE=${{ matrix.NAMESPACE }} IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        make test-gatekeeper-e2e
+        cd ../gatekeeper
+        make test-e2e GATEKEEPER_NAMESPACE=${{ matrix.NAMESPACE }} ENABLE_MUTATION_TESTS=1

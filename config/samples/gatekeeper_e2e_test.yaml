@@ -4,7 +4,7 @@ metadata:
   name: gatekeeper
 spec:
   image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.3.0
+    image: docker.io/openpolicyagent/gatekeeper:v3.5.1
   audit:
     replicas: 1
     logLevel: INFO
@@ -15,3 +15,5 @@ spec:
     replicas: 3
     logLevel: INFO
     emitAdmissionEvents: Enabled
+    disabledBuiltins:
+      - http.send

@@ -6,7 +6,7 @@ VERSION ?= v0.1.2
 # Replaces Operator version
 REPLACES_VERSION ?= $(VERSION)
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.3.0
+GATEKEEPER_VERSION ?= v3.5.1
 # Default image repo
 REPO ?= quay.io/gatekeeper
 # Default bundle image tag
@@ -357,7 +357,6 @@ download-binaries:
 test-gatekeeper-e2e:
 	kubectl -n $(NAMESPACE) apply -f ./config/samples/gatekeeper_e2e_test.yaml
 	bats --version
-	bats -t test/bats/test.bats
 
 .PHONY: deploy-ci
 deploy-ci: install patch-image deploy

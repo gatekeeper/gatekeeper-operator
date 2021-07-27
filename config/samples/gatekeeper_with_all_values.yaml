@@ -5,7 +5,7 @@ metadata:
 spec:
   # Add fields here
   image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.3.0
+    image: docker.io/openpolicyagent/gatekeeper:v3.5.1
     imagePullPolicy: Always
   audit:
     replicas: 1
@@ -39,6 +39,8 @@ spec:
       requests:
         cpu: 100m
         memory: 20Mi
+    disabledBuiltins:
+      - http.send
   nodeSelector:
     region: "EMEA"
   affinity:

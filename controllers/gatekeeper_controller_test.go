@@ -42,15 +42,16 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// Test default (nil) webhook configurations
 	// ValidatingWebhookConfiguration nil
 	// MutatingWebhookConfiguration nil
-	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets := getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElements(MutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(MutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(MutatingCRDs))
 
 	webhookEnabled := operatorv1alpha1.WebhookEnabled
 	webhookDisabled := operatorv1alpha1.WebhookDisabled
@@ -59,64 +60,68 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(applyAssets).To(ContainElements(mutatingCRDs))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyOrderedAssets).To(ContainElements(MutatingCRDs))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
+	g.Expect(deleteCRDAssets).NotTo(ContainElements(MutatingCRDs))
 
 	// ValidatingWebhookConfiguration enabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(MutatingCRDs))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(MutatingCRDs))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration enabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookEnabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).To(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).NotTo(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).To(ContainElements(MutatingCRDs))
+	g.Expect(deleteWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
+	g.Expect(deleteCRDAssets).NotTo(ContainElements(MutatingCRDs))
 
 	// ValidatingWebhookConfiguration disabled
 	// MutatingWebhookConfiguration disabled
 	gatekeeper.Spec.ValidatingWebhook = &webhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &webhookDisabled
-	deleteAssets, applyAssets, webhookAssets = getStaticAssets(gatekeeper)
-	g.Expect(webhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(webhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(applyAssets).NotTo(ContainElements(mutatingCRDs))
-	g.Expect(deleteAssets).To(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElement(MutatingWebhookConfiguration))
-	g.Expect(deleteAssets).To(ContainElements(mutatingCRDs))
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets = getStaticAssets(gatekeeper)
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(applyOrderedAssets).NotTo(ContainElements(MutatingCRDs))
+	g.Expect(deleteWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
+	g.Expect(deleteCRDAssets).To(ContainElements(MutatingCRDs))
 }
 
 func TestGetSubsetOfAssets(t *testing.T) {
 	g := NewWithT(t)
 	g.Expect(getSubsetOfAssets(orderedStaticAssets)).To(Equal(orderedStaticAssets))
 	g.Expect(getSubsetOfAssets(orderedStaticAssets, orderedStaticAssets...)).To(HaveLen(0))
-	g.Expect(getSubsetOfAssets(orderedStaticAssets, mutatingCRDs...)).To(HaveLen(len(orderedStaticAssets) - len(mutatingCRDs)))
+	g.Expect(getSubsetOfAssets(orderedStaticAssets, MutatingCRDs...)).To(HaveLen(len(orderedStaticAssets) - len(MutatingCRDs)))
 }
 
 func TestCustomNamespace(t *testing.T) {
@@ -151,7 +156,7 @@ func TestCustomNamespace(t *testing.T) {
 	g.Expect(webhookObj).ToNot(BeNil())
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, expectedNamespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(getContainerArguments(g, managerContainer, webhookObj)).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(ExemptNamespaceArg, expectedNamespace))
 
 	// ValidatingWebhookConfiguration and MutatingWebhookConfiguration namespace overrides
 	webhookConfigs := []string{
@@ -749,17 +754,9 @@ func assertNamespaceSelector(g *WithT, obj *unstructured.Unstructured, webhookNa
 			g.Expect(err).ToNot(HaveOccurred())
 			if expected == nil {
 				// ValidatingWebhookConfiguration and
-				// MutatingWebhookConfiguration have different defaults so the
-				// following split is necessary.
-				if webhookName == ValidationGatekeeperWebhook {
-					g.Expect(found).To(BeTrue())
-					g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
-				} else {
-					g.Expect(found).To(BeFalse())
-					// Default NamespaceSelector for MutatingWebhookConfiguration
-					// is nil and we already know expected is nil if we reach
-					// this.
-				}
+				// MutatingWebhookConfiguration have the same defaults.
+				g.Expect(found).To(BeTrue())
+				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
 			} else {
 				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
 			}
@@ -984,6 +981,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(LogLevelArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(EmitAuditEventsArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(AuditIntervalArg))
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test nil
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -993,7 +991,8 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(LogLevelArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(EmitAuditEventsArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(AuditIntervalArg))
-	// test override
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	// test override without mutation
 	gatekeeper.Spec.Audit = &auditOverride
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1003,6 +1002,19 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(EmitAuditEventsArg, "true"))
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(AuditIntervalArg, "3600"))
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	// test override with mutation
+	mutatingWebhook := operatorv1alpha1.WebhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &mutatingWebhook
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(AuditChunkSizeArg, "10"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(AuditFromCacheArg, "true"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(ConstraintViolationLimitArg, "20"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(EmitAuditEventsArg, "true"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(AuditIntervalArg, "3600"))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 }
 
 func TestEmitAdmissionEvents(t *testing.T) {
@@ -1075,21 +1087,65 @@ func TestMutationArg(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookObj).ToNot(BeNil())
 	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(EnableMutationArg))
+	auditObj, err := util.GetManifestObject(AuditFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(auditObj).ToNot(BeNil())
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test nil
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(EnableMutationArg))
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test disabled override
 	mutation := operatorv1alpha1.WebhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &mutation
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(EnableMutationArg))
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test enabled override
 	mutation = operatorv1alpha1.WebhookEnabled
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(EnableMutationArg, "true"))
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+}
+
+func TestDisabledBuiltins(t *testing.T) {
+	g := NewWithT(t)
+	webhookOverride := operatorv1alpha1.WebhookConfig{
+		DisabledBuiltins: []string{
+			"http.send",
+			"crypto.sha1",
+		},
+	}
+
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+
+	// test default
+	webhookObj, err := util.GetManifestObject(WebhookFile)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(webhookObj).ToNot(BeNil())
+	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	// test nil
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	// test override
+	gatekeeper.Spec.Webhook = &webhookOverride
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(getContainerArgumentsSlice(g, managerContainer, webhookObj)).To(ContainElements(DisabledBuiltinArg+"=http.send", DisabledBuiltinArg+"=crypto.sha1"))
 }
 
 func TestAllWebhookArgs(t *testing.T) {
@@ -1137,11 +1193,21 @@ func TestAllWebhookArgs(t *testing.T) {
 }
 
 func expectObjContainerArgument(g *WithT, containerName string, obj *unstructured.Unstructured) Assertion {
-	args := getContainerArguments(g, containerName, obj)
+	args := getContainerArgumentsMap(g, containerName, obj)
 	return g.Expect(args)
 }
 
-func getContainerArguments(g *WithT, containerName string, obj *unstructured.Unstructured) map[string]string {
+func getContainerArgumentsMap(g *WithT, containerName string, obj *unstructured.Unstructured) map[string]string {
+	argsMap := make(map[string]string)
+	args := getContainerArgumentsSlice(g, containerName, obj)
+	for _, arg := range args {
+		key, value := util.FromArg(arg)
+		argsMap[key] = value
+	}
+	return argsMap
+}
+
+func getContainerArgumentsSlice(g *WithT, containerName string, obj *unstructured.Unstructured) []string {
 	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
@@ -1154,12 +1220,7 @@ func getContainerArguments(g *WithT, containerName string, obj *unstructured.Uns
 			args, found, err := unstructured.NestedStringSlice(util.ToMap(c), "args")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(found).To(BeTrue())
-			argsMap := make(map[string]string)
-			for _, arg := range args {
-				key, value := util.FromArg(arg)
-				argsMap[key] = value
-			}
-			return argsMap
+			return args
 		}
 	}
 	return nil

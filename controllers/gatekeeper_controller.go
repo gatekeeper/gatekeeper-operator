@@ -47,8 +47,9 @@ const (
 	defaultGatekeeperCrName           = "gatekeeper"
 	openshiftAssetsDir                = "openshift/"
 	NamespaceFile                     = "v1_namespace_gatekeeper-system.yaml"
-	AssignCRDFile                     = "apiextensions.k8s.io_v1beta1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
-	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1beta1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
+	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
+	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
+	MutatorPodStatusCRDFile           = "apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml"
 	AuditFile                         = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                       = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	ClusterRoleFile                   = "rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml"
@@ -56,11 +57,13 @@ const (
 	RoleFile                          = "rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml"
 	RoleBindingFile                   = "rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml"
 	ServerCertFile                    = "v1_secret_gatekeeper-webhook-server-cert.yaml"
-	ValidatingWebhookConfiguration    = "admissionregistration.k8s.io_v1beta1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
-	MutatingWebhookConfiguration      = "admissionregistration.k8s.io_v1beta1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml"
+	ValidatingWebhookConfiguration    = "admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml"
+	MutatingWebhookConfiguration      = "admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml"
 	ValidationGatekeeperWebhook       = "validation.gatekeeper.sh"
 	CheckIgnoreLabelGatekeeperWebhook = "check-ignore-label.gatekeeper.sh"
 	MutationGatekeeperWebhook         = "mutation.gatekeeper.sh"
+	AuditDeploymentName               = "gatekeeper-audit"
+	WebhookDeploymentName             = "gatekeeper-controller-manager"
 	managerContainer                  = "manager"
 	LogLevelArg                       = "--log-level"
 	AuditIntervalArg                  = "--audit-interval"
@@ -71,20 +74,26 @@ const (
 	EmitAdmissionEventsArg            = "--emit-admission-events"
 	ExemptNamespaceArg                = "--exempt-namespace"
 	EnableMutationArg                 = "--enable-mutation"
+	OperationArg                      = "--operation"
+	OperationMutationStatus           = "mutation-status"
+	DisabledBuiltinArg                = "--disable-opa-builtin"
 )
 
 var (
 	orderedStaticAssets = []string{
 		NamespaceFile,
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
-		"apiextensions.k8s.io_v1beta1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
+		"v1_resourcequota_gatekeeper-critical-pods.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
 		AssignCRDFile,
 		AssignMetadataCRDFile,
+		MutatorPodStatusCRDFile,
 		ServerCertFile,
 		"v1_serviceaccount_gatekeeper-admin.yaml",
 		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
+		"policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml",
 		ClusterRoleFile,
 		ClusterRoleBindingFile,
 		RoleFile,
@@ -98,9 +107,10 @@ var (
 		MutatingWebhookConfiguration,
 	}
 
-	mutatingCRDs = []string{
+	MutatingCRDs = []string{
 		AssignCRDFile,
 		AssignMetadataCRDFile,
+		MutatorPodStatusCRDFile,
 	}
 )
 
@@ -147,9 +157,10 @@ const (
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
 
 // Namespace Scoped
-// +kubebuilder:rbac:groups=core,namespace="system",resources=secrets;serviceaccounts;services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,namespace="system",resources=secrets;serviceaccounts;services;resourcequotas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,namespace="system",resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,namespace="system",resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=policy,namespace="system",resources=poddisruptionbudgets,verbs=create;delete;update;use
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -229,37 +240,57 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GatekeeperReconciler) deployGatekeeperResources(gatekeeper *operatorv1alpha1.Gatekeeper) (error, bool) {
-	deleteAssets, applyAssets, webhookAssets := getStaticAssets(gatekeeper)
+	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets := getStaticAssets(gatekeeper)
 
-	for _, d := range deleteAssets {
-		obj, err := util.GetManifestObject(d)
-		if err != nil {
-			return err, false
-		}
-
-		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
-			return err, false
-		}
+	if err := r.deleteAssets(deleteWebhookAssets, gatekeeper); err != nil {
+		return err, false
 	}
-	// Checking for deployment before deploying assets to avoid cert rotator errors
+
+	// Checking for deployment before deploying assets or deleting CRDs to
+	// avoid transient errors e.g. cert rotator errors, removing required CRD
+	// resources, etc.
 	err, requeue := r.validateWebhookDeployment()
 	if err != nil {
 		return err, false
 	}
-	for _, asset := range applyAssets {
-		err := r.applyAsset(gatekeeper, asset, false)
-		if err != nil {
-			return err, false
-		}
+
+	if err := r.applyAssets(applyOrderedAssets, gatekeeper, false); err != nil {
+		return err, false
 	}
 
-	for _, asset := range webhookAssets {
-		err := r.applyAsset(gatekeeper, asset, requeue)
+	if err := r.applyAssets(applyWebhookAssets, gatekeeper, requeue); err != nil {
+		return err, false
+	}
+
+	if err := r.deleteAssets(deleteCRDAssets, gatekeeper); err != nil {
+		return err, false
+	}
+
+	return nil, requeue
+}
+
+func (r *GatekeeperReconciler) deleteAssets(assets []string, gatekeeper *operatorv1alpha1.Gatekeeper) error {
+	for _, a := range assets {
+		obj, err := util.GetManifestObject(a)
 		if err != nil {
-			return err, false
+			return err
+		}
+
+		if err = r.crudResource(obj, gatekeeper, delete); err != nil {
+			return err
 		}
 	}
-	return nil, requeue
+	return nil
+}
+
+func (r *GatekeeperReconciler) applyAssets(assets []string, gatekeeper *operatorv1alpha1.Gatekeeper, controllerDeploymentPending bool) error {
+	for _, a := range assets {
+		err := r.applyAsset(gatekeeper, a, controllerDeploymentPending)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, controllerDeploymentPending bool) error {
@@ -283,7 +314,7 @@ func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeepe
 }
 
 func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
-	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookFile))
+	r.Log.Info(fmt.Sprintf("Validating %s deployment status", WebhookDeploymentName))
 
 	ctx := context.Background()
 	obj, err := util.GetManifestObject(WebhookFile)
@@ -301,7 +332,7 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 	err = r.Get(ctx, namespacedName, deployment)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			r.Log.Info("Deployment not found, requeuing ...")
+			r.Log.Info("Deployment not found, will set webhook failure policy to ignore and requeue...")
 			return nil, true
 		}
 		return err, false
@@ -318,39 +349,42 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 		return err, false
 	}
 	if !ok {
-		return nil, true // State/readyReplicas might not yet be populated
+		r.Log.Info("Deployment status.readyReplicas not found or populated yet, will set webhook failure policy to ignore and requeue ...")
+		return nil, true
 	}
 	if replicas == readyReplicas {
 		r.Log.Info("Deployment validation successful, all replicas ready", "replicas", replicas, "readyReplicas", readyReplicas)
 		return nil, false
 	}
-	r.Log.Info("Deployment replicas not ready, requeuing ...", "replicas", replicas, "readyReplicas", readyReplicas)
+	r.Log.Info("Deployment replicas not ready, will set webhook failure policy to ignore and requeue ...",
+		"replicas", replicas, "readyReplicas", readyReplicas)
 	return nil, true
 }
 
-func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteAssets, applyAssets, webhookAssets []string) {
+func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets []string) {
 	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
 	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
-	deleteAssets = make([]string, 0)
-	applyAssets = make([]string, 0)
-	webhookAssets = make([]string, 0)
+	deleteWebhookAssets = make([]string, 0)
+	applyOrderedAssets = make([]string, 0)
+	applyWebhookAssets = make([]string, 0)
+	deleteCRDAssets = make([]string, 0)
 	// Copy over our set of ordered static assets so we maintain its
 	// immutability.
-	applyAssets = append(applyAssets, orderedStaticAssets...)
-	webhookAssets = append(webhookAssets, webhookStaticAssets...)
+	applyOrderedAssets = append(applyOrderedAssets, orderedStaticAssets...)
+	applyWebhookAssets = append(applyWebhookAssets, webhookStaticAssets...)
 
 	if !validatingWebhookEnabled {
-		// Remove ValidatingWebhookConfiguration resource
-		deleteAssets = append(deleteAssets, ValidatingWebhookConfiguration)
-		webhookAssets = getSubsetOfAssets(webhookAssets, ValidatingWebhookConfiguration)
+		// Remove and apply ValidatingWebhookConfiguration resource
+		deleteWebhookAssets = append(deleteWebhookAssets, ValidatingWebhookConfiguration)
+		applyWebhookAssets = getSubsetOfAssets(applyWebhookAssets, ValidatingWebhookConfiguration)
 	}
 
 	if !mutatingWebhookEnabled {
-		// Remove mutating resources
-		deleteAssets = append(deleteAssets, mutatingCRDs...)
-		deleteAssets = append(deleteAssets, MutatingWebhookConfiguration)
-		applyAssets = getSubsetOfAssets(applyAssets, mutatingCRDs...)
-		webhookAssets = getSubsetOfAssets(webhookAssets, MutatingWebhookConfiguration)
+		// Remove and apply mutating resources
+		deleteWebhookAssets = append(deleteWebhookAssets, MutatingWebhookConfiguration)
+		applyOrderedAssets = getSubsetOfAssets(applyOrderedAssets, MutatingCRDs...)
+		applyWebhookAssets = getSubsetOfAssets(applyWebhookAssets, MutatingWebhookConfiguration)
+		deleteCRDAssets = append(deleteCRDAssets, MutatingCRDs...)
 	}
 	return
 }
@@ -446,6 +480,7 @@ var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.
 	setPodAnnotations,
 	setTolerations,
 	containerOverrides,
+	setEnableMutation,
 }
 var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
 	setImage,
@@ -485,11 +520,6 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 		if isOpenshift {
 			if err := removeAnnotations(obj); err != nil {
-				return err
-			}
-		}
-		if mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
-			if err := setEnableMutation(obj); err != nil {
 				return err
 			}
 		}
@@ -570,18 +600,26 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 		if err := setResources(obj, webhook.Resources); err != nil {
 			return err
 		}
+		if err := setDisabledBuiltins(obj, webhook.DisabledBuiltins); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool, controllerDeploymentPending bool) error {
+	// Set failure policy to ignore if deployment is still pending.
+	if controllerDeploymentPending {
+		ignore := admregv1.Ignore
+		failurePolicy := &ignore
+		if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
+			return err
+		}
+	}
+
 	if webhook != nil {
-		if updateFailurePolicy || controllerDeploymentPending {
+		if updateFailurePolicy && !controllerDeploymentPending {
 			failurePolicy := webhook.FailurePolicy
-			if controllerDeploymentPending {
-				ignore := admregv1.Ignore
-				failurePolicy = &ignore
-			}
 			if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
 				return err
 			}
@@ -690,21 +728,21 @@ func removeAnnotations(obj *unstructured.Unstructured) error {
 
 func setLogLevel(obj *unstructured.Unstructured, logLevel *operatorv1alpha1.LogLevelMode) error {
 	if logLevel != nil {
-		return setContainerArg(obj, managerContainer, LogLevelArg, string(*logLevel))
+		return setContainerArg(obj, managerContainer, LogLevelArg, string(*logLevel), false)
 	}
 	return nil
 }
 
 func setAuditInterval(obj *unstructured.Unstructured, auditInterval *metav1.Duration) error {
 	if auditInterval != nil {
-		return setContainerArg(obj, managerContainer, AuditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()))
+		return setContainerArg(obj, managerContainer, AuditIntervalArg, fmt.Sprint(auditInterval.Round(time.Second).Seconds()), false)
 	}
 	return nil
 }
 
 func setConstraintViolationLimit(obj *unstructured.Unstructured, constraintViolationLimit *uint64) error {
 	if constraintViolationLimit != nil {
-		return setContainerArg(obj, managerContainer, ConstraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10))
+		return setContainerArg(obj, managerContainer, ConstraintViolationLimitArg, strconv.FormatUint(*constraintViolationLimit, 10), false)
 	}
 	return nil
 }
@@ -715,14 +753,14 @@ func setAuditFromCache(obj *unstructured.Unstructured, auditFromCache *operatorv
 		if *auditFromCache == operatorv1alpha1.AuditFromCacheEnabled {
 			auditFromCacheValue = "true"
 		}
-		return setContainerArg(obj, managerContainer, AuditFromCacheArg, auditFromCacheValue)
+		return setContainerArg(obj, managerContainer, AuditFromCacheArg, auditFromCacheValue, false)
 	}
 	return nil
 }
 
 func setAuditChunkSize(obj *unstructured.Unstructured, auditChunkSize *uint64) error {
 	if auditChunkSize != nil {
-		return setContainerArg(obj, managerContainer, AuditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10))
+		return setContainerArg(obj, managerContainer, AuditChunkSizeArg, strconv.FormatUint(*auditChunkSize, 10), false)
 	}
 	return nil
 }
@@ -733,13 +771,33 @@ func setEmitEvents(obj *unstructured.Unstructured, argName string, emitEvents *o
 		if *emitEvents == operatorv1alpha1.EmitEventsEnabled {
 			emitArgValue = "true"
 		}
-		return setContainerArg(obj, managerContainer, argName, emitArgValue)
+		return setContainerArg(obj, managerContainer, argName, emitArgValue, false)
 	}
 	return nil
 }
 
-func setEnableMutation(obj *unstructured.Unstructured) error {
-	return setContainerArg(obj, managerContainer, EnableMutationArg, "true")
+func setDisabledBuiltins(obj *unstructured.Unstructured, disabledBuiltins []string) error {
+	for _, b := range disabledBuiltins {
+		if err := setContainerArg(obj, managerContainer, DisabledBuiltinArg, b, true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setEnableMutation(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
+	if !mutatingWebhookEnabled(spec.MutatingWebhook) {
+		return nil
+	}
+
+	switch obj.GetName() {
+	case AuditDeploymentName:
+		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
+	case WebhookDeploymentName:
+		return setContainerArg(obj, managerContainer, EnableMutationArg, "true", false)
+	default:
+		return nil
+	}
 }
 
 func setWebhookConfigurationWithFn(obj *unstructured.Unstructured, webhookName string, webhookFn func(map[string]interface{}) error) error {
@@ -885,7 +943,7 @@ func setContainerAttrWithFn(obj *unstructured.Unstructured, containerName string
 	return nil
 }
 
-func setContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string) error {
+func setContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string, isMultiArg bool) error {
 	return setContainerAttrWithFn(obj, containerName, func(container map[string]interface{}) error {
 		args, found, err := unstructured.NestedStringSlice(container, "args")
 		if !found || err != nil {
@@ -893,8 +951,8 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		}
 		exists := false
 		for i, arg := range args {
-			n, _ := util.FromArg(arg)
-			if n == argName {
+			n, v := util.FromArg(arg)
+			if n == argName && (!isMultiArg || isMultiArg && v == argValue) {
 				args[i] = util.ToArg(argName, argValue)
 				exists = true
 			}
@@ -943,7 +1001,7 @@ func setControllerManagerExceptNamespace(obj *unstructured.Unstructured, asset, 
 	if asset != WebhookFile {
 		return nil
 	}
-	return setContainerArg(obj, managerContainer, ExemptNamespaceArg, namespace)
+	return setContainerArg(obj, managerContainer, ExemptNamespaceArg, namespace, false)
 }
 
 func setRoleBindingSubjectNamespace(obj *unstructured.Unstructured, asset, namespace string) error {
