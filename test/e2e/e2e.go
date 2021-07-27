@@ -132,13 +132,13 @@ func unlabelNode(node *corev1.Node) error {
 }
 
 func createAffinityPod() {
-	affinityPod, err := loadAffinityPodFromFile(*GatekeeperNamespace)
+	affinityPod, err := loadAffinityPodFromFile(GatekeeperNamespace)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(K8sClient.Create(ctx, affinityPod)).Should(Succeed())
 }
 
 func deleteAffinityPod() error {
-	affinityPodFromFile, err := loadAffinityPodFromFile(*GatekeeperNamespace)
+	affinityPodFromFile, err := loadAffinityPodFromFile(GatekeeperNamespace)
 	if err != nil {
 		return err
 	}
