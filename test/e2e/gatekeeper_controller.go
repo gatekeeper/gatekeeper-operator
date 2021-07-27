@@ -105,7 +105,7 @@ var _ = Describe("Gatekeeper", func() {
 				return false
 			}
 			return apierrors.IsNotFound(err)
-		}, *Timeout*10, *PollInterval).Should(BeTrue())
+		}, DeleteTimeout, PollInterval).Should(BeTrue())
 	})
 
 	Describe("Install", func() {
