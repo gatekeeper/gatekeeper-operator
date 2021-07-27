@@ -23,7 +23,14 @@ import (
 	"github.com/gatekeeper/gatekeeper-operator/pkg/util"
 )
 
-var GatekeeperNamespace = *flag.String("namespace", util.DefaultGatekeeperNamespace, "The namespace to run tests")
-var PollInterval = *flag.Duration("poll-interval", 1*time.Second, "The length of time between polls")
-var Timeout = *flag.Duration("timeout", 1*time.Minute, "The length of time to poll before giving up")
-var DeleteTimeout = *flag.Duration("delete-timeout", 5*time.Minute, "The length of time to wait for deletion of all resources")
+var GatekeeperNamespace string
+var PollInterval time.Duration
+var Timeout time.Duration
+var DeleteTimeout time.Duration
+
+func init() {
+	flag.StringVar(&GatekeeperNamespace, "namespace", util.DefaultGatekeeperNamespace, "The namespace to run tests")
+	flag.DurationVar(&PollInterval, "poll-interval", 1*time.Second, "The length of time between polls")
+	flag.DurationVar(&Timeout, "timeout", 1*time.Minute, "The length of time to poll before giving up")
+	flag.DurationVar(&DeleteTimeout, "delete-timeout", 5*time.Minute, "The length of time to wait for deletion of all resources")
+}
