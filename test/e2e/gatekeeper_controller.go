@@ -52,7 +52,6 @@ const (
 var (
 	ctx                   = context.Background()
 	globalsInitialized    = false
-	gkNamespace           = ""
 	auditName             = types.NamespacedName{}
 	controllerManagerName = types.NamespacedName{}
 	gatekeeperName        = types.NamespacedName{
@@ -63,21 +62,20 @@ var (
 )
 
 func initializeGlobals() {
-	gkNamespace = *GatekeeperNamespace
 	auditName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-audit",
 	}
 	controllerManagerName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-controller-manager",
 	}
 	validatingWebhookName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-validating-webhook-configuration",
 	}
 	mutatingWebhookName = types.NamespacedName{
-		Namespace: gkNamespace,
+		Namespace: gatekeeperNamespace,
 		Name:      "gatekeeper-mutating-webhook-configuration",
 	}
 }
@@ -105,14 +103,14 @@ var _ = Describe("Gatekeeper", func() {
 				return false
 			}
 			return apierrors.IsNotFound(err)
-		}, *Timeout*10, *PollInterval).Should(BeTrue())
+		}, deleteTimeout, pollInterval).Should(BeTrue())
 	})
 
 	Describe("Install", func() {
 		Context("Creating Gatekeeper custom resource", func() {
 			It("Should install Gatekeeper", func() {
 				gatekeeper := &v1alpha1.Gatekeeper{}
-				gatekeeper.Namespace = gkNamespace
+				gatekeeper.Namespace = gatekeeperNamespace
 				err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
 				Expect(err).ToNot(HaveOccurred())
 				gkDeployment := &appsv1.Deployment{}
@@ -124,20 +122,20 @@ var _ = Describe("Gatekeeper", func() {
 				By("Checking gatekeeper-controller-manager readiness", func() {
 					Eventually(func() (int32, error) {
 						return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
-					}, *Timeout, *PollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
+					}, timeout, pollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
 				})
 
 				By("Checking gatekeeper-audit readiness", func() {
 					Eventually(func() (int32, error) {
 						return getDeploymentReadyReplicas(ctx, auditName, gkDeployment)
-					}, *Timeout, *PollInterval).Should(Equal(*gatekeeper.Spec.Audit.Replicas))
+					}, timeout, pollInterval).Should(Equal(*gatekeeper.Spec.Audit.Replicas))
 				})
 
 				By("Checking validatingWebhookConfiguration is deployed", func() {
 					validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
 					Eventually(func() error {
 						return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
-					}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+					}, timeout, pollInterval).ShouldNot(HaveOccurred())
 					Expect(validatingWebhookConfiguration.OwnerReferences).To(HaveLen(1))
 					Expect(validatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
 					Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
@@ -257,7 +255,7 @@ var _ = Describe("Gatekeeper", func() {
 
 		It("Contains the configured values", func() {
 			gatekeeper := &v1alpha1.Gatekeeper{}
-			gatekeeper.Namespace = gkNamespace
+			gatekeeper.Namespace = gatekeeperNamespace
 			err := loadGatekeeperFromFile(gatekeeper, gatekeeperWithAllValuesFile)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
@@ -310,7 +308,7 @@ var _ = Describe("Gatekeeper", func() {
 				gkDeployment := &appsv1.Deployment{}
 				Eventually(func() (int32, error) {
 					return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
-				}, *Timeout*5, *PollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
+				}, timeout, pollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
 			})
 
 			By("Checking webhook is available", func() {
@@ -484,7 +482,7 @@ func gatekeeperAuditDeployment() (auditDeployment *appsv1.Deployment) {
 	auditDeployment = &appsv1.Deployment{}
 	Eventually(func() error {
 		return K8sClient.Get(ctx, auditName, auditDeployment)
-	}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+	}, timeout, pollInterval).ShouldNot(HaveOccurred())
 	return
 }
 
@@ -492,7 +490,7 @@ func gatekeeperWebhookDeployment() (webhookDeployment *appsv1.Deployment) {
 	webhookDeployment = &appsv1.Deployment{}
 	Eventually(func() error {
 		return K8sClient.Get(ctx, controllerManagerName, webhookDeployment)
-	}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+	}, timeout, pollInterval).ShouldNot(HaveOccurred())
 	return
 }
 
@@ -508,7 +506,7 @@ func byCheckingValidationEnabled() {
 		validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
 		Eventually(func() error {
 			return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
-		}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+		}, timeout, pollInterval).ShouldNot(HaveOccurred())
 	})
 }
 
@@ -519,28 +517,28 @@ func byCheckingMutationEnabled(auditDeployment, webhookDeployment *appsv1.Deploy
 		Eventually(func() bool {
 			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
 			return found
-		}, *Timeout, *PollInterval).Should(BeTrue())
+		}, timeout, pollInterval).Should(BeTrue())
 	})
 
 	By(fmt.Sprintf("Checking %s=%s argument is set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
 		Eventually(func() bool {
 			return findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
 				controllers.OperationArg, controllers.OperationMutationStatus)
-		}, *Timeout, *PollInterval).Should(BeTrue())
+		}, timeout, pollInterval).Should(BeTrue())
 	})
 
 	By("Checking MutatingWebhookConfiguration deployed", func() {
 		mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
 		Eventually(func() error {
 			return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
-		}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+		}, timeout, pollInterval).ShouldNot(HaveOccurred())
 	})
 
 	var crdFn getCRDFunc
 	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1.CustomResourceDefinition) {
 		Eventually(func() error {
 			return K8sClient.Get(ctx, crdName, mutatingCRD)
-		}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+		}, timeout, pollInterval).ShouldNot(HaveOccurred())
 	}
 	byCheckingMutatingCRDs("deployed", crdFn)
 }
@@ -551,7 +549,7 @@ func byCheckingValidationDisabled() {
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
 			return apierrors.IsNotFound(err)
-		}, *Timeout, *PollInterval).Should(BeTrue())
+		}, timeout, pollInterval).Should(BeTrue())
 	})
 }
 
@@ -561,7 +559,7 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 			webhookDeployment = gatekeeperWebhookDeployment()
 			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
 			return found
-		}, *Timeout, *PollInterval).Should(BeFalse())
+		}, timeout, pollInterval).Should(BeFalse())
 	})
 
 	By(fmt.Sprintf("Checking %s=%s argument is not set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
@@ -570,7 +568,7 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 			found := findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
 				controllers.OperationArg, controllers.OperationMutationStatus)
 			return found
-		}, *Timeout, *PollInterval).Should(BeFalse())
+		}, timeout, pollInterval).Should(BeFalse())
 	})
 
 	By("Checking MutatingWebhookConfiguration not deployed", func() {
@@ -578,7 +576,7 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
 			return apierrors.IsNotFound(err)
-		}, *Timeout, *PollInterval).Should(BeTrue())
+		}, timeout, pollInterval).Should(BeTrue())
 	})
 
 	var crdFn getCRDFunc
@@ -586,7 +584,7 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 		Eventually(func() bool {
 			err := K8sClient.Get(ctx, crdName, mutatingCRD)
 			return apierrors.IsNotFound(err)
-		}, *Timeout, *PollInterval).Should(BeTrue())
+		}, timeout, pollInterval).Should(BeTrue())
 	}
 	byCheckingMutatingCRDs("not deployed", crdFn)
 }
@@ -614,7 +612,7 @@ func byCheckingFailurePolicy(webhookNamespacedName *types.NamespacedName,
 		webhookConfiguration.SetKind(kind)
 		Eventually(func() error {
 			return K8sClient.Get(ctx, *webhookNamespacedName, webhookConfiguration)
-		}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+		}, timeout, pollInterval).ShouldNot(HaveOccurred())
 		assertFailurePolicy(webhookConfiguration, webhookName, failurePolicy)
 	})
 }
@@ -633,7 +631,7 @@ func byCheckingNamespaceSelector(webhookNamespacedName *types.NamespacedName,
 		webhookConfiguration.SetKind(kind)
 		Eventually(func() error {
 			return K8sClient.Get(ctx, *webhookNamespacedName, webhookConfiguration)
-		}, *Timeout, *PollInterval).ShouldNot(HaveOccurred())
+		}, timeout, pollInterval).ShouldNot(HaveOccurred())
 		assertNamespaceSelector(webhookConfiguration, webhookName, namespaceSelector)
 	})
 }
@@ -742,7 +740,7 @@ func emptyGatekeeper() *v1alpha1.Gatekeeper {
 	return &v1alpha1.Gatekeeper{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      gkName,
-			Namespace: gkNamespace,
+			Namespace: gatekeeperNamespace,
 		},
 	}
 }
