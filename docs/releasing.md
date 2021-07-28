@@ -10,9 +10,13 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```shell
     git fetch --prune upstream
     ```
+1. Store the current version for use later:
+    ```shell
+    RELEASE_PREV_VERSION=$(awk '/^VERSION \?= .*/ {print $3}' Makefile)
+    ```
 1. Set the desired version being released:
     ```shell
-    export RELEASE_VERSION=v0.0.1
+    RELEASE_VERSION=v0.0.1
     ```
 1. Checkout a new branch based on `upstream/master`:
     ```shell
@@ -26,13 +30,17 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```shell
     make release VERSION=${RELEASE_VERSION}
     ```
+1. Update the base CSV `replaces` field:
+    ```shell
+    sed -Ei "s/(replaces: gatekeeper-operator.)v0.1.1/\1${RELEASE_PREV_VERSION}/" ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml
+    ```
 1. Update bundle:
     ```shell
     make bundle
     ```
 1. Commit above changes:
     ```shell
-    git commit -m "Release ${RELEASE_VERSION}" Makefile ./deploy/ ./bundle/ ./config/manager/kustomization.yaml
+    git commit -m "Release ${RELEASE_VERSION}" Makefile ./deploy/ ./bundle/ ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml ./config/manager/kustomization.yaml
     ```
 1. Push the changes in the branch to your fork:
     ```shell
