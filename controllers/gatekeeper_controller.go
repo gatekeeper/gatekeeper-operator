@@ -46,6 +46,7 @@ import (
 const (
 	defaultGatekeeperCrName           = "gatekeeper"
 	openshiftAssetsDir                = "openshift/"
+	GatekeeperImageEnvVar             = "RELATED_IMAGE_GATEKEEPER"
 	NamespaceFile                     = "v1_namespace_gatekeeper-system.yaml"
 	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
 	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
@@ -186,27 +187,13 @@ func (r *GatekeeperReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	err := r.Get(ctx, req.NamespacedName, gatekeeper)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-
 			return ctrl.Result{}, nil
 		}
-
 		return ctrl.Result{}, err
 	}
 
-	image := os.Getenv("RELATED_IMAGE_GATEKEEPER")
-	if gatekeeper.Spec.Image == nil {
-		gatekeeper.Spec.Image = &operatorv1alpha1.ImageConfig{}
-	}
-
-	if gatekeeper.Spec.Image.Image == nil {
-		if image != "" {
-			gatekeeper.Spec.Image.Image = &image
-		}
-		// else only should happen in dev/test environments, in which case use
-		// the default image in the Gatekeeper deployment manifests i.e. no
-		// overrides.
-	} else {
-		logger.Info("WARNING: operator.gatekeeper.sh/v1alpha1 Gatekeeper spec.image.image field is deprecated and will be removed in a future release.",
+	if gatekeeper.Spec.Image != nil && gatekeeper.Spec.Image.Image != nil {
+		logger.Info("WARNING: operator.gatekeeper.sh/v1alpha1 Gatekeeper spec.image.image field is no longer supported and will be removed in a future release.",
 			"spec.image.image", gatekeeper.Spec.Image.Image)
 	}
 
@@ -906,13 +893,17 @@ func setResources(obj *unstructured.Unstructured, resources *corev1.ResourceRequ
 }
 
 func setImage(container map[string]interface{}, spec operatorv1alpha1.GatekeeperSpec) error {
-	if spec.Image == nil {
-		return nil
-	}
-	if spec.Image.Image != nil {
-		if err := unstructured.SetNestedField(container, *spec.Image.Image, "image"); err != nil {
+	image := os.Getenv(GatekeeperImageEnvVar)
+	if image != "" {
+		if err := unstructured.SetNestedField(container, image, "image"); err != nil {
 			return errors.Wrapf(err, "Failed to set container image")
 		}
+	}
+	// else should only happen in dev/test environments, in which case use the
+	// default image in the Gatekeeper deployment manifests i.e. no overrides.
+
+	if spec.Image == nil {
+		return nil
 	}
 	if spec.Image.ImagePullPolicy != nil {
 		if err := unstructured.SetNestedField(container, string(*spec.Image.ImagePullPolicy), "imagePullPolicy"); err != nil {
