@@ -15,6 +15,7 @@ limitations under the License.
 package controllers
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -546,10 +547,8 @@ func assertResource(g *WithT, expected *corev1.ResourceRequirements, current map
 
 func TestImage(t *testing.T) {
 	g := NewWithT(t)
-	image := "mycustom-image/the-gatekeeper:v1.0.0"
 	imagePullPolicy := corev1.PullIfNotPresent
 	imageConfig := &operatorv1alpha1.ImageConfig{
-		Image:           &image,
 		ImagePullPolicy: &imagePullPolicy,
 	}
 
@@ -558,35 +557,45 @@ func TestImage(t *testing.T) {
 			Name: "test",
 		},
 	}
+
 	// test default image
 	auditObj, err := util.GetManifestObject(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertImage(g, auditObj, nil)
+	auditObjCopy := auditObj.DeepCopy()
+	assertImage(g, auditObj, auditObjCopy, nil, "")
 	webhookObj, err := util.GetManifestObject(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertImage(g, webhookObj, nil)
+	webhookObjCopy := webhookObj.DeepCopy()
+	assertImage(g, webhookObj, webhookObjCopy, nil, "")
 
 	// test nil image
-	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
-	assertImage(g, auditObj, nil)
-	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	auditObjCopy = auditObj.DeepCopy()
+	err = crOverrides(gatekeeper, AuditFile, auditObjCopy, namespace, false, false)
+	assertImage(g, auditObj, auditObjCopy, nil, "")
+	webhookObjCopy = webhookObj.DeepCopy()
+	err = crOverrides(gatekeeper, WebhookFile, webhookObjCopy, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertImage(g, webhookObj, nil)
+	assertImage(g, webhookObj, webhookObjCopy, nil, "")
 
 	// test image override
 	gatekeeper.Spec.Image = imageConfig
-	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	image := "mycustom-image/the-gatekeeper:v1.0.0"
+	err = os.Setenv(GatekeeperImageEnvVar, image)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertImage(g, auditObj, imageConfig)
-	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	auditObjCopy = auditObj.DeepCopy()
+	err = crOverrides(gatekeeper, AuditFile, auditObjCopy, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertImage(g, webhookObj, imageConfig)
+	assertImage(g, auditObj, auditObjCopy, imageConfig, image)
+	webhookObjCopy = webhookObj.DeepCopy()
+	err = crOverrides(gatekeeper, WebhookFile, webhookObjCopy, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertImage(g, webhookObj, webhookObjCopy, imageConfig, image)
 }
 
-func assertImage(g *WithT, obj *unstructured.Unstructured, expected *operatorv1alpha1.ImageConfig) {
+func assertImage(g *WithT, obj, objCopy *unstructured.Unstructured, expected *operatorv1alpha1.ImageConfig, image string) {
 	g.Expect(obj).NotTo(BeNil())
 	defaultImage, defaultImagePullPolicy := getDefaultImageConfig(g, obj)
-	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	containers, found, err := unstructured.NestedSlice(objCopy.Object, "spec", "template", "spec", "containers")
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
 
@@ -597,7 +606,7 @@ func assertImage(g *WithT, obj *unstructured.Unstructured, expected *operatorv1a
 		if expected == nil {
 			g.Expect(defaultImage).To(BeEquivalentTo(currentImage))
 		} else {
-			g.Expect(*expected.Image).To(BeEquivalentTo(currentImage))
+			g.Expect(image).To(BeEquivalentTo(currentImage))
 		}
 		currentImagePullPolicy, found, err := unstructured.NestedString(util.ToMap(c), "imagePullPolicy")
 		g.Expect(err).ToNot(HaveOccurred())
