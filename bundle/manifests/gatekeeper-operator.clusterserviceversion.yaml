@@ -263,7 +263,7 @@ spec:
           - create
         serviceAccountName: default
       deployments:
-      - name: gatekeeper-operator-controller-manager
+      - name: gatekeeper-operator-controller
         spec:
           replicas: 1
           selector:
