@@ -10,20 +10,7 @@ metadata:
           "metadata": {
             "name": "gatekeeper"
           },
-          "spec": {
-            "audit": {
-              "logLevel": "INFO",
-              "replicas": 1
-            },
-            "image": {
-              "image": "docker.io/openpolicyagent/gatekeeper:v3.5.1"
-            },
-            "validatingWebhook": "Enabled",
-            "webhook": {
-              "logLevel": "INFO",
-              "replicas": 2
-            }
-          }
+          "spec": null
         }
       ]
     capabilities: Basic Install
