@@ -106,49 +106,15 @@ var _ = Describe("Gatekeeper", func() {
 		}, deleteTimeout, pollInterval).Should(BeTrue())
 	})
 
-	Describe("Install", func() {
-		Context("Creating Gatekeeper custom resource", func() {
-			It("Should install Gatekeeper", func() {
-				gatekeeper := &v1alpha1.Gatekeeper{}
-				gatekeeper.Namespace = gatekeeperNamespace
-				err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
-				Expect(err).ToNot(HaveOccurred())
-				gkDeployment := &appsv1.Deployment{}
-
-				By("Creating Gatekeeper resource", func() {
-					Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-				})
-
-				By("Checking gatekeeper-controller-manager readiness", func() {
-					Eventually(func() (int32, error) {
-						return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
-					}, timeout, pollInterval).Should(Equal(*gatekeeper.Spec.Webhook.Replicas))
-				})
-
-				By("Checking gatekeeper-audit readiness", func() {
-					Eventually(func() (int32, error) {
-						return getDeploymentReadyReplicas(ctx, auditName, gkDeployment)
-					}, timeout, pollInterval).Should(Equal(*gatekeeper.Spec.Audit.Replicas))
-				})
-
-				By("Checking validatingWebhookConfiguration is deployed", func() {
-					validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
-					Eventually(func() error {
-						return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
-					}, timeout, pollInterval).ShouldNot(HaveOccurred())
-					Expect(validatingWebhookConfiguration.OwnerReferences).To(HaveLen(1))
-					Expect(validatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
-					Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
-				})
-
-			})
-		})
-	})
-
 	Describe("Overriding CR", func() {
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
-			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+			err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Creating Gatekeeper resource", func() {
+				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+			})
 
 			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
@@ -157,6 +123,30 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(*auditDeployment.Spec.Replicas).To(Equal(test.DefaultDeployment.AuditReplicas))
 				Expect(webhookDeployment.Spec.Replicas).NotTo(BeNil())
 				Expect(*webhookDeployment.Spec.Replicas).To(Equal(test.DefaultDeployment.WebhookReplicas))
+			})
+
+			By("Checking gatekeeper-controller-manager readiness", func() {
+				gkDeployment := &appsv1.Deployment{}
+				Eventually(func() (int32, error) {
+					return getDeploymentReadyReplicas(ctx, controllerManagerName, gkDeployment)
+				}, timeout, pollInterval).Should(Equal(test.DefaultDeployment.WebhookReplicas))
+			})
+
+			By("Checking gatekeeper-audit readiness", func() {
+				gkDeployment := &appsv1.Deployment{}
+				Eventually(func() (int32, error) {
+					return getDeploymentReadyReplicas(ctx, auditName, gkDeployment)
+				}, timeout, pollInterval).Should(Equal(test.DefaultDeployment.AuditReplicas))
+			})
+
+			By("Checking validatingWebhookConfiguration is deployed", func() {
+				validatingWebhookConfiguration := &admregv1.ValidatingWebhookConfiguration{}
+				Eventually(func() error {
+					return K8sClient.Get(ctx, validatingWebhookName, validatingWebhookConfiguration)
+				}, timeout, pollInterval).ShouldNot(HaveOccurred())
+				Expect(validatingWebhookConfiguration.OwnerReferences).To(HaveLen(1))
+				Expect(validatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
+				Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
 			})
 
 			By("Checking default pod affinity", func() {
@@ -298,9 +288,9 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking expected image", func() {
-				Expect(auditDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(*gatekeeper.Spec.Image.Image))
+				Expect(auditDeployment.Spec.Template.Spec.Containers[0].Image).ToNot(Equal(*gatekeeper.Spec.Image.Image))
 				Expect(auditDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
-				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(*gatekeeper.Spec.Image.Image))
+				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).ToNot(Equal(*gatekeeper.Spec.Image.Image))
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
 			})
 

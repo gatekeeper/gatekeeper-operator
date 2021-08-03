@@ -4,12 +4,3 @@ metadata:
   name: gatekeeper
 spec:
   # Add fields here
-  image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.5.1
-  audit:
-    replicas: 1
-    logLevel: INFO
-  validatingWebhook: Enabled
-  webhook:
-    replicas: 2
-    logLevel: INFO

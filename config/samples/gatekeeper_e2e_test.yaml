@@ -3,8 +3,6 @@ kind: Gatekeeper
 metadata:
   name: gatekeeper
 spec:
-  image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.5.1
   audit:
     replicas: 1
     logLevel: INFO
