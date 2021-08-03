@@ -298,9 +298,9 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			By("Checking expected image", func() {
-				Expect(auditDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(*gatekeeper.Spec.Image.Image))
+				Expect(auditDeployment.Spec.Template.Spec.Containers[0].Image).ToNot(Equal(*gatekeeper.Spec.Image.Image))
 				Expect(auditDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
-				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).To(Equal(*gatekeeper.Spec.Image.Image))
+				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].Image).ToNot(Equal(*gatekeeper.Spec.Image.Image))
 				Expect(webhookDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy).To(Equal(*gatekeeper.Spec.Image.ImagePullPolicy))
 			})
 
