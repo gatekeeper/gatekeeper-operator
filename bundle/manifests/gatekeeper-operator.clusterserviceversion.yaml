@@ -16,7 +16,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.3.2
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: gatekeeper-operator.v0.1.2
+  name: gatekeeper-operator.v0.2.0-rc.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -283,7 +283,7 @@ spec:
                 env:
                 - name: RELATED_IMAGE_GATEKEEPER
                   value: openpolicyagent/gatekeeper:v3.5.1
-                image: quay.io/gatekeeper/gatekeeper-operator:v0.1.2
+                image: quay.io/gatekeeper/gatekeeper-operator:v0.2.0-rc.0
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
@@ -404,5 +404,5 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat
-  replaces: gatekeeper-operator.v0.1.1
-  version: 0.1.2
+  replaces: gatekeeper-operator.v0.1.2
+  version: 0.2.0-rc.0

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 # Detect the OS to set per-OS defaults
 OS_NAME = $(shell uname -s)
 # Current Operator version
-VERSION ?= v0.1.2
+VERSION ?= v0.2.0-rc.0
 # Replaces Operator version
 REPLACES_VERSION ?= $(VERSION)
 # Current Gatekeeper version
