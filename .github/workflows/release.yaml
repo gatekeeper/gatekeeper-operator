@@ -105,5 +105,5 @@ jobs:
           ```
           kubectl apply -f https://raw.githubusercontent.com/${{ github.repository }}/${{ env.RELEASE_VERSION }}/deploy/gatekeeper-operator.yaml
           ```
-        draft: false
+        draft: true
         prerelease: false
