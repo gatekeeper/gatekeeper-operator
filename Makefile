@@ -79,7 +79,7 @@ endif
 # kind variables
 KIND_VERSION ?= v0.11.1
 # note: k8s version pinned since KIND image availability lags k8s releases
-KUBERNETES_VERSION ?= v1.21.1
+KUBERNETES_VERSION ?= v1.22.0
 BATS_VERSION ?= 1.2.1
 OLM_VERSION ?= v0.18.2
 

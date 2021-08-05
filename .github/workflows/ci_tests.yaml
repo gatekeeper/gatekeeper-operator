@@ -97,7 +97,7 @@ jobs:
     - name: Create K8s KinD Cluster
       run: |
         kind version
-        kind create cluster --image kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6 --wait=5m
+        kind create cluster --image kindest/node:v1.22.0@sha256:f97edf7f7ed53c57762b24f90a34fad101386c5bd4d93baeb45449557148c717 --wait=5m
 
     - name: Build and Push Test Container Image to KIND node
       run: |
@@ -154,7 +154,7 @@ jobs:
     - name: Create K8s KinD Cluster
       run: |
         kind version
-        kind create cluster --image kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6 --wait=5m
+        kind create cluster --image kindest/node:v1.22.0@sha256:f97edf7f7ed53c57762b24f90a34fad101386c5bd4d93baeb45449557148c717 --wait=5m
 
     - name: Build and Push Test Container Image to KIND node
       run: |
