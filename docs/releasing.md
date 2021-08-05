@@ -30,7 +30,10 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```shell
     make release VERSION=${RELEASE_VERSION}
     ```
-1. Update the base CSV `replaces` field:
+1. Update the base CSV `replaces` field. This is **only** needed if the
+   previous released version `${RELEASE_PREV_VERSION}` was an official release
+   i.e. no release candidate, such that users would have the previous released
+   version installed in their cluster via OLM:
     ```shell
     sed -Ei "s/(replaces: gatekeeper-operator.)v0.1.1/\1${RELEASE_PREV_VERSION}/" ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml
     ```
