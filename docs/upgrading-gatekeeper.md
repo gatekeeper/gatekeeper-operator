@@ -27,7 +27,7 @@ git commit -m "Set Gatekeeper version to ${GATEKEEPER_VERSION}" Makefile
 
 ```shell
 sed -Ei "s|(value: openpolicyagent/gatekeeper:)${GATEKEEPER_PREV_VERSION}|\1${GATEKEEPER_VERSION}|" ./config/manager/manager.yaml
-git commit -m "Update deployed Gatekeeper image to ${GATEKEEPER_VERSION}"
+git commit -m "Update deployed Gatekeeper image to ${GATEKEEPER_VERSION}" ./config/manager/manager.yaml
 ```
 
 ## 3. Update existing sample configs
