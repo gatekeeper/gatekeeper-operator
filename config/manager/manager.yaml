@@ -23,7 +23,7 @@ spec:
         control-plane: controller-manager
     spec:
       securityContext:
-        runAsUser: 65532
+        runAsNonRoot: true
       containers:
       - command:
         - /manager
@@ -56,4 +56,5 @@ spec:
         env:
         - name: RELATED_IMAGE_GATEKEEPER
           value: openpolicyagent/gatekeeper:v3.5.2
+      serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
