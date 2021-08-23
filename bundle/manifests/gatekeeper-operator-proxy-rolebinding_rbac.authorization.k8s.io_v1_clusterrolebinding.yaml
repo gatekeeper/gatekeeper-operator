@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    control-plane: gatekeeper-operator-controller-manager
+  name: gatekeeper-operator-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gatekeeper-operator-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: gatekeeper-operator-controller-manager
+  namespace: gatekeeper-system
