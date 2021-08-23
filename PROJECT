@@ -1,5 +1,6 @@
 domain: gatekeeper.sh
-layout: go.kubebuilder.io/v3
+layout:
+- go.kubebuilder.io/v3
 projectName: gatekeeper-operator
 repo: github.com/gatekeeper/gatekeeper-operator
 resources:
