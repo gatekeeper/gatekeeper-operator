@@ -6,10 +6,10 @@
 VERSION ?= 0.2.0-rc.1
 
 # CHANNELS define the bundle channels used in the bundle.
-# Add a new line here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
+# Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
-# - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=preview,fast,stable)
-# - use environment variables to overwrite this value (e.g export CHANNELS="preview,fast,stable")
+# - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
+# - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
 CHANNELS ?= stable
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -357,7 +357,7 @@ catalog-push: ## Push a catalog image.
 OS_NAME = $(shell uname -s)
 # operator-sdk variables
 # ======================
-OPERATOR_SDK_VERSION ?= v1.8.2
+OPERATOR_SDK_VERSION ?= v1.9.2
 ifeq ($(OS_NAME), Linux)
     OPERATOR_SDK_URL=https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_linux_amd64
 else ifeq ($(OS_NAME), Darwin)
