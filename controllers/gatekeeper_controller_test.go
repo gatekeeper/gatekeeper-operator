@@ -757,6 +757,62 @@ func TestNamespaceSelector(t *testing.T) {
 	assertNamespaceSelector(g, mutObj, MutatingWebhookConfiguration, &namespaceSelector)
 }
 
+func TestNamespaceSelectorOnOpenShift(t *testing.T) {
+	g := NewWithT(t)
+
+	namespaceSelector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "admission.gatekeeper.sh/test",
+				Operator: metav1.LabelSelectorOpExists,
+			},
+		},
+	}
+	webhook := operatorv1alpha1.WebhookConfig{
+		NamespaceSelector: &namespaceSelector,
+	}
+	mutatingWebhook := operatorv1alpha1.WebhookEnabled
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+		Spec: operatorv1alpha1.GatekeeperSpec{
+			MutatingWebhook: &mutatingWebhook,
+		},
+	}
+
+	// test nil namespaceSelector without overriding i.e. default Gatekeeper
+	// config's namespaceSelector
+	defaultNs := test.DefaultDeployment.NamespaceSelector
+	valObj, err := util.GetManifestObject(ValidatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, defaultNs)
+	mutObj, err := util.GetManifestObject(MutatingWebhookConfiguration)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, defaultNs)
+
+	// test nil namespaceSelector with overriding i.e. operator's overriden
+	// namespaceSelector
+	defaultNsSelOverride := defaultWebhookNamespaceSelector()
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, defaultNsSelOverride)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, defaultNsSelOverride)
+
+	// test namespaceSelector override i.e. both user and operator's
+	// namespaceSelector override choice
+	gatekeeper.Spec.Webhook = &webhook
+	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	mergeNamespaceSelectors(&namespaceSelector, defaultNsSelOverride)
+	assertNamespaceSelector(g, valObj, ValidatingWebhookConfiguration, &namespaceSelector)
+	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertNamespaceSelector(g, mutObj, MutatingWebhookConfiguration, &namespaceSelector)
+}
+
 func assertNamespaceSelector(g *WithT, obj *unstructured.Unstructured, webhookName string, expected *metav1.LabelSelector) {
 	assertWebhooksWithFn(g, obj, func(webhook map[string]interface{}) {
 		if webhook["name"] == webhookName {
