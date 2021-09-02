@@ -474,7 +474,7 @@ var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1
 }
 
 // crOverrides
-func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *unstructured.Unstructured, namespace string, isOpenshift bool, controllerDeploymentPending bool) error {
+func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *unstructured.Unstructured, namespace string, isOpenShift bool, controllerDeploymentPending bool) error {
 	if asset == NamespaceFile {
 		obj.SetName(namespace)
 		return nil
@@ -492,7 +492,7 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		if err := auditOverrides(obj, gatekeeper.Spec.Audit); err != nil {
 			return err
 		}
-		if isOpenshift {
+		if isOpenShift {
 			if err := removeAnnotations(obj); err != nil {
 				return err
 			}
@@ -505,7 +505,7 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		if err := webhookOverrides(obj, gatekeeper.Spec.Webhook); err != nil {
 			return err
 		}
-		if isOpenshift {
+		if isOpenShift {
 			if err := removeAnnotations(obj); err != nil {
 				return err
 			}
