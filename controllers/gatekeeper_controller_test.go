@@ -713,7 +713,7 @@ func TestNamespaceSelector(t *testing.T) {
 	namespaceSelector := metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{
-				Key:      "admission.gatekeeper.sh/enabled",
+				Key:      "admission.gatekeeper.sh/test",
 				Operator: metav1.LabelSelectorOpExists,
 			},
 		},
@@ -731,20 +731,21 @@ func TestNamespaceSelector(t *testing.T) {
 		},
 	}
 	// test default namespaceSelector
+	defaultNsSel := test.DefaultDeployment.NamespaceSelector
 	valObj, err := util.GetManifestObject(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, defaultNsSel)
 	mutObj, err := util.GetManifestObject(MutatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, defaultNsSel)
 
 	// test nil namespaceSelector
 	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, defaultNsSel)
 	err = crOverrides(gatekeeper, MutatingWebhookConfiguration, mutObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, defaultNsSel)
 
 	// test namespaceSelector override
 	gatekeeper.Spec.Webhook = &webhook
@@ -761,14 +762,10 @@ func assertNamespaceSelector(g *WithT, obj *unstructured.Unstructured, webhookNa
 		if webhook["name"] == webhookName {
 			current, found, err := unstructured.NestedFieldCopy(webhook, "namespaceSelector")
 			g.Expect(err).ToNot(HaveOccurred())
-			if expected == nil {
-				// ValidatingWebhookConfiguration and
-				// MutatingWebhookConfiguration have the same defaults.
-				g.Expect(found).To(BeTrue())
-				g.Expect(util.ToMap(test.DefaultDeployment.NamespaceSelector)).To(BeEquivalentTo(current))
-			} else {
-				g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
-			}
+			// ValidatingWebhookConfiguration and
+			// MutatingWebhookConfiguration have the same defaults.
+			g.Expect(found).To(BeTrue())
+			g.Expect(util.ToMap(*expected)).To(BeEquivalentTo(current))
 		}
 	})
 }
