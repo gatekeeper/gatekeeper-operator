@@ -63,6 +63,7 @@ const (
 	ValidationGatekeeperWebhook       = "validation.gatekeeper.sh"
 	CheckIgnoreLabelGatekeeperWebhook = "check-ignore-label.gatekeeper.sh"
 	MutationGatekeeperWebhook         = "mutation.gatekeeper.sh"
+	NamespaceSelectorLabelName        = "admission.gatekeeper.sh/enabled"
 	AuditDeploymentName               = "gatekeeper-audit"
 	WebhookDeploymentName             = "gatekeeper-controller-manager"
 	managerContainer                  = "manager"
@@ -512,15 +513,15 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true, controllerDeploymentPending, isOpenShift); err != nil {
 			return err
 		}
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false, controllerDeploymentPending, isOpenShift); err != nil {
 			return err
 		}
 	// MutatingWebhookConfiguration overrides
 	case MutatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true, controllerDeploymentPending, isOpenShift); err != nil {
 			return err
 		}
 	// ClusterRole overrides
@@ -594,7 +595,7 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 	return nil
 }
 
-func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool, controllerDeploymentPending bool) error {
+func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy, controllerDeploymentPending, isOpenShift bool) error {
 	// Set failure policy to ignore if deployment is still pending.
 	if controllerDeploymentPending {
 		ignore := admregv1.Ignore
@@ -606,8 +607,7 @@ func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *oper
 
 	if webhook != nil {
 		if updateFailurePolicy && !controllerDeploymentPending {
-			failurePolicy := webhook.FailurePolicy
-			if err := setFailurePolicy(obj, failurePolicy, webhookName); err != nil {
+			if err := setFailurePolicy(obj, webhook.FailurePolicy, webhookName); err != nil {
 				return err
 			}
 		}
@@ -615,7 +615,55 @@ func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *oper
 			return err
 		}
 	}
+
+	if isOpenShift {
+		dwns := defaultWebhookNamespaceSelector()
+		if webhook == nil {
+			// Set default opt-in namespace selector
+			webhook = &operatorv1alpha1.WebhookConfig{
+				NamespaceSelector: dwns,
+			}
+		} else if webhook.NamespaceSelector != nil {
+			mergeNamespaceSelectors(webhook.NamespaceSelector, dwns)
+		}
+
+		if err := setNamespaceSelector(obj, webhook.NamespaceSelector, webhookName); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func mergeNamespaceSelectors(ns1, ns2 *metav1.LabelSelector) {
+	if ns1.MatchLabels == nil {
+		ns1.MatchLabels = make(map[string]string)
+	}
+
+	for k, v := range ns2.MatchLabels {
+		ns1.MatchLabels[k] = v
+	}
+
+	ns1.MatchExpressions = append(ns2.MatchExpressions, ns1.MatchExpressions...)
+}
+
+func defaultWebhookNamespaceSelector() *metav1.LabelSelector {
+	return &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			NamespaceSelectorLabelName: "true",
+		},
+		MatchExpressions: defaultLabelSelectorRequirement(),
+	}
+}
+
+func defaultLabelSelectorRequirement() []metav1.LabelSelectorRequirement {
+	return []metav1.LabelSelectorRequirement{
+		{
+			Key:      "openshift.io/run-level",
+			Operator: metav1.LabelSelectorOpNotIn,
+			Values:   []string{"0", "1"},
+		},
+	}
 }
 
 type matchRuleFunc func(map[string]interface{}) (bool, error)
