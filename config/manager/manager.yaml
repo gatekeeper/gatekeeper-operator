@@ -56,5 +56,5 @@ spec:
         env:
         - name: RELATED_IMAGE_GATEKEEPER
           value: openpolicyagent/gatekeeper:v3.5.2
-      serviceAccountName: controller-manager
+      serviceAccountName: gatekeeper-operator-controller-manager
       terminationGracePeriodSeconds: 10
