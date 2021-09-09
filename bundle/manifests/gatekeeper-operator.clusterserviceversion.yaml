@@ -248,7 +248,7 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: controller-manager
+        serviceAccountName: gatekeeper-operator-controller-manager
       deployments:
       - name: gatekeeper-operator-controller
         spec:
@@ -310,7 +310,7 @@ spec:
                   allowPrivilegeEscalation: false
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: controller-manager
+              serviceAccountName: gatekeeper-operator-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -394,7 +394,7 @@ spec:
           - patch
           - update
           - watch
-        serviceAccountName: controller-manager
+        serviceAccountName: gatekeeper-operator-controller-manager
     strategy: deployment
   installModes:
   - supported: false
