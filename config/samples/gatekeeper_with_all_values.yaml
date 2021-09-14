@@ -3,7 +3,6 @@ kind: Gatekeeper
 metadata:
   name: gatekeeper
 spec:
-  # Add fields here
   image:
     image: docker.io/openpolicyagent/gatekeeper:v3.5.2
     imagePullPolicy: Always
@@ -23,6 +22,7 @@ spec:
         cpu: 100m
         memory: 20Mi
   validatingWebhook: Enabled
+  mutatingWebhook: Enabled
   webhook:
     replicas: 2
     logLevel: ERROR
@@ -57,3 +57,4 @@ spec:
   podAnnotations:
     some-annotation: "this is a test"
     other-annotation: "another test"
+  

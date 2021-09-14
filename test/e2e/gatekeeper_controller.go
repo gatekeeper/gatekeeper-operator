@@ -109,7 +109,7 @@ var _ = Describe("Gatekeeper", func() {
 	Describe("Overriding CR", func() {
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
-			err := loadGatekeeperFromFile(gatekeeper, "operator_v1alpha1_gatekeeper.yaml")
+			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_empty.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Creating Gatekeeper resource", func() {
