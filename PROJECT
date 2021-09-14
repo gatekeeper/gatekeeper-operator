@@ -3,7 +3,6 @@ layout:
 - go.kubebuilder.io/v3
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
-  scorecard.sdk.operatorframework.io/v2: {}
 projectName: gatekeeper-operator
 repo: github.com/gatekeeper/gatekeeper-operator
 resources:
