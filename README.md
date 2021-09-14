@@ -27,6 +27,8 @@ make install
 
 Then proceed to the installation method you prefer below.
 
+Note: By default, `docker` is used to build and push images in Makefile. To use `podman` instead, set `DOCKER=podman` when calling `make`.
+
 ### Outside the Cluster
 
 If you would like to run the Gatekeeper Operator outside the cluster, the
