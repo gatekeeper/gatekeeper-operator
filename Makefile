@@ -25,6 +25,8 @@ ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+# Option to use podman or docker
+DOCKER ?= docker
 
 # IMAGE_TAG_BASE defines the docker.io namespace and part of the image name for remote images.
 # This variable is used to construct full image tags for bundle and catalog images.
@@ -144,11 +146,11 @@ run: manifests generate fmt vet ## Run a controller from your host, using the co
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build --build-arg GOOS=${GOOS} --build-arg GOARCH=${GOARCH} --build-arg LDFLAGS=${LDFLAGS} -t ${IMG} .
+	$(DOCKER) build --build-arg GOOS=${GOOS} --build-arg GOARCH=${GOARCH} --build-arg LDFLAGS=${LDFLAGS} -t ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	$(DOCKER) push ${IMG}
 
 .PHONY: .ensure-go-bindata
 BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
@@ -276,7 +278,7 @@ bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metada
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(DOCKER) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
@@ -323,7 +325,7 @@ prev-bundle-index-image-version:
 # Build the bundle index image.
 .PHONY: bundle-index-build
 bundle-index-build: opm
-	$(OPM) index add --bundles $(BUNDLE_IMG) --from-index $(PREV_BUNDLE_INDEX_IMG) --tag $(BUNDLE_INDEX_IMG) -c docker
+	$(OPM) index add --bundles $(BUNDLE_IMG) --from-index $(PREV_BUNDLE_INDEX_IMG) --tag $(BUNDLE_INDEX_IMG) -c $(DOCKER)
 
 # Generate and push bundle image and bundle index image
 # Note: OPERATOR_VERSION is an arbitrary number and does not need to match any official versions
