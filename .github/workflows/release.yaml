@@ -65,6 +65,11 @@ jobs:
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_TOKEN }}
 
+    - name: Set Up Go to Install OPM
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16.7'
+
     - name: Build and Push Operator Image
       run: |
         make docker-build VERSION=${RELEASE_VERSION}
@@ -78,11 +83,6 @@ jobs:
         docker tag ${RELEASE_BUNDLE_IMG}:${RELEASE_VERSION} ${RELEASE_BUNDLE_IMG}:latest
         make docker-push IMG=${RELEASE_BUNDLE_IMG}:${RELEASE_VERSION}
         make docker-push IMG=${RELEASE_BUNDLE_IMG}:latest
-
-    - name: Set Up Go to Install OPM
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.7'
 
     - name: Build and Push Bundle Index Image
       run: |
