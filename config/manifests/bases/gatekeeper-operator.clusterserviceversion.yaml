@@ -16,6 +16,38 @@ spec:
       displayName: Gatekeeper
       kind: Gatekeeper
       name: gatekeepers.operator.gatekeeper.sh
+      resources:
+      - kind: Deployment
+        name: gatekeeper-deployment
+        version: v1
+      specDescriptors:
+      - displayName: Affinity
+        path: affinity
+      - displayName: Audit Configuration
+        path: audit
+      - displayName: Image Configuration
+        path: image
+      - displayName: Mutating Webhook
+        path: mutatingWebhook
+      - displayName: Node Selector
+        path: nodeSelector
+      - displayName: Pod Annotations
+        path: podAnnotations
+      - displayName: Tolerations
+        path: tolerations
+      - displayName: Validating Webhook
+        path: validatingWebhook
+      - displayName: Webhook Config
+        path: webhook
+      statusDescriptors:
+      - displayName: Audit Conditions
+        path: auditConditions
+      - description: ObservedGeneration is the generation as observed by the operator
+          consuming this API.
+        displayName: Observed Generation
+        path: observedGeneration
+      - displayName: Webhook Conditions
+        path: webhookConditions
       version: v1alpha1
   description: Operator for OPA Gatekeeper
   displayName: Gatekeeper Operator

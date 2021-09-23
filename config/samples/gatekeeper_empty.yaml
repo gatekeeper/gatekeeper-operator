@@ -3,4 +3,4 @@ kind: Gatekeeper
 metadata:
   name: gatekeeper
 spec:
-  validatingWebhook: Enabled
+  # Empty

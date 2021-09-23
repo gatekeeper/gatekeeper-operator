@@ -30,22 +30,39 @@ type GatekeeperSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Image Configuration"
 	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Audit Configuration"
 	// +optional
 	Audit *AuditConfig `json:"audit,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Validating Webhook"
 	// +optional
 	ValidatingWebhook *WebhookMode `json:"validatingWebhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Mutating Webhook"
 	// +optional
 	MutatingWebhook *WebhookMode `json:"mutatingWebhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Webhook Config"
 	// +optional
 	Webhook *WebhookConfig `json:"webhook,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node Selector"
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Affinity"
 	// +optional
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Tolerations"
 	// +optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Pod Annotations"
 	// +optional
 	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
 }
@@ -144,9 +161,14 @@ type GatekeeperStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// ObservedGeneration is the generation as observed by the operator consuming this API.
-	ObservedGeneration int64             `json:"observedGeneration"`
-	AuditConditions    []StatusCondition `json:"auditConditions"`
-	WebhookConditions  []StatusCondition `json:"webhookConditions"`
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Observed Generation"
+	ObservedGeneration int64 `json:"observedGeneration"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Audit Conditions"
+	AuditConditions []StatusCondition `json:"auditConditions"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Webhook Conditions"
+	WebhookConditions []StatusCondition `json:"webhookConditions"`
 }
 
 // StatusCondition describes the current state of a component.
@@ -183,6 +205,7 @@ const (
 //// +kubebuilder:printcolumn:name="Audit Status",type=string,JSONPath=`.status.auditConditions[0].type`,description="The status of the Gatekeeper Audit"
 //// +kubebuilder:printcolumn:name="Webhook Status",type=string,JSONPath=`.status.webhookConditions[0].type`,description="The status of the Gatekeeper Webhook"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +operator-sdk:csv:customresourcedefinitions:displayName="Gatekeeper",resources={{Deployment,v1,gatekeeper-deployment}}
 
 // Gatekeeper is the Schema for the gatekeepers API
 type Gatekeeper struct {

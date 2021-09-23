@@ -276,6 +276,11 @@ bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metada
 	sed -i 's/mediatype: \"\"/mediatype: \"image\/svg+xml\"/g' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
 	$(OPERATOR_SDK) bundle validate ./bundle
 
+# Requires running cluster (for example through 'make test-cluster')
+.PHONY: scorecard
+scorecard: bundle
+	$(OPERATOR_SDK) scorecard ./bundle
+
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
 	$(DOCKER) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
