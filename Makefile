@@ -370,7 +370,7 @@ catalog-push: ## Push a catalog image.
 OS_NAME = $(shell uname -s)
 # operator-sdk variables
 # ======================
-OPERATOR_SDK_VERSION ?= v1.10.1
+OPERATOR_SDK_VERSION ?= v1.13.1
 ifeq ($(OS_NAME), Linux)
     OPERATOR_SDK_URL=https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_linux_amd64
 else ifeq ($(OS_NAME), Darwin)
