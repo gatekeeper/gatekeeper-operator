@@ -31,6 +31,7 @@ type GatekeeperSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Image Configuration"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:com.tectonic.ui:hidden"}
 	// +optional
 	Image *ImageConfig `json:"image,omitempty"`
 

@@ -4,6 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
+    olm.skipRange: <0.3.0
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   name: gatekeeper-operator.v0.0.1
@@ -27,6 +28,8 @@ spec:
         path: audit
       - displayName: Image Configuration
         path: image
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Mutating Webhook
         path: mutatingWebhook
       - displayName: Node Selector
@@ -49,7 +52,51 @@ spec:
       - displayName: Webhook Conditions
         path: webhookConditions
       version: v1alpha1
-  description: Operator for OPA Gatekeeper
+  description: |
+    Open Policy Agent Gatekeeper enforces CRD-based policies.
+
+    Every organization has policies. Some are essential to meet governance and
+    legal requirements. Others help ensure adherence to best practices and
+    institutional conventions. Attempting to ensure compliance manually would be
+    error-prone and frustrating. Automating policy enforcement ensures
+    consistency, lowers development latency through immediate feedback, and
+    helps with agility by allowing developers to operate independently without
+    sacrificing compliance.
+
+    Kubernetes allows decoupling policy decisions from the inner workings of the
+    API Server by means of [admission controller webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/), which are executed
+    whenever a resource is created, updated or deleted. Gatekeeper is a
+    validating and mutating webhook that enforces CRD-based policies executed
+    by [Open Policy Agent](https://github.com/open-policy-agent/opa), a policy
+    engine for Cloud Native environments hosted
+    by CNCF as an incubation-level project.
+
+    In addition to the admission scenario, Gatekeeper's audit functionality
+    allows administrators to see what resources are currently violating any
+    given policy.
+
+    Finally, Gatekeeper's engine is designed to be portable, allowing
+    administrators to detect and reject non-compliant commits to an
+    infrastructure-as-code system's source-of-truth, further strengthening
+    compliance efforts and preventing bad state from slowing down the
+    organization.
+
+    Gatekeeper has the following functionality:
+    * An extensible, parameterized policy library
+    * Native Kubernetes CRDs for instantiating the policy library (aka "constraints")
+    * Native Kubernetes CRDs for extending the policy library (aka "constraint templates")
+    * Audit functionality
+
+    For more information, see the [Gatekeeper documentation](https://open-policy-agent.github.io/gatekeeper/website/docs/).
+
+    ## Support & Troubleshooting
+
+    The Open Policy Agent Gatekeeper community collaborates on Slack
+    [#opa-gatekeeper](https://openpolicyagent.slack.com/archives/CDTN970AX).
+
+    Please report issues on the respective GitHub repositories for either
+    the [Gatekeeper Operator](https://github.com/gatekeeper/gatekeeper-operator/issues) or
+    [Gatekeeper](https://github.com/open-policy-agent/gatekeeper/issues) itself.
   displayName: Gatekeeper Operator
   icon:
   - base64data: ""
@@ -72,11 +119,8 @@ spec:
   links:
   - name: Gatekeeper Operator
     url: https://github.com/gatekeeper/gatekeeper-operator
-  maintainers:
-  - email: ifont@redhat.com
-    name: Ivan Font
   maturity: alpha
   provider:
-    name: Red Hat
-  replaces: gatekeeper-operator.v0.1.2
-  version: 0.0.1
+    name: Open Policy Agent Gatekeeper community
+  replaces: gatekeeper-operator.v0.2.1
+  version: 0.3.0-alpha.1
