@@ -316,13 +316,12 @@ TMP_IMPORT_MANIFESTS_PATH := $(shell mktemp -d)
 .PHONY: import-manifests
 import-manifests: kustomize
 	if [[ $(IMPORT_MANIFESTS_PATH) =~ https://* ]]; then \
-		git clone --branch $(GATEKEEPER_VERSION)  $(IMPORT_MANIFESTS_PATH) $(TMP_IMPORT_MANIFESTS_PATH) ; \
-		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(TMP_IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook -o $(GATEKEEPER_MANIFEST_DIR); \
-		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(TMP_IMPORT_MANIFESTS_PATH)/config/overlays/mutation -o $(GATEKEEPER_MANIFEST_DIR); \
+		git clone --branch $(GATEKEEPER_VERSION) $(IMPORT_MANIFESTS_PATH) $(TMP_IMPORT_MANIFESTS_PATH) ; \
+		cd $(TMP_IMPORT_MANIFESTS_PATH) && make patch-image ; \
+		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(TMP_IMPORT_MANIFESTS_PATH)/config/overlays/dev -o $(GATEKEEPER_MANIFEST_DIR); \
 		rm -rf "$${TMP_IMPORT_MANIFESTS_PATH}" ; \
 	else \
-		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook -o $(GATEKEEPER_MANIFEST_DIR); \
-		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation -o $(GATEKEEPER_MANIFEST_DIR); \
+		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/dev -o $(GATEKEEPER_MANIFEST_DIR); \
 	fi
 
 # Get previous index image version
