@@ -205,7 +205,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: assign.mutations.gatekeeper.sh
 spec:
   group: mutations.gatekeeper.sh
@@ -214,12 +213,13 @@ spec:
     listKind: AssignList
     plural: assign
     singular: assign
+  preserveUnknownFields: false
   scope: Cluster
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Assign is the Schema for the assign API
+        description: Assign is the Schema for the assign API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -234,7 +234,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: AssignSpec defines the desired state of Assign
+            description: AssignSpec defines the desired state of Assign.
             properties:
               applyTo:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -410,7 +410,7 @@ spec:
                         glob characters will take on the same value as was used to
                         expand the matching glob in ` + "`" + `location` + "`" + `. \n Available Tests:
                         * MustExist    - the path must exist or do not mutate * MustNotExist
-                        - the path must not exist or do not mutate"
+                        - the path must not exist or do not mutate."
                       properties:
                         condition:
                           description: Condition describes whether the path either
@@ -426,19 +426,19 @@ spec:
                 type: object
             type: object
           status:
-            description: AssignStatus defines the observed state of Assign
+            description: AssignStatus defines the observed state of Assign.
             properties:
               byPod:
                 items:
                   description: MutatorPodStatusStatus defines the observed state of
-                    MutatorPodStatus
+                    MutatorPodStatus.
                   properties:
                     enforced:
                       type: boolean
                     errors:
                       items:
                         description: MutatorError represents a single error caught
-                          while adding a mutator to a system
+                          while adding a mutator to a system.
                         properties:
                           message:
                             type: string
@@ -496,7 +496,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: assignmetadata.mutations.gatekeeper.sh
 spec:
   group: mutations.gatekeeper.sh
@@ -505,12 +504,13 @@ spec:
     listKind: AssignMetadataList
     plural: assignmetadata
     singular: assignmetadata
+  preserveUnknownFields: false
   scope: Cluster
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: AssignMetadata is the Schema for the assignmetadata API
+        description: AssignMetadata is the Schema for the assignmetadata API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -525,7 +525,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: AssignMetadataSpec defines the desired state of AssignMetadata
+            description: AssignMetadataSpec defines the desired state of AssignMetadata.
             properties:
               location:
                 type: string
@@ -669,7 +669,7 @@ spec:
                 type: object
             type: object
           status:
-            description: AssignMetadataStatus defines the observed state of AssignMetadata
+            description: AssignMetadataStatus defines the observed state of AssignMetadata.
             properties:
               byPod:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
@@ -677,14 +677,14 @@ spec:
                   this file'
                 items:
                   description: MutatorPodStatusStatus defines the observed state of
-                    MutatorPodStatus
+                    MutatorPodStatus.
                   properties:
                     enforced:
                       type: boolean
                     errors:
                       items:
                         description: MutatorError represents a single error caught
-                          while adding a mutator to a system
+                          while adding a mutator to a system.
                         properties:
                           message:
                             type: string
@@ -742,7 +742,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: configs.config.gatekeeper.sh
@@ -753,12 +752,13 @@ spec:
     listKind: ConfigList
     plural: configs
     singular: config
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Config is the Schema for the configs API
+        description: Config is the Schema for the configs API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -773,7 +773,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ConfigSpec defines the desired state of Config
+            description: ConfigSpec defines the desired state of Config.
             properties:
               match:
                 description: Configuration for namespace exclusion
@@ -781,6 +781,10 @@ spec:
                   properties:
                     excludedNamespaces:
                       items:
+                        description: 'A string that supports globbing at its end.  Ex:
+                          "kube-*" will match "kube-system" or "kube-public".  The
+                          asterisk is required for wildcard matching.'
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                         type: string
                       type: array
                     processes:
@@ -842,7 +846,7 @@ spec:
                 type: object
             type: object
           status:
-            description: ConfigStatus defines the observed state of Config
+            description: ConfigStatus defines the observed state of Config.
             type: object
         type: object
     served: true
@@ -875,7 +879,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constraintpodstatuses.status.gatekeeper.sh
@@ -886,13 +889,14 @@ spec:
     listKind: ConstraintPodStatusList
     plural: constraintpodstatuses
     singular: constraintpodstatus
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
         description: ConstraintPodStatus is the Schema for the constraintpodstatuses
-          API
+          API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -907,7 +911,7 @@ spec:
           metadata:
             type: object
           status:
-            description: ConstraintPodStatusStatus defines the observed state of ConstraintPodStatus
+            description: ConstraintPodStatusStatus defines the observed state of ConstraintPodStatus.
             properties:
               constraintUID:
                 description: Storing the constraint UID allows us to detect drift,
@@ -919,7 +923,7 @@ spec:
               errors:
                 items:
                   description: Error represents a single error caught while adding
-                    a constraint to OPA
+                    a constraint to OPA.
                   properties:
                     code:
                       type: string
@@ -973,7 +977,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constrainttemplatepodstatuses.status.gatekeeper.sh
@@ -984,13 +987,14 @@ spec:
     listKind: ConstraintTemplatePodStatusList
     plural: constrainttemplatepodstatuses
     singular: constrainttemplatepodstatus
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
         description: ConstraintTemplatePodStatus is the Schema for the constrainttemplatepodstatuses
-          API
+          API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -1006,7 +1010,7 @@ spec:
             type: object
           status:
             description: ConstraintTemplatePodStatusStatus defines the observed state
-              of ConstraintTemplatePodStatus
+              of ConstraintTemplatePodStatus.
             properties:
               errors:
                 items:
@@ -1073,7 +1077,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constrainttemplates.templates.gatekeeper.sh
@@ -1084,8 +1087,110 @@ spec:
     listKind: ConstraintTemplateList
     plural: constrainttemplates
     singular: constrainttemplate
+  preserveUnknownFields: false
   scope: Cluster
   versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: ConstraintTemplate is the Schema for the constrainttemplates
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConstraintTemplateSpec defines the desired state of ConstraintTemplate
+            properties:
+              crd:
+                properties:
+                  spec:
+                    properties:
+                      names:
+                        properties:
+                          kind:
+                            type: string
+                          shortNames:
+                            items:
+                              type: string
+                            type: array
+                        type: object
+                      validation:
+                        properties:
+                          legacySchema:
+                            default: false
+                            type: boolean
+                          openAPIV3Schema:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                        type: object
+                    type: object
+                type: object
+              targets:
+                items:
+                  properties:
+                    libs:
+                      items:
+                        type: string
+                      type: array
+                    rego:
+                      type: string
+                    target:
+                      type: string
+                  type: object
+                type: array
+            type: object
+          status:
+            description: ConstraintTemplateStatus defines the observed state of ConstraintTemplate
+            properties:
+              byPod:
+                items:
+                  description: ByPodStatus defines the observed state of ConstraintTemplate
+                    as seen by an individual controller
+                  properties:
+                    errors:
+                      items:
+                        description: CreateCRDError represents a single error caught
+                          during parsing, compiling, etc.
+                        properties:
+                          code:
+                            type: string
+                          location:
+                            type: string
+                          message:
+                            type: string
+                        required:
+                        - code
+                        - message
+                        type: object
+                      type: array
+                    id:
+                      description: a unique identifier for the pod that wrote the
+                        status
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                type: array
+              created:
+                type: boolean
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
   - name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -1122,6 +1227,9 @@ spec:
                         type: object
                       validation:
                         properties:
+                          legacySchema:
+                            default: true
+                            type: boolean
                           openAPIV3Schema:
                             type: object
                             x-kubernetes-preserve-unknown-fields: true
@@ -1220,6 +1328,9 @@ spec:
                         type: object
                       validation:
                         properties:
+                          legacySchema:
+                            default: true
+                            type: boolean
                           openAPIV3Schema:
                             type: object
                             x-kubernetes-preserve-unknown-fields: true
@@ -1279,7 +1390,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
 status:
@@ -1310,7 +1421,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: mutatorpodstatuses.status.gatekeeper.sh
 spec:
   group: status.gatekeeper.sh
@@ -1319,12 +1429,13 @@ spec:
     listKind: MutatorPodStatusList
     plural: mutatorpodstatuses
     singular: mutatorpodstatus
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: MutatorPodStatus is the Schema for the mutationpodstatuses API
+        description: MutatorPodStatus is the Schema for the mutationpodstatuses API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -1339,14 +1450,14 @@ spec:
           metadata:
             type: object
           status:
-            description: MutatorPodStatusStatus defines the observed state of MutatorPodStatus
+            description: MutatorPodStatusStatus defines the observed state of MutatorPodStatus.
             properties:
               enforced:
                 type: boolean
               errors:
                 items:
                   description: MutatorError represents a single error caught while
-                    adding a mutator to a system
+                    adding a mutator to a system.
                   properties:
                     message:
                       type: string
@@ -2116,7 +2227,7 @@ metadata:
 spec:
   ports:
   - port: 443
-    targetPort: 8443
+    targetPort: webhook-server
   selector:
     control-plane: controller-manager
     gatekeeper.sh/operation: webhook
