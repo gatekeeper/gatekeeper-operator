@@ -398,7 +398,7 @@ $(OPERATOR_SDK):
 # Replaces Operator version
 REPLACES_VERSION ?= $(VERSION)
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.6.0
+GATEKEEPER_VERSION ?= v3.7.0
 
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:$(VERSION)

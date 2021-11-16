@@ -1239,7 +1239,7 @@ spec:
         - /manager
         env:
         - name: RELATED_IMAGE_GATEKEEPER
-          value: openpolicyagent/gatekeeper:v3.6.0
+          value: openpolicyagent/gatekeeper:v3.7.0
         image: quay.io/gatekeeper/gatekeeper-operator:v0.2.0
         imagePullPolicy: Always
         livenessProbe:
