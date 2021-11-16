@@ -3,7 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   name: assign.mutations.gatekeeper.sh
 spec:
   group: mutations.gatekeeper.sh
@@ -12,12 +11,13 @@ spec:
     listKind: AssignList
     plural: assign
     singular: assign
+  preserveUnknownFields: false
   scope: Cluster
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Assign is the Schema for the assign API
+        description: Assign is the Schema for the assign API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,7 +32,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: AssignSpec defines the desired state of Assign
+            description: AssignSpec defines the desired state of Assign.
             properties:
               applyTo:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -208,7 +208,7 @@ spec:
                         glob characters will take on the same value as was used to
                         expand the matching glob in `location`. \n Available Tests:
                         * MustExist    - the path must exist or do not mutate * MustNotExist
-                        - the path must not exist or do not mutate"
+                        - the path must not exist or do not mutate."
                       properties:
                         condition:
                           description: Condition describes whether the path either
@@ -224,19 +224,19 @@ spec:
                 type: object
             type: object
           status:
-            description: AssignStatus defines the observed state of Assign
+            description: AssignStatus defines the observed state of Assign.
             properties:
               byPod:
                 items:
                   description: MutatorPodStatusStatus defines the observed state of
-                    MutatorPodStatus
+                    MutatorPodStatus.
                   properties:
                     enforced:
                       type: boolean
                     errors:
                       items:
                         description: MutatorError represents a single error caught
-                          while adding a mutator to a system
+                          while adding a mutator to a system.
                         properties:
                           message:
                             type: string

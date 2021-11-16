@@ -8,8 +8,7 @@ metadata:
 spec:
   ports:
   - port: 443
-    protocol: TCP
-    targetPort: 8443
+    targetPort: webhook-server
   selector:
     control-plane: controller-manager
     gatekeeper.sh/operation: webhook
