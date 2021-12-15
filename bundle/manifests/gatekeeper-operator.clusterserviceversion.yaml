@@ -16,9 +16,10 @@ metadata:
         }
       ]
     capabilities: Basic Install
+    olm.skipRange: <0.3.0
     operators.operatorframework.io/builder: operator-sdk-v1.13.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: gatekeeper-operator.v0.2.0
+  name: gatekeeper-operator.v0.3.0-alpha.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -39,6 +40,8 @@ spec:
         path: audit
       - displayName: Image Configuration
         path: image
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - displayName: Mutating Webhook
         path: mutatingWebhook
       - displayName: Node Selector
@@ -61,7 +64,51 @@ spec:
       - displayName: Webhook Conditions
         path: webhookConditions
       version: v1alpha1
-  description: Operator for OPA Gatekeeper
+  description: |
+    Open Policy Agent Gatekeeper enforces CRD-based policies.
+
+    Every organization has policies. Some are essential to meet governance and
+    legal requirements. Others help ensure adherence to best practices and
+    institutional conventions. Attempting to ensure compliance manually would be
+    error-prone and frustrating. Automating policy enforcement ensures
+    consistency, lowers development latency through immediate feedback, and
+    helps with agility by allowing developers to operate independently without
+    sacrificing compliance.
+
+    Kubernetes allows decoupling policy decisions from the inner workings of the
+    API Server by means of [admission controller webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/), which are executed
+    whenever a resource is created, updated or deleted. Gatekeeper is a
+    validating and mutating webhook that enforces CRD-based policies executed
+    by [Open Policy Agent](https://github.com/open-policy-agent/opa), a policy
+    engine for Cloud Native environments hosted
+    by CNCF as an incubation-level project.
+
+    In addition to the admission scenario, Gatekeeper's audit functionality
+    allows administrators to see what resources are currently violating any
+    given policy.
+
+    Finally, Gatekeeper's engine is designed to be portable, allowing
+    administrators to detect and reject non-compliant commits to an
+    infrastructure-as-code system's source-of-truth, further strengthening
+    compliance efforts and preventing bad state from slowing down the
+    organization.
+
+    Gatekeeper has the following functionality:
+    * An extensible, parameterized policy library
+    * Native Kubernetes CRDs for instantiating the policy library (aka "constraints")
+    * Native Kubernetes CRDs for extending the policy library (aka "constraint templates")
+    * Audit functionality
+
+    For more information, see the [Gatekeeper documentation](https://open-policy-agent.github.io/gatekeeper/website/docs/).
+
+    ## Support & Troubleshooting
+
+    The Open Policy Agent Gatekeeper community collaborates on Slack
+    [#opa-gatekeeper](https://openpolicyagent.slack.com/archives/CDTN970AX).
+
+    Please report issues on the respective GitHub repositories for either
+    the [Gatekeeper Operator](https://github.com/gatekeeper/gatekeeper-operator/issues) or
+    [Gatekeeper](https://github.com/open-policy-agent/gatekeeper/issues) itself.
   displayName: Gatekeeper Operator
   icon:
   - base64data: "PHN2ZyBpZD0iZjc0ZTM5ZDEtODA2Yy00M2E0LTgyZGQtZjM3ZjM1NWQ4YWYzIiBkYXRhLW5hbWU9Ikljb24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDM2IDM2Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmE0MWM1MjM0LWExNGEtNGYzZC05MTYwLTQ0NzJiNzZkMDA0MCB7CiAgICAgICAgZmlsbDogI2UwMDsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGc+CiAgICA8cGF0aCBjbGFzcz0iYTQxYzUyMzQtYTE0YS00ZjNkLTkxNjAtNDQ3MmI3NmQwMDQwIiBkPSJNMjUsMTcuMzhIMjMuMjNhNS4yNyw1LjI3LDAsMCwwLTEuMDktMi42NGwxLjI1LTEuMjVhLjYyLjYyLDAsMSwwLS44OC0uODhsLTEuMjUsMS4yNWE1LjI3LDUuMjcsMCwwLDAtMi42NC0xLjA5VjExYS42Mi42MiwwLDEsMC0xLjI0LDB2MS43N2E1LjI3LDUuMjcsMCwwLDAtMi42NCwxLjA5bC0xLjI1LTEuMjVhLjYyLjYyLDAsMCwwLS44OC44OGwxLjI1LDEuMjVhNS4yNyw1LjI3LDAsMCwwLTEuMDksMi42NEgxMWEuNjIuNjIsMCwwLDAsMCwxLjI0aDEuNzdhNS4yNyw1LjI3LDAsMCwwLDEuMDksMi42NGwtMS4yNSwxLjI1YS42MS42MSwwLDAsMCwwLC44OC42My42MywwLDAsMCwuODgsMGwxLjI1LTEuMjVhNS4yNyw1LjI3LDAsMCwwLDIuNjQsMS4wOVYyNWEuNjIuNjIsMCwwLDAsMS4yNCwwVjIzLjIzYTUuMjcsNS4yNywwLDAsMCwyLjY0LTEuMDlsMS4yNSwxLjI1YS42My42MywwLDAsMCwuODgsMCwuNjEuNjEsMCwwLDAsMC0uODhsLTEuMjUtMS4yNWE1LjI3LDUuMjcsMCwwLDAsMS4wOS0yLjY0SDI1YS42Mi42MiwwLDAsMCwwLTEuMjRabS03LDQuNjhBNC4wNiw0LjA2LDAsMSwxLDIyLjA2LDE4LDQuMDYsNC4wNiwwLDAsMSwxOCwyMi4wNloiLz4KICAgIDxwYXRoIGNsYXNzPSJhNDFjNTIzNC1hMTRhLTRmM2QtOTE2MC00NDcyYjc2ZDAwNDAiIGQ9Ik0yNy45LDI4LjUyYS42Mi42MiwwLDAsMS0uNDQtLjE4LjYxLjYxLDAsMCwxLDAtLjg4LDEzLjQyLDEzLjQyLDAsMCwwLDIuNjMtMTUuMTkuNjEuNjEsMCwwLDEsLjMtLjgzLjYyLjYyLDAsMCwxLC44My4yOSwxNC42NywxNC42NywwLDAsMS0yLjg4LDE2LjYxQS42Mi42MiwwLDAsMSwyNy45LDI4LjUyWiIvPgogICAgPHBhdGggY2xhc3M9ImE0MWM1MjM0LWExNGEtNGYzZC05MTYwLTQ0NzJiNzZkMDA0MCIgZD0iTTI3LjksOC43M2EuNjMuNjMsMCwwLDEtLjQ0LS4xOUExMy40LDEzLjQsMCwwLDAsMTIuMjcsNS45MWEuNjEuNjEsMCwwLDEtLjgzLS4zLjYyLjYyLDAsMCwxLC4yOS0uODNBMTQuNjcsMTQuNjcsMCwwLDEsMjguMzQsNy42NmEuNjMuNjMsMCwwLDEtLjQ0LDEuMDdaIi8+CiAgICA8cGF0aCBjbGFzcz0iYTQxYzUyMzQtYTE0YS00ZjNkLTkxNjAtNDQ3MmI3NmQwMDQwIiBkPSJNNS4zNSwyNC42MmEuNjMuNjMsMCwwLDEtLjU3LS4zNUExNC42NywxNC42NywwLDAsMSw3LjY2LDcuNjZhLjYyLjYyLDAsMCwxLC44OC44OEExMy40MiwxMy40MiwwLDAsMCw1LjkxLDIzLjczYS42MS42MSwwLDAsMS0uMy44M0EuNDguNDgsMCwwLDEsNS4zNSwyNC42MloiLz4KICAgIDxwYXRoIGNsYXNzPSJhNDFjNTIzNC1hMTRhLTRmM2QtOTE2MC00NDcyYjc2ZDAwNDAiIGQ9Ik0xOCwzMi42MkExNC42NCwxNC42NCwwLDAsMSw3LjY2LDI4LjM0YS42My42MywwLDAsMSwwLS44OC42MS42MSwwLDAsMSwuODgsMCwxMy40MiwxMy40MiwwLDAsMCwxNS4xOSwyLjYzLjYxLjYxLDAsMCwxLC44My4zLjYyLjYyLDAsMCwxLS4yOS44M0ExNC42NywxNC42NywwLDAsMSwxOCwzMi42MloiLz4KICAgIDxwYXRoIGNsYXNzPSJhNDFjNTIzNC1hMTRhLTRmM2QtOTE2MC00NDcyYjc2ZDAwNDAiIGQ9Ik0zMCwyOS42MkgyN2EuNjIuNjIsMCwwLDEtLjYyLS42MlYyNmEuNjIuNjIsMCwwLDEsMS4yNCwwdjIuMzhIMzBhLjYyLjYyLDAsMCwxLDAsMS4yNFoiLz4KICAgIDxwYXRoIGNsYXNzPSJhNDFjNTIzNC1hMTRhLTRmM2QtOTE2MC00NDcyYjc2ZDAwNDAiIGQ9Ik03LDMwLjYyQS42Mi42MiwwLDAsMSw2LjM4LDMwVjI3QS42Mi42MiwwLDAsMSw3LDI2LjM4aDNhLjYyLjYyLDAsMCwxLDAsMS4yNEg3LjYyVjMwQS42Mi42MiwwLDAsMSw3LDMwLjYyWiIvPgogICAgPHBhdGggY2xhc3M9ImE0MWM1MjM0LWExNGEtNGYzZC05MTYwLTQ0NzJiNzZkMDA0MCIgZD0iTTI5LDkuNjJIMjZhLjYyLjYyLDAsMCwxLDAtMS4yNGgyLjM4VjZhLjYyLjYyLDAsMCwxLDEuMjQsMFY5QS42Mi42MiwwLDAsMSwyOSw5LjYyWiIvPgogICAgPHBhdGggY2xhc3M9ImE0MWM1MjM0LWExNGEtNGYzZC05MTYwLTQ0NzJiNzZkMDA0MCIgZD0iTTksMTAuNjJBLjYyLjYyLDAsMCwxLDguMzgsMTBWNy42Mkg2QS42Mi42MiwwLDAsMSw2LDYuMzhIOUEuNjIuNjIsMCwwLDEsOS42Miw3djNBLjYyLjYyLDAsMCwxLDksMTAuNjJaIi8+CiAgPC9nPgo8L3N2Zz4K"
@@ -318,7 +365,7 @@ spec:
                 env:
                 - name: RELATED_IMAGE_GATEKEEPER
                   value: openpolicyagent/gatekeeper:v3.5.2
-                image: quay.io/gatekeeper/gatekeeper-operator:v0.2.0
+                image: quay.io/gatekeeper/gatekeeper-operator:v0.3.0-alpha.1
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
@@ -444,11 +491,8 @@ spec:
   links:
   - name: Gatekeeper Operator
     url: https://github.com/gatekeeper/gatekeeper-operator
-  maintainers:
-  - email: ifont@redhat.com
-    name: Ivan Font
   maturity: alpha
   provider:
-    name: Red Hat
-  replaces: gatekeeper-operator.v0.1.2
-  version: 0.2.0
+    name: Open Policy Agent Gatekeeper community
+  replaces: gatekeeper-operator.v0.2.1
+  version: 0.3.0-alpha.1
