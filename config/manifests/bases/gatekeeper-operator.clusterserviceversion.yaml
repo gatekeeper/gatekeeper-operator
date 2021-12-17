@@ -69,7 +69,7 @@ spec:
     validating and mutating webhook that enforces CRD-based policies executed
     by [Open Policy Agent](https://github.com/open-policy-agent/opa), a policy
     engine for Cloud Native environments hosted
-    by CNCF as an incubation-level project.
+    by CNCF as a [graduated project](https://www.cncf.io/projects/open-policy-agent-opa/).
 
     In addition to the admission scenario, Gatekeeper's audit functionality
     allows administrators to see what resources are currently violating any
@@ -122,5 +122,5 @@ spec:
   maturity: alpha
   provider:
     name: Open Policy Agent Gatekeeper community
-  replaces: gatekeeper-operator.v0.2.1
-  version: 0.3.0-alpha.1
+  replaces: gatekeeper-operator.0.0.0
+  version: 0.0.1
