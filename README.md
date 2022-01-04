@@ -1,5 +1,5 @@
 # OPA Gatekeeper Operator
-![master branch](https://github.com/gatekeeper/gatekeeper-operator/workflows/Go/badge.svg?branch=master)
+![main branch](https://github.com/gatekeeper/gatekeeper-operator/workflows/Go/badge.svg?branch=main)
 ![Image](https://github.com/gatekeeper/gatekeeper-operator/workflows/Image/badge.svg)
 [![Docker Repository on
 Quay](https://quay.io/repository/gatekeeper/gatekeeper-operator/status "Docker

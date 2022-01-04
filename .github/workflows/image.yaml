@@ -2,7 +2,7 @@ name: Image
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -41,16 +41,16 @@ jobs:
 
     - name: Build and Push Operator Image
       run: |
-        make docker-build VERSION=master
-        make docker-push IMG=${WORKFLOW_IMG}:master
+        make docker-build VERSION=main
+        make docker-push IMG=${WORKFLOW_IMG}:main
 
     - name: Build and Push Bundle Image
       run: |
-        make bundle-build VERSION=master
-        make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:master
+        make bundle-build VERSION=main
+        make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:main
 
     - name: Build and Push Bundle Index Image
       run: |
         PREV_BUNDLE_INDEX_IMG_VERSION=$(make prev-bundle-index-image-version)
-        make bundle-index-build VERSION=master REPLACES_VERSION=${PREV_BUNDLE_INDEX_IMG_VERSION}
-        make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:master
+        make bundle-index-build VERSION=main REPLACES_VERSION=${PREV_BUNDLE_INDEX_IMG_VERSION}
+        make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:main
