@@ -2,9 +2,9 @@ name: CI-Tests
 
 on:
   push:
-    branches: [ master, release-0.1 ]
+    branches: [ main, release-0.1 ]
   pull_request:
-    branches: [ master, release-0.1 ]
+    branches: [ main, release-0.1 ]
 
 defaults:
   run:

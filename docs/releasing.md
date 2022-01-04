@@ -18,9 +18,9 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```shell
     RELEASE_VERSION=v0.0.1
     ```
-1. Checkout a new branch based on `upstream/master`:
+1. Checkout a new branch based on `upstream/main`:
     ```shell
-    git checkout -b release-${RELEASE_VERSION} --no-track upstream/master
+    git checkout -b release-${RELEASE_VERSION} --no-track upstream/main
     ```
 1. Update the version of the operator in the Makefile:
     ```shell
@@ -63,6 +63,6 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
    release on GitHub. Note that `upstream` is used as the remote name for this
    repository:
     ```shell
-    git tag -a -m "Release ${RELEASE_VERSION}" ${RELEASE_VERSION} upstream/master
+    git tag -a -m "Release ${RELEASE_VERSION}" ${RELEASE_VERSION} upstream/main
     git push upstream ${RELEASE_VERSION}
     ```
