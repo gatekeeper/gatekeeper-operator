@@ -7,6 +7,9 @@ VERSION ?= 0.3.0-candidate.1
 # Replaces Operator version
 REPLACES_VERSION ?= none
 
+get-replaces-version:
+	@echo $(REPLACES_VERSION)
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -329,12 +332,6 @@ import-manifests: kustomize
 		$(KUSTOMIZE) build $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook -o $(GATEKEEPER_MANIFEST_DIR); \
 		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation -o $(GATEKEEPER_MANIFEST_DIR); \
 	fi
-
-# Get previous index image version
-.PHONY: prev-bundle-index-image-version
-prev-bundle-index-image-version:
-	@REPLACES=$$(grep replaces ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml); \
-	echo $${REPLACES#*.}
 
 # Build the bundle index image.
 .PHONY: bundle-index-build
