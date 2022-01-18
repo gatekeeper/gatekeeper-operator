@@ -51,6 +51,5 @@ jobs:
 
     - name: Build and Push Bundle Index Image
       run: |
-        PREV_BUNDLE_INDEX_IMG_VERSION=$(make prev-bundle-index-image-version)
-        make bundle-index-build VERSION=main REPLACES_VERSION=${PREV_BUNDLE_INDEX_IMG_VERSION}
+        make bundle-index-build VERSION=main
         make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:main
