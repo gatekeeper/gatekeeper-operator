@@ -97,6 +97,10 @@ spec:
     Please report issues on the respective GitHub repositories for either
     the [Gatekeeper Operator](https://github.com/gatekeeper/gatekeeper-operator/issues) or
     [Gatekeeper](https://github.com/open-policy-agent/gatekeeper/issues) itself.
+
+    ## About
+
+    Gatekeeper version v0.0.0
   displayName: Gatekeeper Operator
   icon:
   - base64data: ""
