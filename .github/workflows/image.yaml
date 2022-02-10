@@ -41,15 +41,15 @@ jobs:
 
     - name: Build and Push Operator Image
       run: |
-        make docker-build VERSION=main
+        make docker-build VERSION=main IMG=${WORKFLOW_IMG}:main
         make docker-push IMG=${WORKFLOW_IMG}:main
 
     - name: Build and Push Bundle Image
       run: |
-        make bundle-build VERSION=main
+        make bundle-build VERSION=main IMG=${WORKFLOW_IMG}:main BUNDLE_IMG=${WORKFLOW_BUNDLE_IMG}:main
         make docker-push IMG=${WORKFLOW_BUNDLE_IMG}:main
 
     - name: Build and Push Bundle Index Image
       run: |
-        make bundle-index-build VERSION=main
+        make bundle-index-build VERSION=main IMG=${WORKFLOW_IMG}:main BUNDLE_IMG=${WORKFLOW_BUNDLE_IMG}:main BUNDLE_INDEX_IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:main
         make docker-push IMG=${WORKFLOW_BUNDLE_INDEX_IMG}:main
