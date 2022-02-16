@@ -51,6 +51,8 @@ const (
 	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
 	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
 	MutatorPodStatusCRDFile           = "apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml"
+	ModifySetCRDFile                  = "apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml"
+	ProviderCRDFile                   = "apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml"
 	AuditFile                         = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                       = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	ClusterRoleFile                   = "rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml"
@@ -74,9 +76,6 @@ const (
 	EmitAuditEventsArg                = "--emit-audit-events"
 	EmitAdmissionEventsArg            = "--emit-admission-events"
 	ExemptNamespaceArg                = "--exempt-namespace"
-	EnableMutationArg                 = "--enable-mutation"
-	OperationArg                      = "--operation"
-	OperationMutationStatus           = "mutation-status"
 	DisabledBuiltinArg                = "--disable-opa-builtin"
 )
 
@@ -88,6 +87,8 @@ var (
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
+		ModifySetCRDFile,
+		ProviderCRDFile,
 		AssignCRDFile,
 		AssignMetadataCRDFile,
 		MutatorPodStatusCRDFile,
@@ -155,7 +156,8 @@ const (
 // +kubebuilder:rbac:groups=templates.gatekeeper.sh,resources=constrainttemplates/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;patch;update;watch
+// +kubebuilder:rbac:groups=externaldata.gatekeeper.sh,resources=providers,verbs=create;delete;get;list;patch;update;watch
 
 // Namespace Scoped
 // +kubebuilder:rbac:groups=core,namespace="system",resources=secrets;serviceaccounts;services;resourcequotas,verbs=get;list;watch;create;update;patch;delete
@@ -350,7 +352,7 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 
 func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets []string) {
 	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
-	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
+	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook == nil || *gatekeeper.Spec.MutatingWebhook == operatorv1alpha1.WebhookEnabled
 	deleteWebhookAssets = make([]string, 0)
 	applyOrderedAssets = make([]string, 0)
 	applyWebhookAssets = make([]string, 0)
@@ -376,9 +378,9 @@ func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAsse
 	return
 }
 
-func mutatingWebhookEnabled(mode *operatorv1alpha1.WebhookMode) bool {
-	return mode != nil && *mode == operatorv1alpha1.WebhookEnabled
-}
+//func mutatingWebhookEnabled(mode *operatorv1alpha1.WebhookMode) bool {
+//	return mode != nil && *mode == operatorv1alpha1.WebhookEnabled
+//}
 
 func getSubsetOfAssets(inputAssets []string, assetsToRemove ...string) []string {
 	outputAssets := make([]string, 0)
@@ -467,7 +469,6 @@ var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.
 	setPodAnnotations,
 	setTolerations,
 	containerOverrides,
-	setEnableMutation,
 }
 var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
 	setImage,
@@ -525,7 +526,7 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 	// ClusterRole overrides
 	case ClusterRoleFile:
-		if !mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook) {
+		if gatekeeper.Spec.MutatingWebhook == nil || *gatekeeper.Spec.MutatingWebhook == operatorv1alpha1.WebhookEnabled {
 			if err := removeMutatingRBACRules(obj); err != nil {
 				return err
 			}
@@ -770,21 +771,6 @@ func setDisabledBuiltins(obj *unstructured.Unstructured, disabledBuiltins []stri
 		}
 	}
 	return nil
-}
-
-func setEnableMutation(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
-	if !mutatingWebhookEnabled(spec.MutatingWebhook) {
-		return nil
-	}
-
-	switch obj.GetName() {
-	case AuditDeploymentName:
-		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
-	case WebhookDeploymentName:
-		return setContainerArg(obj, managerContainer, EnableMutationArg, "true", false)
-	default:
-		return nil
-	}
 }
 
 func setWebhookConfigurationWithFn(obj *unstructured.Unstructured, webhookName string, webhookFn func(map[string]interface{}) error) error {

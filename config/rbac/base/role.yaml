@@ -19,8 +19,6 @@ rules:
   resources:
   - mutatingwebhookconfigurations
   verbs:
-  - create
-  - delete
   - get
   - list
   - patch
@@ -86,6 +84,18 @@ rules:
   - ""
   resources:
   - namespaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - externaldata.gatekeeper.sh
+  resources:
+  - providers
   verbs:
   - create
   - delete

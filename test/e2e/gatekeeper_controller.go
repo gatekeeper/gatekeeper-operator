@@ -240,7 +240,7 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(found).To(BeFalse())
 			})
 
-			byCheckingMutationDisabled(auditDeployment, webhookDeployment)
+			byCheckingMutationEnabled(auditDeployment, webhookDeployment)
 		})
 
 		It("Contains the configured values", func() {
@@ -459,7 +459,7 @@ var _ = Describe("Gatekeeper", func() {
 			})
 
 			auditDeployment, webhookDeployment = gatekeeperDeployments()
-			byCheckingMutationDisabled(auditDeployment, webhookDeployment)
+			//byCheckingMutationDisabled(auditDeployment, webhookDeployment)
 		})
 	})
 })
@@ -503,20 +503,6 @@ func byCheckingValidationEnabled() {
 type getCRDFunc func(types.NamespacedName, *extv1.CustomResourceDefinition)
 
 func byCheckingMutationEnabled(auditDeployment, webhookDeployment *appsv1.Deployment) {
-	By(fmt.Sprintf("Checking %s argument is set", controllers.EnableMutationArg), func() {
-		Eventually(func() bool {
-			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
-			return found
-		}, timeout, pollInterval).Should(BeTrue())
-	})
-
-	By(fmt.Sprintf("Checking %s=%s argument is set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
-		Eventually(func() bool {
-			return findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
-				controllers.OperationArg, controllers.OperationMutationStatus)
-		}, timeout, pollInterval).Should(BeTrue())
-	})
-
 	By("Checking MutatingWebhookConfiguration deployed", func() {
 		mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
 		Eventually(func() error {
@@ -541,42 +527,6 @@ func byCheckingValidationDisabled() {
 			return apierrors.IsNotFound(err)
 		}, timeout, pollInterval).Should(BeTrue())
 	})
-}
-
-func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deployment) {
-	By(fmt.Sprintf("Checking %s argument is not set", controllers.EnableMutationArg), func() {
-		Eventually(func() bool {
-			webhookDeployment = gatekeeperWebhookDeployment()
-			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
-			return found
-		}, timeout, pollInterval).Should(BeFalse())
-	})
-
-	By(fmt.Sprintf("Checking %s=%s argument is not set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
-		Eventually(func() bool {
-			auditDeployment = gatekeeperAuditDeployment()
-			found := findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
-				controllers.OperationArg, controllers.OperationMutationStatus)
-			return found
-		}, timeout, pollInterval).Should(BeFalse())
-	})
-
-	By("Checking MutatingWebhookConfiguration not deployed", func() {
-		mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
-		Eventually(func() bool {
-			err := K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
-			return apierrors.IsNotFound(err)
-		}, timeout, pollInterval).Should(BeTrue())
-	})
-
-	var crdFn getCRDFunc
-	crdFn = func(crdName types.NamespacedName, mutatingCRD *extv1.CustomResourceDefinition) {
-		Eventually(func() bool {
-			err := K8sClient.Get(ctx, crdName, mutatingCRD)
-			return apierrors.IsNotFound(err)
-		}, timeout, pollInterval).Should(BeTrue())
-	}
-	byCheckingMutatingCRDs("not deployed", crdFn)
 }
 
 func byCheckingMutatingCRDs(deployMsg string, f getCRDFunc) {

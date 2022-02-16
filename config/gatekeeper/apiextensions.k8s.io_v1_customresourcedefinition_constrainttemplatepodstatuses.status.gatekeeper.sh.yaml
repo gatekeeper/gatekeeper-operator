@@ -3,7 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constrainttemplatepodstatuses.status.gatekeeper.sh
@@ -14,13 +13,14 @@ spec:
     listKind: ConstraintTemplatePodStatusList
     plural: constrainttemplatepodstatuses
     singular: constrainttemplatepodstatus
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
         description: ConstraintTemplatePodStatus is the Schema for the constrainttemplatepodstatuses
-          API
+          API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -36,7 +36,7 @@ spec:
             type: object
           status:
             description: ConstraintTemplatePodStatusStatus defines the observed state
-              of ConstraintTemplatePodStatus
+              of ConstraintTemplatePodStatus.
             properties:
               errors:
                 items:

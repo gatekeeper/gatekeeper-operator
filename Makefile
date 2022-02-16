@@ -321,17 +321,20 @@ endif
 
 # Path used to import Gatekeeper manifests. For example, this could be a local
 # file system directory if kustomize has errors using the GitHub URL. See
-# https://github.com/kubernetes-sigs/kustomize/issues/3515 for details.
+# https://github.com/kubernetes-sigs/kustomize/issues/4052
 IMPORT_MANIFESTS_PATH ?= https://github.com/open-policy-agent/gatekeeper
+TMP_IMPORT_MANIFESTS_PATH := $(shell mktemp -d)
 
 # Import Gatekeeper manifests
 .PHONY: import-manifests
 import-manifests: kustomize
 	if [[ $(IMPORT_MANIFESTS_PATH) =~ https://* ]]; then \
-		$(KUSTOMIZE) build $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook/?ref=$(GATEKEEPER_VERSION) -o $(GATEKEEPER_MANIFEST_DIR); \
+		git clone --branch $(GATEKEEPER_VERSION) $(IMPORT_MANIFESTS_PATH) $(TMP_IMPORT_MANIFESTS_PATH) ; \
+		cd $(TMP_IMPORT_MANIFESTS_PATH) && make patch-image ; \
+		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(TMP_IMPORT_MANIFESTS_PATH)/config/default -o $(MAKEFILE_DIR)/$(GATEKEEPER_MANIFEST_DIR); \
+		rm -rf "$${TMP_IMPORT_MANIFESTS_PATH}" ; \
 	else \
-		$(KUSTOMIZE) build $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation_webhook -o $(GATEKEEPER_MANIFEST_DIR); \
-		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/overlays/mutation -o $(GATEKEEPER_MANIFEST_DIR); \
+		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/default -o $(GATEKEEPER_MANIFEST_DIR); \
 	fi
 
 # Build the bundle index image.
@@ -404,7 +407,7 @@ $(OPERATOR_SDK):
 	chmod +x $(OPERATOR_SDK)
 
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.5.2
+GATEKEEPER_VERSION ?= v3.7.2
 
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:$(VERSION)
@@ -415,6 +418,7 @@ NAMESPACE ?= gatekeeper-system
 # Default Kubernetes distribution
 KUBE_DISTRIBUTION ?= vanilla
 
+MAKEFILE_DIR := $(strip $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
 GATEKEEPER_MANIFEST_DIR ?= config/gatekeeper
 OPENSHIFT_RBAC_DIR = config/rbac/overlays/openshift
 

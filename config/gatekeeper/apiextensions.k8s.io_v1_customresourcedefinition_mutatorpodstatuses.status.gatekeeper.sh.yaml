@@ -3,7 +3,8 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
-  creationTimestamp: null
+  labels:
+    gatekeeper.sh/system: "yes"
   name: mutatorpodstatuses.status.gatekeeper.sh
 spec:
   group: status.gatekeeper.sh
@@ -12,12 +13,13 @@ spec:
     listKind: MutatorPodStatusList
     plural: mutatorpodstatuses
     singular: mutatorpodstatus
+  preserveUnknownFields: false
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: MutatorPodStatus is the Schema for the mutationpodstatuses API
+        description: MutatorPodStatus is the Schema for the mutationpodstatuses API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,16 +34,21 @@ spec:
           metadata:
             type: object
           status:
-            description: MutatorPodStatusStatus defines the observed state of MutatorPodStatus
+            description: MutatorPodStatusStatus defines the observed state of MutatorPodStatus.
             properties:
               enforced:
                 type: boolean
               errors:
                 items:
                   description: MutatorError represents a single error caught while
-                    adding a mutator to a system
+                    adding a mutator to a system.
                   properties:
                     message:
+                      type: string
+                    type:
+                      description: Type indicates a specific class of error for use
+                        by controller code. If not present, the error should be treated
+                        as not matching any known type.
                       type: string
                   required:
                   - message
