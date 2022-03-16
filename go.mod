@@ -2,6 +2,8 @@ module github.com/gatekeeper/gatekeeper-operator
 
 go 1.16
 
+replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211202192323-5770296d904e // CVE-2021-43565
+
 require (
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-logr/logr v0.4.0
