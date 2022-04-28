@@ -149,6 +149,16 @@ var _ = Describe("Gatekeeper", func() {
 				Expect(validatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
 			})
 
+			By("Checking mutatingWebhookConfiguration is deployed", func() {
+				mutatingWebhookConfiguration := &admregv1.MutatingWebhookConfiguration{}
+				Eventually(func() error {
+					return K8sClient.Get(ctx, mutatingWebhookName, mutatingWebhookConfiguration)
+				}, timeout, pollInterval).ShouldNot(HaveOccurred())
+				Expect(mutatingWebhookConfiguration.OwnerReferences).To(HaveLen(1))
+				Expect(mutatingWebhookConfiguration.OwnerReferences[0].Kind).To(Equal("Gatekeeper"))
+				Expect(mutatingWebhookConfiguration.OwnerReferences[0].Name).To(Equal(gkName))
+			})
+
 			By("Checking default pod affinity", func() {
 				Expect(auditDeployment.Spec.Template.Spec.Affinity).To(BeNil())
 				Expect(webhookDeployment.Spec.Template.Spec.Affinity).To(BeEquivalentTo(test.DefaultDeployment.Affinity))
@@ -195,6 +205,16 @@ var _ = Describe("Gatekeeper", func() {
 				controllers.ValidationGatekeeperWebhook,
 				test.DefaultDeployment.NamespaceSelector)
 
+			byCheckingFailurePolicy(&mutatingWebhookName, "default",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				&test.DefaultDeployment.FailurePolicy)
+
+			byCheckingNamespaceSelector(&mutatingWebhookName, "default",
+				util.MutatingWebhookConfigurationKind,
+				controllers.MutationGatekeeperWebhook,
+				test.DefaultDeployment.NamespaceSelector)
+
 			By("Checking default audit interval", func() {
 				_, found := getContainerArg(auditDeployment.Spec.Template.Spec.Containers[0].Args, controllers.AuditIntervalArg)
 				Expect(found).To(BeFalse())
@@ -237,10 +257,8 @@ var _ = Describe("Gatekeeper", func() {
 
 			By("Checking default disabled builtins", func() {
 				_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.DisabledBuiltinArg)
-				Expect(found).To(BeFalse())
+				Expect(found).To(BeTrue())
 			})
-
-			byCheckingMutationDisabled(auditDeployment, webhookDeployment)
 		})
 
 		It("Contains the configured values", func() {
@@ -366,7 +384,7 @@ var _ = Describe("Gatekeeper", func() {
 			By("Checking expected disabled builtins", func() {
 				value, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.DisabledBuiltinArg)
 				Expect(found).To(BeTrue())
-				Expect(value).To(Equal(util.ToArg(controllers.DisabledBuiltinArg, "http.send")))
+				Expect(value).To(Equal(util.ToArg(controllers.DisabledBuiltinArg, "{http.send}")))
 			})
 		})
 
@@ -503,10 +521,10 @@ func byCheckingValidationEnabled() {
 type getCRDFunc func(types.NamespacedName, *extv1.CustomResourceDefinition)
 
 func byCheckingMutationEnabled(auditDeployment, webhookDeployment *appsv1.Deployment) {
-	By(fmt.Sprintf("Checking %s argument is set", controllers.EnableMutationArg), func() {
+	By(fmt.Sprintf("Checking %s=%s argument is set", controllers.OperationArg, controllers.OperationMutationWebhook), func() {
 		Eventually(func() bool {
-			_, found := getContainerArg(webhookDeployment.Spec.Template.Spec.Containers[0].Args, controllers.EnableMutationArg)
-			return found
+			return findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
+				controllers.OperationArg, controllers.OperationMutationStatus)
 		}, timeout, pollInterval).Should(BeTrue())
 	})
 
@@ -552,13 +570,13 @@ func byCheckingMutationDisabled(auditDeployment, webhookDeployment *appsv1.Deplo
 		}, timeout, pollInterval).Should(BeFalse())
 	})
 
-	By(fmt.Sprintf("Checking %s=%s argument is not set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
+	By(fmt.Sprintf("Checking %s=%s argument is set", controllers.OperationArg, controllers.OperationMutationStatus), func() {
 		Eventually(func() bool {
 			auditDeployment = gatekeeperAuditDeployment()
 			found := findContainerArgValue(auditDeployment.Spec.Template.Spec.Containers[0].Args,
 				controllers.OperationArg, controllers.OperationMutationStatus)
 			return found
-		}, timeout, pollInterval).Should(BeFalse())
+		}, timeout, pollInterval).Should(BeTrue())
 	})
 
 	By("Checking MutatingWebhookConfiguration not deployed", func() {

@@ -175,6 +175,11 @@ jobs:
         path: gatekeeper
         fetch-depth: 0 # Fetch all history for all tags and branches
 
+    # TODO: gatekeeper-operator does not --log-mutations nor --mutation-annotations
+    - name: Remove unhandled gatekeeper bats tests
+      run: |
+        sed -i -e '67,71d;80,83d' /home/runner/work/gatekeeper-operator/gatekeeper-operator/gatekeeper/test/bats/test.bats
+
     - name: Gatekeeper E2E Tests
       run: |
         make deploy-ci NAMESPACE=${{ matrix.NAMESPACE }} IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
