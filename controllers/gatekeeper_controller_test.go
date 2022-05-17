@@ -45,14 +45,15 @@ func TestDeployWebhookConfigs(t *testing.T) {
 	// MutatingWebhookConfiguration nil
 	deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets := getStaticAssets(gatekeeper)
 	g.Expect(applyWebhookAssets).To(ContainElement(ValidatingWebhookConfiguration))
+	g.Expect(applyWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
 	g.Expect(applyWebhookAssets).NotTo(ContainElements(MutatingCRDs))
-	g.Expect(applyOrderedAssets).NotTo(ContainElements(MutatingCRDs))
+	g.Expect(applyOrderedAssets).To(ContainElements(MutatingCRDs))
 	g.Expect(applyOrderedAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
 	g.Expect(applyOrderedAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
 	g.Expect(deleteWebhookAssets).NotTo(ContainElement(ValidatingWebhookConfiguration))
-	g.Expect(deleteWebhookAssets).To(ContainElement(MutatingWebhookConfiguration))
+	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingWebhookConfiguration))
 	g.Expect(deleteWebhookAssets).NotTo(ContainElement(MutatingCRDs))
-	g.Expect(deleteCRDAssets).To(ContainElements(MutatingCRDs))
+	g.Expect(deleteCRDAssets).NotTo(ContainElements(MutatingCRDs))
 
 	webhookEnabled := operatorv1alpha1.WebhookEnabled
 	webhookDisabled := operatorv1alpha1.WebhookDisabled
@@ -990,7 +991,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(LogLevelArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(EmitAuditEventsArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(AuditIntervalArg))
-	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test nil
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1000,7 +1001,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(LogLevelArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(EmitAuditEventsArg))
 	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKey(AuditIntervalArg))
-	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test override without mutation
 	gatekeeper.Spec.Audit = &auditOverride
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
@@ -1011,7 +1012,7 @@ func TestAllAuditArgs(t *testing.T) {
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(EmitAuditEventsArg, "true"))
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(AuditIntervalArg, "3600"))
-	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test override with mutation
 	mutatingWebhook := operatorv1alpha1.WebhookEnabled
 	gatekeeper.Spec.MutatingWebhook = &mutatingWebhook
@@ -1099,14 +1100,14 @@ func TestMutationArg(t *testing.T) {
 	auditObj, err := util.GetManifestObject(AuditFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(auditObj).ToNot(BeNil())
-	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test nil
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(EnableMutationArg))
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	expectObjContainerArgument(g, managerContainer, auditObj).NotTo(HaveKeyWithValue(OperationArg, OperationMutationStatus))
+	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
 	// test disabled override
 	mutation := operatorv1alpha1.WebhookDisabled
 	gatekeeper.Spec.MutatingWebhook = &mutation
@@ -1120,7 +1121,7 @@ func TestMutationArg(t *testing.T) {
 	mutation = operatorv1alpha1.WebhookEnabled
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(EnableMutationArg, "true"))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(OperationArg, OperationMutationWebhook))
 	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, auditObj).To(HaveKeyWithValue(OperationArg, OperationMutationStatus))
@@ -1145,11 +1146,13 @@ func TestDisabledBuiltins(t *testing.T) {
 	webhookObj, err := util.GetManifestObject(WebhookFile)
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(webhookObj).ToNot(BeNil())
-	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKey(DisabledBuiltinArg))
+	g.Expect(getContainerArgumentsSlice(g, managerContainer, webhookObj)).To(ContainElements(DisabledBuiltinArg + "={http.send}"))
 	// test nil
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
 	g.Expect(err).ToNot(HaveOccurred())
-	expectObjContainerArgument(g, managerContainer, webhookObj).NotTo(HaveKey(DisabledBuiltinArg))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKey(DisabledBuiltinArg))
+	g.Expect(getContainerArgumentsSlice(g, managerContainer, webhookObj)).To(ContainElements(DisabledBuiltinArg + "={http.send}"))
 	// test override
 	gatekeeper.Spec.Webhook = &webhookOverride
 	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
@@ -1198,7 +1201,7 @@ func TestAllWebhookArgs(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(EmitAdmissionEventsArg, "true"))
 	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(LogLevelArg, "DEBUG"))
-	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(EnableMutationArg, "true"))
+	expectObjContainerArgument(g, managerContainer, webhookObj).To(HaveKeyWithValue(OperationArg, OperationMutationWebhook))
 }
 
 func expectObjContainerArgument(g *WithT, containerName string, obj *unstructured.Unstructured) Assertion {
@@ -1273,14 +1276,18 @@ func TestMutationRBACConfig(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
 	g.Expect(rules).NotTo(BeEmpty())
+	matchCount := 0
 	for _, rule := range rules {
 		r := rule.(map[string]interface{})
 		for _, f := range matchMutatingRBACRuleFns {
 			found, err := f(r)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(found).To(BeFalse())
+			if found {
+				matchCount++
+			}
 		}
 	}
+	g.Expect(matchCount).To(Equal(len(matchMutatingRBACRuleFns)))
 
 	// Test RBAC config when mutating webhook mode is nil
 	obj = clusterRoleObj.DeepCopy()
@@ -1290,14 +1297,27 @@ func TestMutationRBACConfig(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
 	g.Expect(rules).NotTo(BeEmpty())
+	matchCount = 0
 	for _, rule := range rules {
 		r := rule.(map[string]interface{})
 		for _, f := range matchMutatingRBACRuleFns {
 			found, err := f(r)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(found).To(BeFalse())
+			if found {
+				matchCount++
+			}
 		}
 	}
+	g.Expect(matchCount).To(Equal(len(matchMutatingRBACRuleFns)))
+
+	// Test RBAC config when mutating webhook mode is nil
+	obj = clusterRoleObj.DeepCopy()
+	err = crOverrides(gatekeeper, ClusterRoleFile, obj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
 
 	// Test RBAC config when mutating webhook mode is disabled
 	obj = clusterRoleObj.DeepCopy()
@@ -1328,8 +1348,7 @@ func TestMutationRBACConfig(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(found).To(BeTrue())
 	g.Expect(rules).NotTo(BeEmpty())
-
-	matchCount := 0
+	matchCount = 0
 	for _, rule := range rules {
 		r := rule.(map[string]interface{})
 		for _, f := range matchMutatingRBACRuleFns {
@@ -1340,6 +1359,47 @@ func TestMutationRBACConfig(t *testing.T) {
 			}
 		}
 	}
+	g.Expect(matchCount).To(Equal(len(matchMutatingRBACRuleFns)))
 
+	// Test RBAC config when mutating webhook mode is disabled
+	obj = clusterRoleObj.DeepCopy()
+	mutation = operatorv1alpha1.WebhookDisabled
+	gatekeeper.Spec.MutatingWebhook = &mutation
+	err = crOverrides(gatekeeper, ClusterRoleFile, obj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(found).To(BeFalse())
+		}
+	}
+
+	// Test RBAC config when mutating webhook mode is enabled
+	obj = clusterRoleObj.DeepCopy()
+	mutation = operatorv1alpha1.WebhookEnabled
+	gatekeeper.Spec.MutatingWebhook = &mutation
+	err = crOverrides(gatekeeper, ClusterRoleFile, obj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	rules, found, err = unstructured.NestedSlice(obj.Object, "rules")
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(rules).NotTo(BeEmpty())
+	matchCount = 0
+	for _, rule := range rules {
+		r := rule.(map[string]interface{})
+		for _, f := range matchMutatingRBACRuleFns {
+			found, err := f(r)
+			g.Expect(err).ToNot(HaveOccurred())
+			if found {
+				matchCount++
+			}
+		}
+	}
 	g.Expect(matchCount).To(Equal(len(matchMutatingRBACRuleFns)))
 }

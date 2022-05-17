@@ -28,7 +28,9 @@ spec:
       - args:
         - --operation=audit
         - --operation=status
+        - --operation=mutation-status
         - --logtostderr
+        - --disable-opa-builtin={http.send}
         command:
         - /manager
         env:
@@ -41,7 +43,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.5.2
+        image: openpolicyagent/gatekeeper:v3.8.0
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -75,8 +77,14 @@ spec:
           runAsGroup: 999
           runAsNonRoot: true
           runAsUser: 1000
+        volumeMounts:
+        - mountPath: /tmp/audit
+          name: tmp-volume
       nodeSelector:
         kubernetes.io/os: linux
       priorityClassName: system-cluster-critical
       serviceAccountName: gatekeeper-admin
       terminationGracePeriodSeconds: 60
+      volumes:
+      - emptyDir: {}
+        name: tmp-volume

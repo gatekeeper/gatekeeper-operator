@@ -51,6 +51,8 @@ const (
 	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
 	AssignMetadataCRDFile             = "apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml"
 	MutatorPodStatusCRDFile           = "apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml"
+	ModifySetCRDFile                  = "apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml"
+	ProviderCRDFile                   = "apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml"
 	AuditFile                         = "apps_v1_deployment_gatekeeper-audit.yaml"
 	WebhookFile                       = "apps_v1_deployment_gatekeeper-controller-manager.yaml"
 	ClusterRoleFile                   = "rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml"
@@ -77,6 +79,7 @@ const (
 	EnableMutationArg                 = "--enable-mutation"
 	OperationArg                      = "--operation"
 	OperationMutationStatus           = "mutation-status"
+	OperationMutationWebhook          = "mutation-webhook"
 	DisabledBuiltinArg                = "--disable-opa-builtin"
 )
 
@@ -88,6 +91,8 @@ var (
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
+		ModifySetCRDFile,
+		ProviderCRDFile,
 		AssignCRDFile,
 		AssignMetadataCRDFile,
 		MutatorPodStatusCRDFile,
@@ -155,7 +160,8 @@ const (
 // +kubebuilder:rbac:groups=templates.gatekeeper.sh,resources=constrainttemplates/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=externaldata.gatekeeper.sh,resources=providers,verbs=create;delete;get;list;patch;update;watch
 
 // Namespace Scoped
 // +kubebuilder:rbac:groups=core,namespace="system",resources=secrets;serviceaccounts;services;resourcequotas,verbs=get;list;watch;create;update;patch;delete
@@ -350,7 +356,7 @@ func (r *GatekeeperReconciler) validateWebhookDeployment() (error, bool) {
 
 func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAssets, applyOrderedAssets, applyWebhookAssets, deleteCRDAssets []string) {
 	validatingWebhookEnabled := gatekeeper.Spec.ValidatingWebhook == nil || *gatekeeper.Spec.ValidatingWebhook == operatorv1alpha1.WebhookEnabled
-	mutatingWebhookEnabled := gatekeeper.Spec.MutatingWebhook != nil && mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
+	mutatingWebhookEnabled := mutatingWebhookEnabled(gatekeeper.Spec.MutatingWebhook)
 	deleteWebhookAssets = make([]string, 0)
 	applyOrderedAssets = make([]string, 0)
 	applyWebhookAssets = make([]string, 0)
@@ -377,7 +383,7 @@ func getStaticAssets(gatekeeper *operatorv1alpha1.Gatekeeper) (deleteWebhookAsse
 }
 
 func mutatingWebhookEnabled(mode *operatorv1alpha1.WebhookMode) bool {
-	return mode != nil && *mode == operatorv1alpha1.WebhookEnabled
+	return mode == nil || *mode == operatorv1alpha1.WebhookEnabled
 }
 
 func getSubsetOfAssets(inputAssets []string, assetsToRemove ...string) []string {
@@ -774,16 +780,23 @@ func setDisabledBuiltins(obj *unstructured.Unstructured, disabledBuiltins []stri
 
 func setEnableMutation(obj *unstructured.Unstructured, spec operatorv1alpha1.GatekeeperSpec) error {
 	if !mutatingWebhookEnabled(spec.MutatingWebhook) {
-		return nil
-	}
-
-	switch obj.GetName() {
-	case AuditDeploymentName:
-		return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
-	case WebhookDeploymentName:
-		return setContainerArg(obj, managerContainer, EnableMutationArg, "true", false)
-	default:
-		return nil
+		switch obj.GetName() {
+		case AuditDeploymentName:
+			return unsetContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
+		case WebhookDeploymentName:
+			return unsetContainerArg(obj, managerContainer, OperationArg, OperationMutationWebhook, true)
+		default:
+			return nil
+		}
+	} else {
+		switch obj.GetName() {
+		case AuditDeploymentName:
+			return setContainerArg(obj, managerContainer, OperationArg, OperationMutationStatus, true)
+		case WebhookDeploymentName:
+			return setContainerArg(obj, managerContainer, OperationArg, OperationMutationWebhook, true)
+		default:
+			return nil
+		}
 	}
 }
 
@@ -950,6 +963,32 @@ func setContainerArg(obj *unstructured.Unstructured, containerName, argName stri
 		}
 		if !exists {
 			args = append(args, util.ToArg(argName, argValue))
+		}
+		return unstructured.SetNestedStringSlice(container, args, "args")
+	})
+}
+
+func unsetContainerArg(obj *unstructured.Unstructured, containerName, argName string, argValue string, isMultiArg bool) error {
+	return setContainerAttrWithFn(obj, containerName, func(container map[string]interface{}) error {
+		args, found, err := unstructured.NestedStringSlice(container, "args")
+		if !found || err != nil {
+			return errors.Wrapf(err, "Unable to retrieve container arguments for: %s", containerName)
+		}
+		exists := false
+		index := 0
+		for i, arg := range args {
+			n, v := util.FromArg(arg)
+			if n == argName && (!isMultiArg || isMultiArg && v == argValue) {
+				args[i] = util.ToArg(argName, argValue)
+				index = i
+				exists = true
+			}
+		}
+		if exists {
+			newArgs := make([]string, 0)
+			newArgs = append(newArgs, args[:index]...)
+			newArgs = append(newArgs, args[index+1:]...)
+			args = newArgs
 		}
 		return unstructured.SetNestedStringSlice(container, args, "args")
 	})
