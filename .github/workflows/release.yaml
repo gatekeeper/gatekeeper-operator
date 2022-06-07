@@ -72,21 +72,21 @@ jobs:
 
     - name: Build and Push Operator Image
       run: |
-        make docker-build VERSION=${RELEASE_VERSION}
+        make docker-build
         docker tag ${RELEASE_IMG}:${RELEASE_VERSION} ${RELEASE_IMG}:latest
         make docker-push IMG=${RELEASE_IMG}:${RELEASE_VERSION}
         make docker-push IMG=${RELEASE_IMG}:latest
 
     - name: Build and Push Bundle Image
       run: |
-        make bundle-build VERSION=${RELEASE_VERSION}
+        make bundle-build
         docker tag ${RELEASE_BUNDLE_IMG}:${RELEASE_VERSION} ${RELEASE_BUNDLE_IMG}:latest
         make docker-push IMG=${RELEASE_BUNDLE_IMG}:${RELEASE_VERSION}
         make docker-push IMG=${RELEASE_BUNDLE_IMG}:latest
 
     - name: Build and Push Bundle Index Image
       run: |
-        make bundle-index-build VERSION=${RELEASE_VERSION}
+        make bundle-index-build
         docker tag ${RELEASE_BUNDLE_INDEX_IMG}:${RELEASE_VERSION} ${RELEASE_BUNDLE_INDEX_IMG}:latest
         make docker-push IMG=${RELEASE_BUNDLE_INDEX_IMG}:${RELEASE_VERSION}
         make docker-push IMG=${RELEASE_BUNDLE_INDEX_IMG}:latest
