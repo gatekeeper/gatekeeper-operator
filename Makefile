@@ -3,9 +3,9 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.3.0-candidate.1
+VERSION ?= 0.3.0-candidate.2
 # Replaces Operator version
-REPLACES_VERSION ?= none
+REPLACES_VERSION ?= 0.3.0-candidate.1
 
 get-replaces-version:
 	@echo $(REPLACES_VERSION)
@@ -412,7 +412,7 @@ GATEKEEPER_VERSION ?= v3.8.0
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(VERSION)
 # Default previous bundle index image tag
-PREV_BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(REPLACES_VERSION)
+PREV_BUNDLE_INDEX_IMG ?= quay.io/gatekeeper/gatekeeper-operator-bundle-index:v$(REPLACES_VERSION)
 # Default namespace
 NAMESPACE ?= gatekeeper-system
 # Default Kubernetes distribution

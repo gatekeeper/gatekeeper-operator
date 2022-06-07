@@ -19,7 +19,7 @@ metadata:
     olm.skipRange: <0.3.0
     operators.operatorframework.io/builder: operator-sdk-v1.13.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: gatekeeper-operator.v0.3.0-candidate.1
+  name: gatekeeper-operator.v0.3.0-candidate.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -381,7 +381,7 @@ spec:
                 env:
                 - name: RELATED_IMAGE_GATEKEEPER
                   value: openpolicyagent/gatekeeper:v3.8.0
-                image: quay.io/gatekeeper/gatekeeper-operator:v0.3.0-candidate.1
+                image: quay.io/gatekeeper/gatekeeper-operator:v0.3.0-candidate.2
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
@@ -510,5 +510,5 @@ spec:
   maturity: alpha
   provider:
     name: Open Policy Agent Gatekeeper community
-  # replaces: none
-  version: 0.3.0-candidate.1
+  replaces: gatekeeper-operator.v0.3.0-candidate.1
+  version: 0.3.0-candidate.2
