@@ -410,9 +410,9 @@ $(OPERATOR_SDK):
 GATEKEEPER_VERSION ?= v3.8.0
 
 # Default bundle index image tag
-BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:$(VERSION)
+BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(VERSION)
 # Default previous bundle index image tag
-PREV_BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:$(REPLACES_VERSION)
+PREV_BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(REPLACES_VERSION)
 # Default namespace
 NAMESPACE ?= gatekeeper-system
 # Default Kubernetes distribution
