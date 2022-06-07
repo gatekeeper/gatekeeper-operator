@@ -1473,6 +1473,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - externaldata.***.sh
+  resources:
+  - providers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - mutations.gatekeeper.sh
   resources:
   - '*'

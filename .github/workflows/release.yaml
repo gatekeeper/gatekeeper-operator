@@ -55,7 +55,7 @@ jobs:
         # so pass an unset REPO variable to use the default within the
         # Makefile.
         unset REPO
-        make release VERSION=${RELEASE_VERSION}
+        make release
         git diff --exit-code ./deploy/gatekeeper-operator.yaml
         # Reset state of git tree modified by kustomize.
         git reset --hard
