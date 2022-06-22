@@ -14,4 +14,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/gatekeeper/gatekeeper-operator
-  newTag: v0.3.0-candidate.1
+  newTag: v0.3.0-candidate.2
