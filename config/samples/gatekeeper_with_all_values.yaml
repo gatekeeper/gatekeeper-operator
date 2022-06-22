@@ -4,7 +4,7 @@ metadata:
   name: gatekeeper
 spec:
   image:
-    image: docker.io/openpolicyagent/gatekeeper:v3.8.0
+    image: docker.io/openpolicyagent/gatekeeper:v3.8.1
     imagePullPolicy: Always
   audit:
     replicas: 1
@@ -57,4 +57,3 @@ spec:
   podAnnotations:
     some-annotation: "this is a test"
     other-annotation: "another test"
-  

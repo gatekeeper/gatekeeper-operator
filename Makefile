@@ -407,7 +407,7 @@ $(OPERATOR_SDK):
 	chmod +x $(OPERATOR_SDK)
 
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.8.0
+GATEKEEPER_VERSION ?= v3.8.1
 
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(VERSION)
