@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Create Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Set Up Environment Variables
@@ -30,9 +30,9 @@ jobs:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
     - name: Set Up Go to Install OPM
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
-        go-version: '1.16.7'
+        go-version-file: go.mod
 
     # FIXME: The version tags created in this repo for official releases are
     # annotated tags. However, this step is necessary to enable matching

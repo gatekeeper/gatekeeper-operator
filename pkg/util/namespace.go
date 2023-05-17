@@ -15,7 +15,6 @@ limitations under the License.
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -31,7 +30,7 @@ var (
 // GetOperatorNamespace returns the namespace the operator is running in from
 // the associated service account secret.
 func GetOperatorNamespace() (string, error) {
-	nsBytes, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	nsBytes, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", errors.New("namespace not found for current environment")

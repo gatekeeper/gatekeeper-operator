@@ -9,34 +9,19 @@ on:
 jobs:
   main:
     name: Run tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-    - uses: actions/cache@v2
+    - uses: actions/setup-go@v3
       with:
-        # In order:
-        # * Module download cache
-        # * Build cache (Linux)
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.7'
+        go-version-file: go.mod
 
     - name: Download binaries
       run: |
-        mkdir -p ${GITHUB_WORKSPACE}/bin
-        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
         make download-binaries
 
     - name: Verify bundle
@@ -46,8 +31,7 @@ jobs:
 
     - name: Create and set up K8s KinD Cluster
       run: |
-        export KIND_IMG_TAG=v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
-        ./scripts/kind-with-registry.sh
+        make test-cluster
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
       run: |
@@ -66,8 +50,25 @@ jobs:
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
         make deploy-using-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
+        while ! kubectl -n mygatekeeper get deployment gatekeeper-operator-controller; do \
+          echo "Waiting for operator deployment"; \
+          sleep 2; \
+        done
+        kubectl -n mygatekeeper wait deployment/gatekeeper-operator-controller --for condition=Available --timeout=90s
 
     - name: E2E Tests
       run: |
+        kubectl -n mygatekeeper logs deployment/gatekeeper-operator-controller -c manager -f > operator.log &
         make test-e2e NAMESPACE=mygatekeeper
         kubectl delete --wait namespace mygatekeeper
+
+    - name: Debug
+      if: ${{ failure() }}
+      run: |
+        echo "::group::Operator Logs"
+        cat operator.log
+        echo "::endgroup::"
+
+        echo "::group::Deployments"
+        kubectl -n mygatekeeper get deployments -o yaml
+        echo "::endgroup::"
