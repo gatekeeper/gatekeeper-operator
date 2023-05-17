@@ -31,7 +31,7 @@ import (
 	test "github.com/gatekeeper/gatekeeper-operator/test/e2e/util"
 )
 
-var namespace = "testns"
+var namespace = "mygatekeeper"
 
 func TestDeployWebhookConfigs(t *testing.T) {
 	g := NewWithT(t)
@@ -711,6 +711,20 @@ func assertFailurePolicy(g *WithT, obj *unstructured.Unstructured, webhookName s
 func TestNamespaceSelector(t *testing.T) {
 	g := NewWithT(t)
 
+	defExpectedNamespaceSelector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "admission.gatekeeper.sh/ignore",
+				Operator: metav1.LabelSelectorOpDoesNotExist,
+			},
+			{
+				Key:      "kubernetes.io/metadata.name",
+				Operator: metav1.LabelSelectorOpNotIn,
+				Values:   []string{"gatekeeper-system"},
+			},
+		},
+	}
+
 	namespaceSelector := metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{
@@ -734,10 +748,10 @@ func TestNamespaceSelector(t *testing.T) {
 	// test default namespaceSelector
 	valObj, err := util.GetManifestObject(ValidatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, valObj, ValidationGatekeeperWebhook, &defExpectedNamespaceSelector)
 	mutObj, err := util.GetManifestObject(MutatingWebhookConfiguration)
 	g.Expect(err).ToNot(HaveOccurred())
-	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, nil)
+	assertNamespaceSelector(g, mutObj, MutationGatekeeperWebhook, &defExpectedNamespaceSelector)
 
 	// test nil namespaceSelector
 	err = crOverrides(gatekeeper, ValidatingWebhookConfiguration, valObj, namespace, false, false)

@@ -3,9 +3,12 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.3.0-candidate.2
+VERSION ?= 3.11.1-candidate.1
 # Replaces Operator version
 REPLACES_VERSION ?= 0.3.0-candidate.1
+
+LOCAL_BIN ?= $(PWD)/ci-tools/bin
+export PATH := $(LOCAL_BIN):$(PATH)
 
 get-replaces-version:
 	@echo $(REPLACES_VERSION)
@@ -15,7 +18,7 @@ get-replaces-version:
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-CHANNELS ?= 0.3-candidate
+CHANNELS ?= 3.11-candidate
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
@@ -25,7 +28,7 @@ endif
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
 # - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
-DEFAULT_CHANNEL ?= 0.3-candidate
+DEFAULT_CHANNEL ?= 3.11-candidate
 ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
@@ -86,6 +89,17 @@ help: ## Display this help.
 
 ##@ Development
 
+CONTROLLER_GEN = $(LOCAL_BIN)/controller-gen
+KUSTOMIZE = $(LOCAL_BIN)/kustomize
+ENVTEST = $(LOCAL_BIN)/setup-envtest
+GO_BINDATA = $(LOCAL_BIN)/go-bindata
+KUSTOMIZE_VERSION ?= v5.0.1
+OPM_VERSION ?= v1.27.0
+GO_BINDATA_VERSION ?= v3.1.2+incompatible
+BATS_VERSION ?= 1.2.1
+OLM_VERSION ?= v0.18.2
+KUBERNETES_VERSION ?= v1.26.4
+
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases output:rbac:dir=config/rbac/base
@@ -106,7 +120,6 @@ vet: ## Run go vet against code.
 tidy: ## Run go mod tidy
 	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod tidy
 
-ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" GOFLAGS=$(GOFLAGS) go test ./... -coverprofile cover.out
@@ -117,7 +130,7 @@ test-e2e: generate fmt vet ## Run e2e tests, using the configured Kubernetes clu
 
 .PHONY: test-cluster
 test-cluster: ## Create a local kind cluster with a registry for testing
-	./scripts/kind-with-registry.sh
+	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/kind-with-registry.sh
 
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e: ## Applies the test yaml and verifies that BATS is installed. For use by GitHub Actions
@@ -125,15 +138,11 @@ test-gatekeeper-e2e: ## Applies the test yaml and verifies that BATS is installe
 	bats --version
 
 .PHONY: download-binaries
-download-binaries:
-	# Download and install kind
-	curl -L https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64 --output ${GITHUB_WORKSPACE}/bin/kind && chmod +x ${GITHUB_WORKSPACE}/bin/kind
-	# Download and install kubectl
-	curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl -o ${GITHUB_WORKSPACE}/bin/kubectl && chmod +x ${GITHUB_WORKSPACE}/bin/kubectl
-	# Download and install kustomize
-	curl -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz -o kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && tar -zxvf kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && chmod +x kustomize && mv kustomize ${GITHUB_WORKSPACE}/bin/kustomize
+download-binaries: kustomize go-bindata envtest controller-gen
+	mkdir -p $(LOCAL_BIN)
 	# Download and install bats
-	curl -sSLO https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.tar.gz && tar -zxvf v${BATS_VERSION}.tar.gz && bash bats-core-${BATS_VERSION}/install.sh ${GITHUB_WORKSPACE}
+	curl -sSLO https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.tar.gz && tar -zxvf v${BATS_VERSION}.tar.gz && bash bats-core-${BATS_VERSION}/install.sh $(PWD)/ci-tools
+	rm -rf bats-core-${BATS_VERSION} v${BATS_VERSION}.tar.gz
 
 ##@ Build
 
@@ -153,43 +162,40 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	$(DOCKER) push ${IMG}
 
-.PHONY: .ensure-go-bindata
 BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
-.ensure-go-bindata:
-	export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && GOFLAGS=$(GOFLAGS) go install "github.com/go-bindata/go-bindata/go-bindata@v3.1.2+incompatible"
+
+.PHONY: go-bindata
+go-bindata:
+	$(call go-get-tool,github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION})
 
 .PHONY: .run-bindata
-.run-bindata: .ensure-go-bindata
-	$${TMP_GOPATH}/bin/go-bindata -nocompress -nometadata \
+.run-bindata: go-bindata
+	mkdir -p ./$(GATEKEEPER_MANIFEST_DIR)-rendered && \
+	$(KUSTOMIZE) build $(GATEKEEPER_MANIFEST_DIR) -o ./$(GATEKEEPER_MANIFEST_DIR)-rendered && \
+	$(GO_BINDATA) -nocompress -nometadata \
 		-prefix "bindata" \
 		-pkg "bindata" \
 		-o "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)" \
 		-ignore "OWNERS" \
-		./$(GATEKEEPER_MANIFEST_DIR)/... && \
+		./$(GATEKEEPER_MANIFEST_DIR)-rendered/... && \
+	rm -rf ./$(GATEKEEPER_MANIFEST_DIR)-rendered && \
 	gofmt -s -w "$${BINDATA_OUTPUT_PREFIX}$(BINDATA_OUTPUT_FILE)"
 
 .PHONY: update-bindata
 update-bindata:
-	export TMP_GOPATH=$$(mktemp -d) ;\
 	$(MAKE) .run-bindata ;\
-	GOPATH=$${TMP_GOPATH} GOFLAGS=$(GOFLAGS) go clean -modcache
-	rm -rf "$${TMP_GOPATH}"
 
 .PHONY: verify-bindata
 verify-bindata:
-	export TMP_GOPATH=$$(mktemp -d) ;\
 	export TMP_DIR=$$(mktemp -d) ;\
 	export BINDATA_OUTPUT_PREFIX="$${TMP_DIR}/" ;\
 	$(MAKE) .run-bindata ;\
 	if ! diff -Naup {.,$${TMP_DIR}}/$(BINDATA_OUTPUT_FILE); then \
 		echo "Error: $(BINDATA_OUTPUT_FILE) and $${TMP_DIR}/$(BINDATA_OUTPUT_FILE) files differ. Run 'make update-bindata' and try again." ;\
 		rm -rf "$${TMP_DIR}" ;\
-		rm -rf "$${TMP_GOPATH}" ;\
 		exit 1 ;\
 	fi ;\
 	rm -rf "$${TMP_DIR}" ;\
-	GOPATH=$${TMP_GOPATH} GOFLAGS=$(GOFLAGS) go clean -modcache
-	rm -rf "$${TMP_GOPATH}"
 
 .PHONY: release
 release: manifests kustomize
@@ -238,33 +244,22 @@ patch-image: ## Patches the manager's image pull policy to be IfNotPresent.
 	sed -i 's/imagePullPolicy: Always/imagePullPolicy: IfNotPresent/g' config/manager/manager.yaml
 
 .PHONY: controller-gen
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
+	$(call go-get-tool,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
 .PHONY: kustomize
-KUSTOMIZE_VERSION ?= v4.0.5
-KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION))
+	$(call go-get-tool,sigs.k8s.io/kustomize/kustomize/v5@${KUSTOMIZE_VERSION})
 
 .PHONY: envtest
-ENVTEST = $(shell pwd)/bin/setup-envtest
 envtest: ## Download envtest-setup locally if necessary.
-	$(call go-get-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
+	$(call go-get-tool,sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
 
-# go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+# go-get-tool will 'go install' any package $1 and install it to LOCAL_BIN.
 define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
+  @set -e ;\
+  echo "Checking installation of $(1)" ;\
+  GOBIN=$(LOCAL_BIN) go install $(1)
 endef
 
 ##@ Operator Bundling
@@ -279,6 +274,7 @@ bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metada
 	sed -i 's/Gatekeeper version .*/Gatekeeper version $(GATEKEEPER_VERSION)/g' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
 	sed -i 's/mediatype: \"\"/mediatype: \"image\/svg+xml\"/g' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
 	sed -i 's/^  version:.*/  version: $(VERSION)/' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
+	sed -i '/^    createdAt:.*/d' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
 ifneq ($(REPLACES_VERSION), none)
 	sed -i 's/^  replaces:.*/  replaces: gatekeeper-operator.v$(REPLACES_VERSION)/' bundle/manifests/gatekeeper-operator.clusterserviceversion.yaml
 else
@@ -300,7 +296,7 @@ bundle-push: ## Push the bundle image.
 	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
-OPM = ./bin/opm
+OPM = $(LOCAL_BIN)/opm
 opm: ## Download opm locally if necessary.
 ifeq (,$(wildcard $(OPM)))
 ifeq (,$(shell which opm 2>/dev/null))
@@ -308,7 +304,7 @@ ifeq (,$(shell which opm 2>/dev/null))
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.2/$${OS}-$${ARCH}-opm ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$${OS}-$${ARCH}-opm ;\
 	chmod +x $(OPM) ;\
 	}
 else
@@ -333,6 +329,8 @@ import-manifests: kustomize
 	else \
 		$(KUSTOMIZE) build --load-restrictor LoadRestrictionsNone $(IMPORT_MANIFESTS_PATH)/config/default -o $(GATEKEEPER_MANIFEST_DIR); \
 	fi
+
+	cd $(GATEKEEPER_MANIFEST_DIR) && $(KUSTOMIZE) edit add resource *.yaml
 
 # Build the bundle index image.
 .PHONY: bundle-index-build
@@ -381,7 +379,7 @@ catalog-push: ## Push a catalog image.
 OS_NAME = $(shell uname -s)
 # operator-sdk variables
 # ======================
-OPERATOR_SDK_VERSION ?= v1.13.1
+OPERATOR_SDK_VERSION ?= v1.28.1
 ifeq ($(OS_NAME), Linux)
     OPERATOR_SDK_URL=https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_linux_amd64
 else ifeq ($(OS_NAME), Darwin)
@@ -404,7 +402,7 @@ $(OPERATOR_SDK):
 	chmod +x $(OPERATOR_SDK)
 
 # Current Gatekeeper version
-GATEKEEPER_VERSION ?= v3.8.1
+GATEKEEPER_VERSION ?= v3.11.1
 
 # Default bundle index image tag
 BUNDLE_INDEX_IMG ?= $(IMAGE_TAG_BASE)-bundle-index:v$(VERSION)
@@ -424,13 +422,6 @@ RBAC_DIR=$(OPENSHIFT_RBAC_DIR)
 else
 RBAC_DIR=config/rbac/base
 endif
-
-# kind variables
-KIND_VERSION ?= v0.11.1
-# note: k8s version pinned since KIND image availability lags k8s releases
-KUBERNETES_VERSION ?= v1.21.1
-BATS_VERSION ?= 1.2.1
-OLM_VERSION ?= v0.18.2
 
 # Set version variables for LDFLAGS
 GIT_VERSION ?= $(shell git describe --match='v*' --always --dirty)

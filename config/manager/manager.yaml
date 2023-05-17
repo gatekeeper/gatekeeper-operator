@@ -55,6 +55,6 @@ spec:
             memory: 20Mi
         env:
         - name: RELATED_IMAGE_GATEKEEPER
-          value: openpolicyagent/gatekeeper:v3.8.1
+          value: openpolicyagent/gatekeeper:v3.11.1
       serviceAccountName: gatekeeper-operator-controller-manager
       terminationGracePeriodSeconds: 10

@@ -1,30 +1,29 @@
 // Code generated for package bindata by go-bindata DO NOT EDIT. (@generated)
 // sources:
-// config/gatekeeper/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml
-// config/gatekeeper/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml
-// config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml
-// config/gatekeeper/apps_v1_deployment_gatekeeper-audit.yaml
-// config/gatekeeper/apps_v1_deployment_gatekeeper-controller-manager.yaml
-// config/gatekeeper/openshift/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
-// config/gatekeeper/policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml
-// config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml
-// config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml
-// config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
-// config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
-// config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml
-// config/gatekeeper/v1_namespace_gatekeeper-system.yaml
-// config/gatekeeper/v1_resourcequota_gatekeeper-critical-pods.yaml
-// config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml
-// config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml
-// config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml
+// config/gatekeeper-rendered/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml
+// config/gatekeeper-rendered/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml
+// config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-audit.yaml
+// config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-controller-manager.yaml
+// config/gatekeeper-rendered/policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml
+// config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml
+// config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
+// config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
+// config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml
+// config/gatekeeper-rendered/v1_namespace_gatekeeper-system.yaml
+// config/gatekeeper-rendered/v1_resourcequota_gatekeeper-critical-pods.yaml
+// config/gatekeeper-rendered/v1_secret_gatekeeper-webhook-server-cert.yaml
+// config/gatekeeper-rendered/v1_service_gatekeeper-webhook-service.yaml
+// config/gatekeeper-rendered/v1_serviceaccount_gatekeeper-admin.yaml
 package bindata
 
 import (
@@ -78,9 +77,10 @@ func (fi bindataFileInfo) Sys() interface{} {
 	return nil
 }
 
-var _configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1
+var _configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: gatekeeper-mutating-webhook-configuration
@@ -100,6 +100,10 @@ webhooks:
     matchExpressions:
     - key: admission.gatekeeper.sh/ignore
       operator: DoesNotExist
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - gatekeeper-system
   rules:
   - apiGroups:
     - '*'
@@ -114,24 +118,25 @@ webhooks:
   timeoutSeconds: 1
 `)
 
-func configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes() ([]byte, error) {
-	return _configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, nil
+func configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, nil
 }
 
-func configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml() (*asset, error) {
-	bytes, err := configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes()
+func configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1
+var _configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml = []byte(`apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: gatekeeper-validating-webhook-configuration
@@ -151,6 +156,10 @@ webhooks:
     matchExpressions:
     - key: admission.gatekeeper.sh/ignore
       operator: DoesNotExist
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - gatekeeper-system
   rules:
   - apiGroups:
     - '*'
@@ -161,6 +170,21 @@ webhooks:
     - UPDATE
     resources:
     - '*'
+    - pods/ephemeralcontainers
+    - pods/exec
+    - pods/log
+    - pods/eviction
+    - pods/portforward
+    - pods/proxy
+    - pods/attach
+    - pods/binding
+    - deployments/scale
+    - replicasets/scale
+    - statefulsets/scale
+    - replicationcontrollers/scale
+    - services/proxy
+    - nodes/proxy
+    - services/status
   sideEffects: None
   timeoutSeconds: 3
 - admissionReviewVersions:
@@ -174,6 +198,12 @@ webhooks:
   failurePolicy: Fail
   matchPolicy: Exact
   name: check-ignore-label.gatekeeper.sh
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - gatekeeper-system
   rules:
   - apiGroups:
     - ""
@@ -188,26 +218,27 @@ webhooks:
   timeoutSeconds: 3
 `)
 
-func configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYamlBytes() ([]byte, error) {
-	return _configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml, nil
+func configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml, nil
 }
 
-func configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml() (*asset, error) {
-	bytes, err := configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYamlBytes()
+func configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: assign.mutations.gatekeeper.sh
@@ -221,7 +252,7 @@ spec:
   preserveUnknownFields: false
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: Assign is the Schema for the assign API.
@@ -289,7 +320,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -368,7 +399,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -427,13 +458,370 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
+                    type: string
+                type: object
+              parameters:
+                description: Parameters define the behavior of the mutator.
+                properties:
+                  assign:
+                    description: Assign.value holds the value to be assigned
+                    properties:
+                      externalData:
+                        description: ExternalData describes the external data provider
+                          to be used for mutation.
+                        properties:
+                          dataSource:
+                            default: ValueAtLocation
+                            description: DataSource specifies where to extract the
+                              data that will be sent to the external data provider
+                              as parameters.
+                            enum:
+                            - ValueAtLocation
+                            - Username
+                            type: string
+                          default:
+                            description: Default specifies the default value to use
+                              when the external data provider returns an error and
+                              the failure policy is set to "UseDefault".
+                            type: string
+                          failurePolicy:
+                            default: Fail
+                            description: FailurePolicy specifies the policy to apply
+                              when the external data provider returns an error.
+                            enum:
+                            - UseDefault
+                            - Ignore
+                            - Fail
+                            type: string
+                          provider:
+                            description: Provider is the name of the external data
+                              provider.
+                            type: string
+                        type: object
+                      fromMetadata:
+                        description: FromMetadata assigns a value from the specified
+                          metadata field.
+                        properties:
+                          field:
+                            description: Field specifies which metadata field provides
+                              the assigned value. Valid fields are ` + "`" + `namespace` + "`" + ` and
+                              ` + "`" + `name` + "`" + `.
+                            type: string
+                        type: object
+                      value:
+                        description: Value is a constant value that will be assigned
+                          to ` + "`" + `location` + "`" + `
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  pathTests:
+                    items:
+                      description: "PathTest allows the user to customize how the
+                        mutation works if parent paths are missing. It traverses the
+                        list in order. All sub paths are tested against the provided
+                        condition, if the test fails, the mutation is not applied.
+                        All ` + "`" + `subPath` + "`" + ` entries must be a prefix of ` + "`" + `location` + "`" + `. Any
+                        glob characters will take on the same value as was used to
+                        expand the matching glob in ` + "`" + `location` + "`" + `. \n Available Tests:
+                        * MustExist    - the path must exist or do not mutate * MustNotExist
+                        - the path must not exist or do not mutate."
+                      properties:
+                        condition:
+                          description: Condition describes whether the path either
+                            MustExist or MustNotExist in the original object
+                          enum:
+                          - MustExist
+                          - MustNotExist
+                          type: string
+                        subPath:
+                          type: string
+                      type: object
+                    type: array
+                type: object
+            type: object
+          status:
+            description: AssignStatus defines the observed state of Assign.
+            properties:
+              byPod:
+                items:
+                  description: MutatorPodStatusStatus defines the observed state of
+                    MutatorPodStatus.
+                  properties:
+                    enforced:
+                      type: boolean
+                    errors:
+                      items:
+                        description: MutatorError represents a single error caught
+                          while adding a mutator to a system.
+                        properties:
+                          message:
+                            type: string
+                          type:
+                            description: Type indicates a specific class of error
+                              for use by controller code. If not present, the error
+                              should be treated as not matching any known type.
+                            type: string
+                        required:
+                        - message
+                        type: object
+                      type: array
+                    id:
+                      type: string
+                    mutatorUID:
+                      description: Storing the mutator UID allows us to detect drift,
+                        such as when a mutator has been recreated after its CRD was
+                        deleted out from under it, interrupting the watch
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    operations:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Assign is the Schema for the assign API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AssignSpec defines the desired state of Assign.
+            properties:
+              applyTo:
+                description: ApplyTo lists the specific groups, versions and kinds
+                  a mutation will be applied to. This is necessary because every mutation
+                  implies part of an object schema and object schemas are associated
+                  with specific GVKs.
+                items:
+                  description: ApplyTo determines what GVKs items the mutation should
+                    apply to. Globs are not allowed.
+                  properties:
+                    groups:
+                      items:
+                        type: string
+                      type: array
+                    kinds:
+                      items:
+                        type: string
+                      type: array
+                    versions:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+              location:
+                description: 'Location describes the path to be mutated, for example:
+                  ` + "`" + `spec.containers[name: main]` + "`" + `.'
+                type: string
+              match:
+                description: Match allows the user to limit which resources get mutated.
+                  Individual match criteria are AND-ed together. An undefined match
+                  criteria matches everything.
+                properties:
+                  excludedNamespaces:
+                    description: 'ExcludedNamespaces is a list of namespace names.
+                      If defined, a constraint only applies to resources not in a
+                      listed namespace. ExcludedNamespaces also supports a prefix
+                      or suffix based glob.  For example, ` + "`" + `excludedNamespaces: [kube-*]` + "`" + `
+                      matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and ` + "`" + `excludedNamespaces:
+                      [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  kinds:
+                    items:
+                      description: Kinds accepts a list of objects with apiGroups
+                        and kinds fields that list the groups/kinds of objects to
+                        which the mutation will apply. If multiple groups/kinds objects
+                        are specified, only one match is needed for the resource to
+                        be in scope.
+                      properties:
+                        apiGroups:
+                          description: APIGroups is the API groups the resources belong
+                            to. '*' is all groups. If '*' is present, the length of
+                            the slice must be one. Required.
+                          items:
+                            type: string
+                          type: array
+                        kinds:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  labelSelector:
+                    description: 'LabelSelector is the combination of two optional
+                      fields: ` + "`" + `matchLabels` + "`" + ` and ` + "`" + `matchExpressions` + "`" + `.  These two fields
+                      provide different methods of selecting or excluding k8s objects
+                      based on the label keys and values included in object metadata.  All
+                      selection expressions from both sections are ANDed to determine
+                      if an object meets the cumulative requirements of the selector.'
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  name:
+                    description: 'Name is the name of an object.  If defined, it will
+                      match against objects with the specified name.  Name also supports
+                      a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
+                      both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
+                      ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    type: string
+                  namespaceSelector:
+                    description: NamespaceSelector is a label selector against an
+                      object's containing namespace or the object itself, if the object
+                      is a namespace.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  namespaces:
+                    description: 'Namespaces is a list of namespace names. If defined,
+                      a constraint only applies to resources in a listed namespace.  Namespaces
+                      also supports a prefix or suffix based glob.  For example, ` + "`" + `namespaces:
+                      [kube-*]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and
+                      ` + "`" + `namespaces: [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  scope:
+                    description: Scope determines if cluster-scoped and/or namespaced-scoped
+                      resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
+                      (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -626,7 +1014,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -705,7 +1093,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -764,13 +1152,23 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -896,37 +1294,32 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: assignmetadata.mutations.gatekeeper.sh
@@ -940,7 +1333,7 @@ spec:
   preserveUnknownFields: false
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: AssignMetadata is the Schema for the assignmetadata API.
@@ -981,7 +1374,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -1060,7 +1453,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -1119,13 +1512,322 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
+                    type: string
+                type: object
+              parameters:
+                properties:
+                  assign:
+                    description: Assign.value holds the value to be assigned
+                    properties:
+                      externalData:
+                        description: ExternalData describes the external data provider
+                          to be used for mutation.
+                        properties:
+                          dataSource:
+                            default: ValueAtLocation
+                            description: DataSource specifies where to extract the
+                              data that will be sent to the external data provider
+                              as parameters.
+                            enum:
+                            - ValueAtLocation
+                            - Username
+                            type: string
+                          default:
+                            description: Default specifies the default value to use
+                              when the external data provider returns an error and
+                              the failure policy is set to "UseDefault".
+                            type: string
+                          failurePolicy:
+                            default: Fail
+                            description: FailurePolicy specifies the policy to apply
+                              when the external data provider returns an error.
+                            enum:
+                            - UseDefault
+                            - Ignore
+                            - Fail
+                            type: string
+                          provider:
+                            description: Provider is the name of the external data
+                              provider.
+                            type: string
+                        type: object
+                      fromMetadata:
+                        description: FromMetadata assigns a value from the specified
+                          metadata field.
+                        properties:
+                          field:
+                            description: Field specifies which metadata field provides
+                              the assigned value. Valid fields are ` + "`" + `namespace` + "`" + ` and
+                              ` + "`" + `name` + "`" + `.
+                            type: string
+                        type: object
+                      value:
+                        description: Value is a constant value that will be assigned
+                          to ` + "`" + `location` + "`" + `
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                type: object
+            type: object
+          status:
+            description: AssignMetadataStatus defines the observed state of AssignMetadata.
+            properties:
+              byPod:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                items:
+                  description: MutatorPodStatusStatus defines the observed state of
+                    MutatorPodStatus.
+                  properties:
+                    enforced:
+                      type: boolean
+                    errors:
+                      items:
+                        description: MutatorError represents a single error caught
+                          while adding a mutator to a system.
+                        properties:
+                          message:
+                            type: string
+                          type:
+                            description: Type indicates a specific class of error
+                              for use by controller code. If not present, the error
+                              should be treated as not matching any known type.
+                            type: string
+                        required:
+                        - message
+                        type: object
+                      type: array
+                    id:
+                      type: string
+                    mutatorUID:
+                      description: Storing the mutator UID allows us to detect drift,
+                        such as when a mutator has been recreated after its CRD was
+                        deleted out from under it, interrupting the watch
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    operations:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: AssignMetadata is the Schema for the assignmetadata API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AssignMetadataSpec defines the desired state of AssignMetadata.
+            properties:
+              location:
+                type: string
+              match:
+                description: Match selects objects to apply mutations to.
+                properties:
+                  excludedNamespaces:
+                    description: 'ExcludedNamespaces is a list of namespace names.
+                      If defined, a constraint only applies to resources not in a
+                      listed namespace. ExcludedNamespaces also supports a prefix
+                      or suffix based glob.  For example, ` + "`" + `excludedNamespaces: [kube-*]` + "`" + `
+                      matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and ` + "`" + `excludedNamespaces:
+                      [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  kinds:
+                    items:
+                      description: Kinds accepts a list of objects with apiGroups
+                        and kinds fields that list the groups/kinds of objects to
+                        which the mutation will apply. If multiple groups/kinds objects
+                        are specified, only one match is needed for the resource to
+                        be in scope.
+                      properties:
+                        apiGroups:
+                          description: APIGroups is the API groups the resources belong
+                            to. '*' is all groups. If '*' is present, the length of
+                            the slice must be one. Required.
+                          items:
+                            type: string
+                          type: array
+                        kinds:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  labelSelector:
+                    description: 'LabelSelector is the combination of two optional
+                      fields: ` + "`" + `matchLabels` + "`" + ` and ` + "`" + `matchExpressions` + "`" + `.  These two fields
+                      provide different methods of selecting or excluding k8s objects
+                      based on the label keys and values included in object metadata.  All
+                      selection expressions from both sections are ANDed to determine
+                      if an object meets the cumulative requirements of the selector.'
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  name:
+                    description: 'Name is the name of an object.  If defined, it will
+                      match against objects with the specified name.  Name also supports
+                      a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
+                      both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
+                      ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    type: string
+                  namespaceSelector:
+                    description: NamespaceSelector is a label selector against an
+                      object's containing namespace or the object itself, if the object
+                      is a namespace.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  namespaces:
+                    description: 'Namespaces is a list of namespace names. If defined,
+                      a constraint only applies to resources in a listed namespace.  Namespaces
+                      also supports a prefix or suffix based glob.  For example, ` + "`" + `namespaces:
+                      [kube-*]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and
+                      ` + "`" + `namespaces: [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  scope:
+                    description: Scope determines if cluster-scoped and/or namespaced-scoped
+                      resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
+                      (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -1270,7 +1972,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -1349,7 +2051,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -1408,13 +2110,23 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -1519,37 +2231,32 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: configs.config.gatekeeper.sh
@@ -1593,7 +2300,7 @@ spec:
                           or end. Ex: "kube-*" will match "kube-system" or "kube-public",
                           "*-system" will match "kube-system" or "gatekeeper-system".  The
                           asterisk is required for wildcard matching.'
-                        pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                        pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                         type: string
                       type: array
                     processes:
@@ -1660,34 +2367,29 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constraintpodstatuses.status.gatekeeper.sh
@@ -1758,34 +2460,29 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: constrainttemplatepodstatuses.status.gatekeeper.sh
@@ -1858,34 +2555,28 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   labels:
     gatekeeper.sh/system: "yes"
   name: constrainttemplates.templates.gatekeeper.sh
@@ -2208,34 +2899,132 @@ spec:
     storage: false
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
+  labels:
+    gatekeeper.sh/system: "yes"
+  name: expansiontemplate.expansion.gatekeeper.sh
+spec:
+  group: expansion.gatekeeper.sh
+  names:
+    kind: ExpansionTemplate
+    listKind: ExpansionTemplateList
+    plural: expansiontemplate
+    singular: expansiontemplate
+  preserveUnknownFields: false
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ExpansionTemplate is the Schema for the ExpansionTemplate API.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ExpansionTemplateSpec defines the desired state of ExpansionTemplate.
+            properties:
+              applyTo:
+                description: ApplyTo lists the specific groups, versions and kinds
+                  of generator resources which will be expanded.
+                items:
+                  description: ApplyTo determines what GVKs items the mutation should
+                    apply to. Globs are not allowed.
+                  properties:
+                    groups:
+                      items:
+                        type: string
+                      type: array
+                    kinds:
+                      items:
+                        type: string
+                      type: array
+                    versions:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+              enforcementAction:
+                description: EnforcementAction specifies the enforcement action to
+                  be used for resources matching the ExpansionTemplate. Specifying
+                  an empty value will use the enforcement action specified by the
+                  Constraint in violation.
+                type: string
+              generatedGVK:
+                description: GeneratedGVK specifies the GVK of the resources which
+                  the generator resource creates.
+                properties:
+                  group:
+                    type: string
+                  kind:
+                    type: string
+                  version:
+                    type: string
+                type: object
+              templateSource:
+                description: TemplateSource specifies the source field on the generator
+                  resource to use as the base for expanded resource. For Pod-creating
+                  generators, this is usually spec.template
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+`)
+
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYaml, nil
+}
+
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: modifyset.mutations.gatekeeper.sh
@@ -2249,7 +3038,7 @@ spec:
   preserveUnknownFields: false
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: ModifySet allows the user to modify non-keyed lists, such as
@@ -2318,7 +3107,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -2397,7 +3186,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -2456,13 +3245,336 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
+                    type: string
+                type: object
+              parameters:
+                description: Parameters define the behavior of the mutator.
+                properties:
+                  operation:
+                    default: merge
+                    description: Operation describes whether values should be merged
+                      in ("merge"), or pruned ("prune"). Default value is "merge"
+                    enum:
+                    - merge
+                    - prune
+                    type: string
+                  pathTests:
+                    description: PathTests are a series of existence tests that can
+                      be checked before a mutation is applied
+                    items:
+                      description: "PathTest allows the user to customize how the
+                        mutation works if parent paths are missing. It traverses the
+                        list in order. All sub paths are tested against the provided
+                        condition, if the test fails, the mutation is not applied.
+                        All ` + "`" + `subPath` + "`" + ` entries must be a prefix of ` + "`" + `location` + "`" + `. Any
+                        glob characters will take on the same value as was used to
+                        expand the matching glob in ` + "`" + `location` + "`" + `. \n Available Tests:
+                        * MustExist    - the path must exist or do not mutate * MustNotExist
+                        - the path must not exist or do not mutate."
+                      properties:
+                        condition:
+                          description: Condition describes whether the path either
+                            MustExist or MustNotExist in the original object
+                          enum:
+                          - MustExist
+                          - MustNotExist
+                          type: string
+                        subPath:
+                          type: string
+                      type: object
+                    type: array
+                  values:
+                    description: Values describes the values provided to the operation
+                      as ` + "`" + `values.fromList` + "`" + `.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+            type: object
+          status:
+            description: ModifySetStatus defines the observed state of ModifySet.
+            properties:
+              byPod:
+                items:
+                  description: MutatorPodStatusStatus defines the observed state of
+                    MutatorPodStatus.
+                  properties:
+                    enforced:
+                      type: boolean
+                    errors:
+                      items:
+                        description: MutatorError represents a single error caught
+                          while adding a mutator to a system.
+                        properties:
+                          message:
+                            type: string
+                          type:
+                            description: Type indicates a specific class of error
+                              for use by controller code. If not present, the error
+                              should be treated as not matching any known type.
+                            type: string
+                        required:
+                        - message
+                        type: object
+                      type: array
+                    id:
+                      type: string
+                    mutatorUID:
+                      description: Storing the mutator UID allows us to detect drift,
+                        such as when a mutator has been recreated after its CRD was
+                        deleted out from under it, interrupting the watch
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    operations:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ModifySet allows the user to modify non-keyed lists, such as
+          the list of arguments to a container.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ModifySetSpec defines the desired state of ModifySet.
+            properties:
+              applyTo:
+                description: ApplyTo lists the specific groups, versions and kinds
+                  a mutation will be applied to. This is necessary because every mutation
+                  implies part of an object schema and object schemas are associated
+                  with specific GVKs.
+                items:
+                  description: ApplyTo determines what GVKs items the mutation should
+                    apply to. Globs are not allowed.
+                  properties:
+                    groups:
+                      items:
+                        type: string
+                      type: array
+                    kinds:
+                      items:
+                        type: string
+                      type: array
+                    versions:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
+              location:
+                description: 'Location describes the path to be mutated, for example:
+                  ` + "`" + `spec.containers[name: main].args` + "`" + `.'
+                type: string
+              match:
+                description: Match allows the user to limit which resources get mutated.
+                  Individual match criteria are AND-ed together. An undefined match
+                  criteria matches everything.
+                properties:
+                  excludedNamespaces:
+                    description: 'ExcludedNamespaces is a list of namespace names.
+                      If defined, a constraint only applies to resources not in a
+                      listed namespace. ExcludedNamespaces also supports a prefix
+                      or suffix based glob.  For example, ` + "`" + `excludedNamespaces: [kube-*]` + "`" + `
+                      matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and ` + "`" + `excludedNamespaces:
+                      [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  kinds:
+                    items:
+                      description: Kinds accepts a list of objects with apiGroups
+                        and kinds fields that list the groups/kinds of objects to
+                        which the mutation will apply. If multiple groups/kinds objects
+                        are specified, only one match is needed for the resource to
+                        be in scope.
+                      properties:
+                        apiGroups:
+                          description: APIGroups is the API groups the resources belong
+                            to. '*' is all groups. If '*' is present, the length of
+                            the slice must be one. Required.
+                          items:
+                            type: string
+                          type: array
+                        kinds:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  labelSelector:
+                    description: 'LabelSelector is the combination of two optional
+                      fields: ` + "`" + `matchLabels` + "`" + ` and ` + "`" + `matchExpressions` + "`" + `.  These two fields
+                      provide different methods of selecting or excluding k8s objects
+                      based on the label keys and values included in object metadata.  All
+                      selection expressions from both sections are ANDed to determine
+                      if an object meets the cumulative requirements of the selector.'
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  name:
+                    description: 'Name is the name of an object.  If defined, it will
+                      match against objects with the specified name.  Name also supports
+                      a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
+                      both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
+                      ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    type: string
+                  namespaceSelector:
+                    description: NamespaceSelector is a label selector against an
+                      object's containing namespace or the object itself, if the object
+                      is a namespace.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  namespaces:
+                    description: 'Namespaces is a list of namespace names. If defined,
+                      a constraint only applies to resources in a listed namespace.  Namespaces
+                      also supports a prefix or suffix based glob.  For example, ` + "`" + `namespaces:
+                      [kube-*]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `kube-public` + "`" + `, and
+                      ` + "`" + `namespaces: [*-system]` + "`" + ` matches both ` + "`" + `kube-system` + "`" + ` and ` + "`" + `gatekeeper-system` + "`" + `.'
+                    items:
+                      description: 'A string that supports globbing at its front or
+                        end. Ex: "kube-*" will match "kube-system" or "kube-public",
+                        "*-system" will match "kube-system" or "gatekeeper-system".  The
+                        asterisk is required for wildcard matching.'
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      type: string
+                    type: array
+                  scope:
+                    description: Scope determines if cluster-scoped and/or namespaced-scoped
+                      resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
+                      (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -2621,7 +3733,7 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   kinds:
@@ -2700,7 +3812,7 @@ spec:
                       a prefix or suffix glob.  For example, ` + "`" + `name: pod-*` + "`" + ` would match
                       both ` + "`" + `pod-a` + "`" + ` and ` + "`" + `pod-b` + "`" + `, and ` + "`" + `name: *-pod` + "`" + ` would match both
                       ` + "`" + `a-pod` + "`" + ` and ` + "`" + `b-pod` + "`" + `.'
-                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                    pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                     type: string
                   namespaceSelector:
                     description: NamespaceSelector is a label selector against an
@@ -2759,13 +3871,23 @@ spec:
                         end. Ex: "kube-*" will match "kube-system" or "kube-public",
                         "*-system" will match "kube-system" or "gatekeeper-system".  The
                         asterisk is required for wildcard matching.'
-                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
+                      pattern: ^(\*|\*-)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\*|-\*)?$
                       type: string
                     type: array
                   scope:
                     description: Scope determines if cluster-scoped and/or namespaced-scoped
                       resources are matched.  Accepts ` + "`" + `*` + "`" + `, ` + "`" + `Cluster` + "`" + `, or ` + "`" + `Namespaced` + "`" + `.
                       (defaults to ` + "`" + `*` + "`" + `)
+                    type: string
+                  source:
+                    description: Source determines whether generated or original resources
+                      are matched. Accepts ` + "`" + `Generated` + "`" + `|` + "`" + `Original` + "`" + `|` + "`" + `All` + "`" + ` (defaults
+                      to ` + "`" + `All` + "`" + `). A value of ` + "`" + `Generated` + "`" + ` will only match generated
+                      resources, while ` + "`" + `Original` + "`" + ` will only match regular resources.
+                    enum:
+                    - All
+                    - Generated
+                    - Original
                     type: string
                 type: object
               parameters:
@@ -2856,37 +3978,32 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: mutatorpodstatuses.status.gatekeeper.sh
@@ -2956,34 +4073,29 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.8.0
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: providers.externaldata.gatekeeper.sh
@@ -2997,7 +4109,10 @@ spec:
   preserveUnknownFields: false
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - deprecated: true
+    deprecationWarning: externaldata.gatekeeper.sh/v1alpha1 is deprecated. Use externaldata.gatekeeper.sh/v1beta1
+      instead.
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Provider is the Schema for the Provider API
@@ -3017,6 +4132,11 @@ spec:
           spec:
             description: Spec defines the Provider specifications.
             properties:
+              caBundle:
+                description: CABundle is a base64-encoded string that contains the
+                  TLS CA bundle in PEM format. It is used to verify the signature
+                  of the provider's certificate.
+                type: string
               timeout:
                 description: Timeout is the timeout when querying the provider.
                 type: integer
@@ -3028,30 +4148,60 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Provider is the Schema for the providers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the Provider specifications.
+            properties:
+              caBundle:
+                description: CABundle is a base64-encoded string that contains the
+                  TLS CA bundle in PEM format. It is used to verify the signature
+                  of the provider's certificate.
+                type: string
+              timeout:
+                description: Timeout is the timeout when querying the provider.
+                type: integer
+              url:
+                description: URL is the url for the provider. URL is prefixed with
+                  http:// or https://.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: false
 `)
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYamlBytes() ([]byte, error) {
-	return _configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml, nil
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml, nil
 }
 
-func configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml() (*asset, error) {
-	bytes, err := configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYamlBytes()
+func configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApps_v1_deployment_gatekeeperAuditYaml = []byte(`apiVersion: apps/v1
+var _configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -3096,7 +4246,14 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.8.1
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: CONTAINER_NAME
+          value: manager
+        image: openpolicyagent/gatekeeper:v3.11.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -3120,17 +4277,22 @@ spec:
             memory: 512Mi
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 512Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
-            - all
+            - ALL
           readOnlyRootFilesystem: true
           runAsGroup: 999
           runAsNonRoot: true
           runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
+        - mountPath: /certs
+          name: cert
+          readOnly: true
         - mountPath: /tmp/audit
           name: tmp-volume
       nodeSelector:
@@ -3139,26 +4301,30 @@ spec:
       serviceAccountName: gatekeeper-admin
       terminationGracePeriodSeconds: 60
       volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: gatekeeper-webhook-server-cert
       - emptyDir: {}
         name: tmp-volume
 `)
 
-func configGatekeeperApps_v1_deployment_gatekeeperAuditYamlBytes() ([]byte, error) {
-	return _configGatekeeperApps_v1_deployment_gatekeeperAuditYaml, nil
+func configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYaml, nil
 }
 
-func configGatekeeperApps_v1_deployment_gatekeeperAuditYaml() (*asset, error) {
-	bytes, err := configGatekeeperApps_v1_deployment_gatekeeperAuditYamlBytes()
+func configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apps_v1_deployment_gatekeeper-audit.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-audit.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml = []byte(`apiVersion: apps/v1
+var _configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -3216,7 +4382,14 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: openpolicyagent/gatekeeper:v3.8.1
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: CONTAINER_NAME
+          value: manager
+        image: openpolicyagent/gatekeeper:v3.11.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -3243,16 +4416,18 @@ spec:
             memory: 512Mi
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 512Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
-            - all
+            - ALL
           readOnlyRootFilesystem: true
           runAsGroup: 999
           runAsNonRoot: true
           runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - mountPath: /certs
           name: cert
@@ -3269,75 +4444,22 @@ spec:
           secretName: gatekeeper-webhook-server-cert
 `)
 
-func configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYamlBytes() ([]byte, error) {
-	return _configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml, nil
+func configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYaml, nil
 }
 
-func configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml() (*asset, error) {
-	bytes, err := configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYamlBytes()
+func configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/apps_v1_deployment_gatekeeper-controller-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-controller-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  creationTimestamp: null
-  labels:
-    gatekeeper.sh/system: "yes"
-  name: gatekeeper-manager-role
-  namespace: gatekeeper-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - security.openshift.io
-  resourceNames:
-    - anyuid
-  resources:
-    - securitycontextconstraints
-  verbs:
-    - use
-`)
-
-func configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
-	return _configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, nil
-}
-
-func configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml() (*asset, error) {
-	bytes, err := configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "config/gatekeeper/openshift/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYaml = []byte(`apiVersion: policy/v1beta1
+var _configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYaml = []byte(`apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   labels:
@@ -3353,71 +4475,22 @@ spec:
       gatekeeper.sh/system: "yes"
 `)
 
-func configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYamlBytes() ([]byte, error) {
-	return _configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYaml, nil
+func configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYaml, nil
 }
 
-func configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYaml() (*asset, error) {
-	bytes, err := configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYamlBytes()
+func configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml = []byte(`apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  annotations:
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
-  labels:
-    gatekeeper.sh/system: "yes"
-  name: gatekeeper-admin
-spec:
-  allowPrivilegeEscalation: false
-  fsGroup:
-    ranges:
-    - max: 65535
-      min: 1
-    rule: MustRunAs
-  requiredDropCapabilities:
-  - ALL
-  runAsUser:
-    rule: MustRunAsNonRoot
-  seLinux:
-    rule: RunAsAny
-  supplementalGroups:
-    ranges:
-    - max: 65535
-      min: 1
-    rule: MustRunAs
-  volumes:
-  - configMap
-  - projected
-  - secret
-  - downwardAPI
-  - emptyDir
-`)
-
-func configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYamlBytes() ([]byte, error) {
-	return _configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml, nil
-}
-
-func configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml() (*asset, error) {
-	bytes, err := configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
@@ -3578,22 +4651,22 @@ rules:
   - watch
 `)
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
-	return _configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml, nil
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml, nil
 }
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml() (*asset, error) {
-	bytes, err := configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYamlBytes()
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
@@ -3609,22 +4682,22 @@ subjects:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYamlBytes() ([]byte, error) {
-	return _configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, nil
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, nil
 }
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml() (*asset, error) {
-	bytes, err := configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYamlBytes()
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
@@ -3652,24 +4725,32 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - anyuid
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
 `)
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
-	return _configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, nil
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, nil
 }
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml() (*asset, error) {
-	bytes, err := configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes()
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
@@ -3686,47 +4767,53 @@ subjects:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYamlBytes() ([]byte, error) {
-	return _configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, nil
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, nil
 }
 
-func configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml() (*asset, error) {
-	bytes, err := configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYamlBytes()
+func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperV1_namespace_gatekeeperSystemYaml = []byte(`apiVersion: v1
+var _configGatekeeperRenderedV1_namespace_gatekeeperSystemYaml = []byte(`apiVersion: v1
 kind: Namespace
 metadata:
   labels:
     admission.gatekeeper.sh/ignore: no-self-managing
     control-plane: controller-manager
     gatekeeper.sh/system: "yes"
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
   name: gatekeeper-system
 `)
 
-func configGatekeeperV1_namespace_gatekeeperSystemYamlBytes() ([]byte, error) {
-	return _configGatekeeperV1_namespace_gatekeeperSystemYaml, nil
+func configGatekeeperRenderedV1_namespace_gatekeeperSystemYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedV1_namespace_gatekeeperSystemYaml, nil
 }
 
-func configGatekeeperV1_namespace_gatekeeperSystemYaml() (*asset, error) {
-	bytes, err := configGatekeeperV1_namespace_gatekeeperSystemYamlBytes()
+func configGatekeeperRenderedV1_namespace_gatekeeperSystemYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedV1_namespace_gatekeeperSystemYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/v1_namespace_gatekeeper-system.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/v1_namespace_gatekeeper-system.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYaml = []byte(`apiVersion: v1
+var _configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYaml = []byte(`apiVersion: v1
 kind: ResourceQuota
 metadata:
   labels:
@@ -3735,7 +4822,7 @@ metadata:
   namespace: gatekeeper-system
 spec:
   hard:
-    pods: 100
+    pods: "100"
   scopeSelector:
     matchExpressions:
     - operator: In
@@ -3744,22 +4831,22 @@ spec:
       - system-cluster-critical
 `)
 
-func configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYamlBytes() ([]byte, error) {
-	return _configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYaml, nil
+func configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYaml, nil
 }
 
-func configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYaml() (*asset, error) {
-	bytes, err := configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYamlBytes()
+func configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/v1_resourcequota_gatekeeper-critical-pods.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/v1_resourcequota_gatekeeper-critical-pods.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml = []byte(`apiVersion: v1
+var _configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYaml = []byte(`apiVersion: v1
 kind: Secret
 metadata:
   labels:
@@ -3768,22 +4855,22 @@ metadata:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperV1_secret_gatekeeperWebhookServerCertYamlBytes() ([]byte, error) {
-	return _configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml, nil
+func configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYaml, nil
 }
 
-func configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml() (*asset, error) {
-	bytes, err := configGatekeeperV1_secret_gatekeeperWebhookServerCertYamlBytes()
+func configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/v1_secret_gatekeeper-webhook-server-cert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperV1_service_gatekeeperWebhookServiceYaml = []byte(`apiVersion: v1
+var _configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYaml = []byte(`apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -3801,22 +4888,22 @@ spec:
     gatekeeper.sh/system: "yes"
 `)
 
-func configGatekeeperV1_service_gatekeeperWebhookServiceYamlBytes() ([]byte, error) {
-	return _configGatekeeperV1_service_gatekeeperWebhookServiceYaml, nil
+func configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYaml, nil
 }
 
-func configGatekeeperV1_service_gatekeeperWebhookServiceYaml() (*asset, error) {
-	bytes, err := configGatekeeperV1_service_gatekeeperWebhookServiceYamlBytes()
+func configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/v1_service_gatekeeper-webhook-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _configGatekeeperV1_serviceaccount_gatekeeperAdminYaml = []byte(`apiVersion: v1
+var _configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYaml = []byte(`apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
@@ -3825,17 +4912,17 @@ metadata:
   namespace: gatekeeper-system
 `)
 
-func configGatekeeperV1_serviceaccount_gatekeeperAdminYamlBytes() ([]byte, error) {
-	return _configGatekeeperV1_serviceaccount_gatekeeperAdminYaml, nil
+func configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYamlBytes() ([]byte, error) {
+	return _configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYaml, nil
 }
 
-func configGatekeeperV1_serviceaccount_gatekeeperAdminYaml() (*asset, error) {
-	bytes, err := configGatekeeperV1_serviceaccount_gatekeeperAdminYamlBytes()
+func configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYaml() (*asset, error) {
+	bytes, err := configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "config/gatekeeper-rendered/v1_serviceaccount_gatekeeper-admin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3892,42 +4979,43 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"config/gatekeeper/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml,
-	"config/gatekeeper/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml":               configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml":                         configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml":                   configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml,
-	"config/gatekeeper/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml":                      configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml,
-	"config/gatekeeper/apps_v1_deployment_gatekeeper-audit.yaml":                                                                        configGatekeeperApps_v1_deployment_gatekeeperAuditYaml,
-	"config/gatekeeper/apps_v1_deployment_gatekeeper-controller-manager.yaml":                                                           configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml,
-	"config/gatekeeper/openshift/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                        configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
-	"config/gatekeeper/policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml":                                           configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYaml,
-	"config/gatekeeper/policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml":                                                          configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml,
-	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":                                           configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml,
-	"config/gatekeeper/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                             configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml,
-	"config/gatekeeper/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                  configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
-	"config/gatekeeper/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                    configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml,
-	"config/gatekeeper/v1_namespace_gatekeeper-system.yaml":                                                                             configGatekeeperV1_namespace_gatekeeperSystemYaml,
-	"config/gatekeeper/v1_resourcequota_gatekeeper-critical-pods.yaml":                                                                  configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYaml,
-	"config/gatekeeper/v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                   configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml,
-	"config/gatekeeper/v1_service_gatekeeper-webhook-service.yaml":                                                                      configGatekeeperV1_service_gatekeeperWebhookServiceYaml,
-	"config/gatekeeper/v1_serviceaccount_gatekeeper-admin.yaml":                                                                         configGatekeeperV1_serviceaccount_gatekeeperAdminYaml,
+	"config/gatekeeper-rendered/admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml,
+	"config/gatekeeper-rendered/admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml":               configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml":                 configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml":                         configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml":                   configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml,
+	"config/gatekeeper-rendered/apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml":                      configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml,
+	"config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-audit.yaml":                                                                        configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYaml,
+	"config/gatekeeper-rendered/apps_v1_deployment_gatekeeper-controller-manager.yaml":                                                           configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYaml,
+	"config/gatekeeper-rendered/policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml":                                                configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYaml,
+	"config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":                                           configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml,
+	"config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                             configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml,
+	"config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                  configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml,
+	"config/gatekeeper-rendered/rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                    configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml,
+	"config/gatekeeper-rendered/v1_namespace_gatekeeper-system.yaml":                                                                             configGatekeeperRenderedV1_namespace_gatekeeperSystemYaml,
+	"config/gatekeeper-rendered/v1_resourcequota_gatekeeper-critical-pods.yaml":                                                                  configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYaml,
+	"config/gatekeeper-rendered/v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                   configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYaml,
+	"config/gatekeeper-rendered/v1_service_gatekeeper-webhook-service.yaml":                                                                      configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYaml,
+	"config/gatekeeper-rendered/v1_serviceaccount_gatekeeper-admin.yaml":                                                                         configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYaml,
 }
 
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//     data/
-//       foo.txt
-//       img/
-//         a.png
-//         b.png
+//
+//	data/
+//	  foo.txt
+//	  img/
+//	    a.png
+//	    b.png
+//
 // then AssetDir("data") would return []string{"foo.txt", "img"}
 // AssetDir("data/img") would return []string{"a.png", "b.png"}
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error
@@ -3961,34 +5049,31 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"config": {nil, map[string]*bintree{
-		"gatekeeper": {nil, map[string]*bintree{
-			"admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     {configGatekeeperAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, map[string]*bintree{}},
-			"admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": {configGatekeeperAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml":               {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml":                         {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml":                   {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
-			"apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml":                      {configGatekeeperApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml, map[string]*bintree{}},
-			"apps_v1_deployment_gatekeeper-audit.yaml":                                                                        {configGatekeeperApps_v1_deployment_gatekeeperAuditYaml, map[string]*bintree{}},
-			"apps_v1_deployment_gatekeeper-controller-manager.yaml":                                                           {configGatekeeperApps_v1_deployment_gatekeeperControllerManagerYaml, map[string]*bintree{}},
-			"openshift": {nil, map[string]*bintree{
-				"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml": {configGatekeeperOpenshiftRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
-			}},
-			"policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml":               {configGatekeeperPolicy_v1beta1_poddisruptionbudget_gatekeeperControllerManagerYaml, map[string]*bintree{}},
-			"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml":                              {configGatekeeperPolicy_v1beta1_podsecuritypolicy_gatekeeperAdminYaml, map[string]*bintree{}},
-			"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":               {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml, map[string]*bintree{}},
-			"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml": {configGatekeeperRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
-			"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                      {configGatekeeperRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
-			"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":        {configGatekeeperRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
-			"v1_namespace_gatekeeper-system.yaml":                                                 {configGatekeeperV1_namespace_gatekeeperSystemYaml, map[string]*bintree{}},
-			"v1_resourcequota_gatekeeper-critical-pods.yaml":                                      {configGatekeeperV1_resourcequota_gatekeeperCriticalPodsYaml, map[string]*bintree{}},
-			"v1_secret_gatekeeper-webhook-server-cert.yaml":                                       {configGatekeeperV1_secret_gatekeeperWebhookServerCertYaml, map[string]*bintree{}},
-			"v1_service_gatekeeper-webhook-service.yaml":                                          {configGatekeeperV1_service_gatekeeperWebhookServiceYaml, map[string]*bintree{}},
-			"v1_serviceaccount_gatekeeper-admin.yaml":                                             {configGatekeeperV1_serviceaccount_gatekeeperAdminYaml, map[string]*bintree{}},
+		"gatekeeper-rendered": {nil, map[string]*bintree{
+			"admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml":     {configGatekeeperRenderedAdmissionregistrationK8sIo_v1_mutatingwebhookconfiguration_gatekeeperMutatingWebhookConfigurationYaml, map[string]*bintree{}},
+			"admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml": {configGatekeeperRenderedAdmissionregistrationK8sIo_v1_validatingwebhookconfiguration_gatekeeperValidatingWebhookConfigurationYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml":                            {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignMutationsGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml":                    {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_assignmetadataMutationsGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml":                              {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_configsConfigGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml":                {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constraintpodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml":        {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatepodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml":               {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_constrainttemplatesTemplatesGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml":                 {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_expansiontemplateExpansionGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml":                         {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_modifysetMutationsGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml":                   {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_mutatorpodstatusesStatusGatekeeperShYaml, map[string]*bintree{}},
+			"apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml":                      {configGatekeeperRenderedApiextensionsK8sIo_v1_customresourcedefinition_providersExternaldataGatekeeperShYaml, map[string]*bintree{}},
+			"apps_v1_deployment_gatekeeper-audit.yaml":                                                                        {configGatekeeperRenderedApps_v1_deployment_gatekeeperAuditYaml, map[string]*bintree{}},
+			"apps_v1_deployment_gatekeeper-controller-manager.yaml":                                                           {configGatekeeperRenderedApps_v1_deployment_gatekeeperControllerManagerYaml, map[string]*bintree{}},
+			"policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml":                                                {configGatekeeperRenderedPolicy_v1_poddisruptionbudget_gatekeeperControllerManagerYaml, map[string]*bintree{}},
+			"rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml":                                           {configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrole_gatekeeperManagerRoleYaml, map[string]*bintree{}},
+			"rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml":                             {configGatekeeperRenderedRbacAuthorizationK8sIo_v1_clusterrolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
+			"rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml":                                                  {configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYaml, map[string]*bintree{}},
+			"rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml":                                    {configGatekeeperRenderedRbacAuthorizationK8sIo_v1_rolebinding_gatekeeperManagerRolebindingYaml, map[string]*bintree{}},
+			"v1_namespace_gatekeeper-system.yaml":                                                                             {configGatekeeperRenderedV1_namespace_gatekeeperSystemYaml, map[string]*bintree{}},
+			"v1_resourcequota_gatekeeper-critical-pods.yaml":                                                                  {configGatekeeperRenderedV1_resourcequota_gatekeeperCriticalPodsYaml, map[string]*bintree{}},
+			"v1_secret_gatekeeper-webhook-server-cert.yaml":                                                                   {configGatekeeperRenderedV1_secret_gatekeeperWebhookServerCertYaml, map[string]*bintree{}},
+			"v1_service_gatekeeper-webhook-service.yaml":                                                                      {configGatekeeperRenderedV1_service_gatekeeperWebhookServiceYaml, map[string]*bintree{}},
+			"v1_serviceaccount_gatekeeper-admin.yaml":                                                                         {configGatekeeperRenderedV1_serviceaccount_gatekeeperAdminYaml, map[string]*bintree{}},
 		}},
 	}},
 }}

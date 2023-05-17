@@ -1,12 +1,9 @@
-bases:
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
 - ../../base
-patchesJSON6902:
-- target:
-    group: rbac.authorization.k8s.io
-    version: v1
-    kind: ClusterRole
-    name: manager-role
-  patch: |-
+patches:
+- patch: |-
     - op: add
       path: /rules/-
       value:
@@ -18,3 +15,8 @@ patchesJSON6902:
           - securitycontextconstraints
         verbs:
           - use
+  target:
+    group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: manager-role
+    version: v1

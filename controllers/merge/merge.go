@@ -45,6 +45,7 @@ func RetainClusterObjectFields(desiredObj, clusterObj *unstructured.Unstructured
 		return nil
 	}
 }
+
 func retainServiceFields(desiredObj, clusterObj *unstructured.Unstructured) error {
 	// ClusterIP is allocated to Service by cluster, so if it exists, retain it
 	// while updating.
@@ -109,7 +110,8 @@ func retainWebhookConfigurationFields(desiredObj, clusterObj *unstructured.Unstr
 			if err != nil {
 				return errors.Wrapf(err, "Error retrieving webhooks[%d].clientConfig.caBundle from cluster object %s", j, clusterObj.GetKind())
 			} else if !ok {
-				return fmt.Errorf("webhooks[%d].clientConfig.caBundle field not found for cluster object %s", j, clusterObj.GetKind())
+				// If no caBundle is configured, assume the system's CAs will be used.
+				break
 			}
 
 			err = unstructured.SetNestedField(desiredWebhook, caBundle, "clientConfig", "caBundle")

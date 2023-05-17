@@ -18,10 +18,10 @@ fi
 kind version
 
 KIND_CMD=
-if [[ -z "${KIND_IMG_TAG}" ]]; then
-  KIND_CMD="kind create cluster ${IMG} --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
+if [[ -z "${KUBERNETES_VERSION}" ]]; then
+  KIND_CMD="kind create cluster --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
 else
-  KIND_CMD="kind create cluster --image kindest/node:${KIND_IMG_TAG} --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
+  KIND_CMD="kind create cluster --image kindest/node:${KUBERNETES_VERSION} --name ${KIND_CLUSTER_NAME} --wait=5m --config=-"
 fi
 
 # create a cluster with the local registry enabled in containerd

@@ -20,7 +20,7 @@ Update the `OPERATOR_SDK_VERSION` environment variable in the
 [Makefile](../Makefile) to the desired version and commit the change.
 
 ```shell
-export OPERATOR_SDK_VERSION=v1.3.2
+export OPERATOR_SDK_VERSION=v1.28.1
 sed -i "s/OPERATOR_SDK_VERSION ?= .*/OPERATOR_SDK_VERSION ?= ${OPERATOR_SDK_VERSION}/" Makefile
 git commit -m "Update operator-sdk to ${OPERATOR_SDK_VERSION}" Makefile
 ```
