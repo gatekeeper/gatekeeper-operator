@@ -1,6 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
+  creationTimestamp: null
   labels:
     gatekeeper.sh/system: "yes"
   name: gatekeeper-mutating-webhook-configuration
@@ -20,6 +21,10 @@ webhooks:
     matchExpressions:
     - key: admission.gatekeeper.sh/ignore
       operator: DoesNotExist
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values:
+      - gatekeeper-system
   rules:
   - apiGroups:
     - '*'

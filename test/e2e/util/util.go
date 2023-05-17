@@ -74,7 +74,7 @@ var DefaultDeployment = defaultConfig{
 		},
 		Requests: corev1.ResourceList{
 			corev1.ResourceCPU:    resource.MustParse("100m"),
-			corev1.ResourceMemory: resource.MustParse("256Mi"),
+			corev1.ResourceMemory: resource.MustParse("512Mi"),
 		},
 	},
 	FailurePolicy: admregv1.Ignore,
@@ -83,6 +83,11 @@ var DefaultDeployment = defaultConfig{
 			{
 				Key:      "admission.gatekeeper.sh/ignore",
 				Operator: metav1.LabelSelectorOpDoesNotExist,
+			},
+			{
+				Key:      "kubernetes.io/metadata.name",
+				Operator: metav1.LabelSelectorOpNotIn,
+				Values:   []string{"mygatekeeper"},
 			},
 		},
 	},

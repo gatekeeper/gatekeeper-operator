@@ -20,11 +20,11 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```
 1. Checkout a new branch based on `upstream/main`:
     ```shell
-    git checkout -b release-${RELEASE_VERSION} --no-track upstream/main
+    git checkout -b release-$(echo $RELEASE_VERSION | cut -c2- | cut -d '.' -f 1-2) --no-track upstream/main
     ```
 1. Update the version of the operator in the Makefile:
     ```shell
-    sed -i "s/^VERSION ?= .*/VERSION ?= ${RELEASE_VERSION}/" Makefile
+    sed -i "s/^VERSION ?= .*/VERSION ?= ${RELEASE_VERSION:1}/" Makefile
     ```
 1. Update the release manifest:
     ```shell

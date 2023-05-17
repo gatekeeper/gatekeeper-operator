@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -91,6 +92,7 @@ var (
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml",
 		"apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml",
+		"apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml",
 		ModifySetCRDFile,
 		ProviderCRDFile,
 		AssignCRDFile,
@@ -98,8 +100,7 @@ var (
 		MutatorPodStatusCRDFile,
 		ServerCertFile,
 		"v1_serviceaccount_gatekeeper-admin.yaml",
-		"policy_v1beta1_podsecuritypolicy_gatekeeper-admin.yaml",
-		"policy_v1beta1_poddisruptionbudget_gatekeeper-controller-manager.yaml",
+		"policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml",
 		ClusterRoleFile,
 		ClusterRoleBindingFile,
 		RoleFile,
@@ -168,6 +169,7 @@ const (
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,namespace="system",resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,namespace="system",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=policy,namespace="system",resources=poddisruptionbudgets,verbs=create;delete;update;use
+// +kubebuilder:rbac:groups=security.openshift.io,namespace="system",resources=securitycontextconstraints,resourceNames=anyuid,verbs=use
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -225,7 +227,6 @@ func (r *GatekeeperReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				return oldGeneration != newGeneration
 			},
 			DeleteFunc: func(e event.DeleteEvent) bool {
-
 				return false
 			},
 		}).
@@ -475,6 +476,7 @@ var commonSpecOverridesFn = []func(*unstructured.Unstructured, operatorv1alpha1.
 	containerOverrides,
 	setEnableMutation,
 }
+
 var commonContainerOverridesFn = []func(map[string]interface{}, operatorv1alpha1.GatekeeperSpec) error{
 	setImage,
 }
@@ -518,15 +520,31 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 	// ValidatingWebhookConfiguration overrides
 	case ValidatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, ValidationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(
+			obj, gatekeeper.Spec.Webhook, namespace, ValidationGatekeeperWebhook, true, controllerDeploymentPending,
+		); err != nil {
 			return err
 		}
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, CheckIgnoreLabelGatekeeperWebhook, false, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(
+			obj,
+			gatekeeper.Spec.Webhook,
+			namespace,
+			CheckIgnoreLabelGatekeeperWebhook,
+			false,
+			controllerDeploymentPending,
+		); err != nil {
 			return err
 		}
 	// MutatingWebhookConfiguration overrides
 	case MutatingWebhookConfiguration:
-		if err := webhookConfigurationOverrides(obj, gatekeeper.Spec.Webhook, MutationGatekeeperWebhook, true, controllerDeploymentPending); err != nil {
+		if err := webhookConfigurationOverrides(
+			obj,
+			gatekeeper.Spec.Webhook,
+			namespace,
+			MutationGatekeeperWebhook,
+			true,
+			controllerDeploymentPending,
+		); err != nil {
 			return err
 		}
 	// ClusterRole overrides
@@ -600,7 +618,14 @@ func webhookOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.
 	return nil
 }
 
-func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *operatorv1alpha1.WebhookConfig, webhookName string, updateFailurePolicy bool, controllerDeploymentPending bool) error {
+func webhookConfigurationOverrides(
+	obj *unstructured.Unstructured,
+	webhook *operatorv1alpha1.WebhookConfig,
+	gatekeeperNamespace string,
+	webhookName string,
+	updateFailurePolicy bool,
+	controllerDeploymentPending bool,
+) error {
 	// Set failure policy to ignore if deployment is still pending.
 	if controllerDeploymentPending {
 		ignore := admregv1.Ignore
@@ -617,10 +642,13 @@ func webhookConfigurationOverrides(obj *unstructured.Unstructured, webhook *oper
 				return err
 			}
 		}
-		if err := setNamespaceSelector(obj, webhook.NamespaceSelector, webhookName); err != nil {
+		if err := setNamespaceSelector(obj, webhook.NamespaceSelector, gatekeeperNamespace, webhookName); err != nil {
 			return err
 		}
+	} else if err := setNamespaceSelector(obj, nil, gatekeeperNamespace, webhookName); err != nil {
+		return err
 	}
+
 	return nil
 }
 
@@ -834,7 +862,59 @@ func setFailurePolicy(obj *unstructured.Unstructured, failurePolicy *admregv1.Fa
 	return setWebhookConfigurationWithFn(obj, webhookName, setFailurePolicyFn)
 }
 
-func setNamespaceSelector(obj *unstructured.Unstructured, namespaceSelector *metav1.LabelSelector, webhookName string) error {
+func setNamespaceSelector(
+	obj *unstructured.Unstructured, namespaceSelector *metav1.LabelSelector, gatekeeperNamespace, webhookName string,
+) error {
+	// If no namespaceSelector is provided, override usage of the default Gatekeeper namespace.
+	if namespaceSelector == nil {
+		// Don't perform any overrides if no overrides are set and the default namespaceSelector can't be parsed
+		webhooks, ok := obj.Object["webhooks"].([]interface{})
+		if !ok || len(webhooks) == 0 {
+			return nil
+		}
+
+		for _, webhook := range webhooks {
+			webhookMap, ok := webhook.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			curHookName, ok := webhookMap["name"].(string)
+			if !ok || curHookName != webhookName {
+				continue
+			}
+
+			namespaceSelectorUntyped, ok := webhookMap["namespaceSelector"].(map[string]interface{})
+			if !ok {
+				return nil
+			}
+
+			namespaceSelectorBytes, err := json.Marshal(namespaceSelectorUntyped)
+			if err != nil {
+				return nil
+			}
+
+			namespaceSelectorTyped := &metav1.LabelSelector{}
+			err = json.Unmarshal(namespaceSelectorBytes, namespaceSelectorTyped)
+			if err != nil {
+				return nil
+			}
+
+			for i, expression := range namespaceSelectorTyped.MatchExpressions {
+				for j, value := range expression.Values {
+					if value == util.DefaultGatekeeperNamespace {
+						namespaceSelectorTyped.MatchExpressions[i].Values[j] = gatekeeperNamespace
+
+						namespaceSelector = namespaceSelectorTyped
+					}
+				}
+			}
+
+			break
+		}
+	}
+
+	// If namespaceSelector is still nil, then there are no overrides to perform.
 	if namespaceSelector == nil {
 		return nil
 	}

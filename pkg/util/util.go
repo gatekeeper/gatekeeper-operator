@@ -26,9 +26,7 @@ import (
 	"github.com/gatekeeper/gatekeeper-operator/pkg/bindata"
 )
 
-var (
-	staticAssetsDir = "config/gatekeeper/"
-)
+var staticAssetsDir = "config/gatekeeper-rendered/"
 
 func GetManifestObject(asset string) (*unstructured.Unstructured, error) {
 	assetName := staticAssetsDir + asset

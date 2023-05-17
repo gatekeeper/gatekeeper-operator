@@ -336,9 +336,7 @@ spec:
                                     field and the ones listed in the namespaces field.
                                     null selector and null or empty namespaces list
                                     means "this pod's namespace". An empty selector
-                                    ({}) matches all namespaces. This field is alpha-level
-                                    and is only honored when PodAffinityNamespaceSelector
-                                    feature is enabled.
+                                    ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
                                       description: matchExpressions is a list of label
@@ -393,7 +391,7 @@ spec:
                                     term is applied to the union of the namespaces
                                     listed in this field and the ones selected by
                                     namespaceSelector. null or empty namespaces list
-                                    and null namespaceSelector means "this pod's namespace"
+                                    and null namespaceSelector means "this pod's namespace".
                                   items:
                                     type: string
                                   type: array
@@ -492,8 +490,6 @@ spec:
                                 the ones listed in the namespaces field. null selector
                                 and null or empty namespaces list means "this pod's
                                 namespace". An empty selector ({}) matches all namespaces.
-                                This field is alpha-level and is only honored when
-                                PodAffinityNamespaceSelector feature is enabled.
                               properties:
                                 matchExpressions:
                                   description: matchExpressions is a list of label
@@ -544,7 +540,7 @@ spec:
                                 to the union of the namespaces listed in this field
                                 and the ones selected by namespaceSelector. null or
                                 empty namespaces list and null namespaceSelector means
-                                "this pod's namespace"
+                                "this pod's namespace".
                               items:
                                 type: string
                               type: array
@@ -645,9 +641,7 @@ spec:
                                     field and the ones listed in the namespaces field.
                                     null selector and null or empty namespaces list
                                     means "this pod's namespace". An empty selector
-                                    ({}) matches all namespaces. This field is alpha-level
-                                    and is only honored when PodAffinityNamespaceSelector
-                                    feature is enabled.
+                                    ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
                                       description: matchExpressions is a list of label
@@ -702,7 +696,7 @@ spec:
                                     term is applied to the union of the namespaces
                                     listed in this field and the ones selected by
                                     namespaceSelector. null or empty namespaces list
-                                    and null namespaceSelector means "this pod's namespace"
+                                    and null namespaceSelector means "this pod's namespace".
                                   items:
                                     type: string
                                   type: array
@@ -801,8 +795,6 @@ spec:
                                 the ones listed in the namespaces field. null selector
                                 and null or empty namespaces list means "this pod's
                                 namespace". An empty selector ({}) matches all namespaces.
-                                This field is alpha-level and is only honored when
-                                PodAffinityNamespaceSelector feature is enabled.
                               properties:
                                 matchExpressions:
                                   description: matchExpressions is a list of label
@@ -853,7 +845,7 @@ spec:
                                 to the union of the namespaces listed in this field
                                 and the ones selected by namespaceSelector. null or
                                 empty namespaces list and null namespaceSelector means
-                                "this pod's namespace"
+                                "this pod's namespace".
                               items:
                                 type: string
                               type: array
@@ -909,6 +901,28 @@ spec:
                     description: ResourceRequirements describes the compute resource
                       requirements.
                     properties:
+                      claims:
+                        description: "Claims lists the names of resources, defined
+                          in spec.resourceClaims, that are used by this container.
+                          \n This is an alpha field and requires enabling the DynamicResourceAllocation
+                          feature gate. \n This field is immutable. It can only be
+                          set for containers."
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: Name must match the name of one entry in
+                                pod.spec.resourceClaims of the Pod where this field
+                                is used. It makes that resource available inside a
+                                container.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
                       limits:
                         additionalProperties:
                           anyOf:
@@ -929,7 +943,8 @@ spec:
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                          to an implementation-defined value. Requests cannot exceed
+                          Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                     type: object
                 type: object
@@ -1084,6 +1099,28 @@ spec:
                     description: ResourceRequirements describes the compute resource
                       requirements.
                     properties:
+                      claims:
+                        description: "Claims lists the names of resources, defined
+                          in spec.resourceClaims, that are used by this container.
+                          \n This is an alpha field and requires enabling the DynamicResourceAllocation
+                          feature gate. \n This field is immutable. It can only be
+                          set for containers."
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: Name must match the name of one entry in
+                                pod.spec.resourceClaims of the Pod where this field
+                                is used. It makes that resource available inside a
+                                container.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
                       limits:
                         additionalProperties:
                           anyOf:
@@ -1104,7 +1141,8 @@ spec:
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                          to an implementation-defined value. Requests cannot exceed
+                          Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                     type: object
                 type: object
@@ -1201,73 +1239,6 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    control-plane: gatekeeper-operator-controller-manager
-  name: gatekeeper-operator-controller
-  namespace: gatekeeper-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      control-plane: gatekeeper-operator-controller-manager
-  template:
-    metadata:
-      labels:
-        control-plane: gatekeeper-operator-controller-manager
-    spec:
-      containers:
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --v=10
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-          protocol: TCP
-      - args:
-        - --health-probe-bind-address=:8081
-        - --metrics-bind-address=127.0.0.1:8080
-        - --leader-elect
-        command:
-        - /manager
-        env:
-        - name: RELATED_IMAGE_GATEKEEPER
-          value: openpolicyagent/gatekeeper:v3.8.1
-        image: quay.io/gatekeeper/gatekeeper-operator:v0.3.0-candidate.2
-        imagePullPolicy: Always
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        name: manager
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        resources:
-          limits:
-            cpu: 200m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-      securityContext:
-        runAsNonRoot: true
-      serviceAccountName: gatekeeper-operator-controller-manager
-      terminationGracePeriodSeconds: 10
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -1375,6 +1346,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - anyuid
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -1525,15 +1504,6 @@ rules:
   - get
   - patch
   - update
-- apiGroups:
-  - policy
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - create
-  - delete
-  - update
-  - use
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
@@ -1698,3 +1668,82 @@ spec:
     targetPort: https
   selector:
     control-plane: gatekeeper-operator-controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: gatekeeper-operator-controller-manager
+  name: gatekeeper-operator-controller
+  namespace: gatekeeper-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: gatekeeper-operator-controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: gatekeeper-operator-controller-manager
+    spec:
+      containers:
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      - args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        command:
+        - /manager
+        env:
+        - name: RELATED_IMAGE_GATEKEEPER
+          value: openpolicyagent/gatekeeper:v3.11.1
+        image: quay.io/gatekeeper/gatekeeper-operator:v3.11.1-candidate.1
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: gatekeeper-operator-controller-manager
+      terminationGracePeriodSeconds: 10

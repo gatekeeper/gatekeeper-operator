@@ -18,6 +18,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -81,7 +82,6 @@ func initializeGlobals() {
 }
 
 var _ = Describe("Gatekeeper", func() {
-
 	BeforeEach(func() {
 		if !useExistingCluster() {
 			Skip("Test requires existing cluster. Set environment variable USE_EXISTING_CLUSTER=true and try again.")
@@ -613,7 +613,8 @@ func byCheckingMutatingCRDs(deployMsg string, f getCRDFunc) {
 }
 
 func byCheckingFailurePolicy(webhookNamespacedName *types.NamespacedName,
-	testName, kind, webhookName string, failurePolicy *admregv1.FailurePolicyType) {
+	testName, kind, webhookName string, failurePolicy *admregv1.FailurePolicyType,
+) {
 	By(fmt.Sprintf("Checking %s failure policy", testName), func() {
 		webhookConfiguration := &unstructured.Unstructured{}
 		webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
@@ -632,7 +633,8 @@ func assertFailurePolicy(obj *unstructured.Unstructured, webhookName string, exp
 }
 
 func byCheckingNamespaceSelector(webhookNamespacedName *types.NamespacedName,
-	testName, kind, webhookName string, namespaceSelector *metav1.LabelSelector) {
+	testName, kind, webhookName string, namespaceSelector *metav1.LabelSelector,
+) {
 	By(fmt.Sprintf("Checking %s namespace selector", testName), func() {
 		webhookConfiguration := &unstructured.Unstructured{}
 		webhookConfiguration.SetAPIVersion(admregv1.SchemeGroupVersion.String())
@@ -650,33 +652,14 @@ func assertNamespaceSelector(obj *unstructured.Unstructured, webhookName string,
 		Expect(err).NotTo(HaveOccurred())
 		Expect(found).To(BeTrue())
 
-		matchExpressions, found, err := unstructured.NestedSlice(nsSelector.(map[string]interface{}), "matchExpressions")
+		nsSelectorBytes, err := json.Marshal(nsSelector)
 		Expect(err).NotTo(HaveOccurred())
-		if expected != nil {
-			Expect(found).To(BeTrue())
-		} else {
-			Expect(found).To(BeFalse())
-		}
 
-		currentLabelSelectorRequirements := make([]metav1.LabelSelectorRequirement, len(matchExpressions))
-		for i, me := range matchExpressions {
-			m, ok := me.(map[string]interface{})
-			Expect(ok).To(BeTrue())
-			lsr := metav1.LabelSelectorRequirement{
-				Key:      m["key"].(string),
-				Operator: metav1.LabelSelectorOperator(m["operator"].(string)),
-				// TODO (font): Copy Values field if necessary in the future.
-			}
-			currentLabelSelectorRequirements[i] = lsr
-		}
+		nsSelectorTyped := &metav1.LabelSelector{}
+		err = json.Unmarshal(nsSelectorBytes, nsSelectorTyped)
+		Expect(err).NotTo(HaveOccurred())
 
-		var current *metav1.LabelSelector
-		if len(currentLabelSelectorRequirements) > 0 {
-			current = &metav1.LabelSelector{
-				MatchExpressions: currentLabelSelectorRequirements,
-			}
-		}
-		Expect(current).To(BeEquivalentTo(expected))
+		Expect(nsSelectorTyped).To(BeEquivalentTo(expected))
 	})
 }
 
@@ -732,7 +715,8 @@ func useExistingCluster() bool {
 }
 
 func getDeploymentReadyReplicas(ctx context.Context, name types.NamespacedName,
-	deploy *appsv1.Deployment) (int32, error) {
+	deploy *appsv1.Deployment,
+) (int32, error) {
 	err := K8sClient.Get(ctx, name, deploy)
 	if err != nil {
 		if apierrors.IsNotFound(err) {

@@ -1,0 +1,71 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- admissionregistration.k8s.io_v1_mutatingwebhookconfiguration_gatekeeper-mutating-webhook-configuration.yaml
+- admissionregistration.k8s.io_v1_validatingwebhookconfiguration_gatekeeper-validating-webhook-configuration.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_assignmetadata.mutations.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_configs.config.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_constraintpodstatuses.status.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplatepodstatuses.status.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_constrainttemplates.templates.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_expansiontemplate.expansion.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_modifyset.mutations.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_mutatorpodstatuses.status.gatekeeper.sh.yaml
+- apiextensions.k8s.io_v1_customresourcedefinition_providers.externaldata.gatekeeper.sh.yaml
+- apps_v1_deployment_gatekeeper-audit.yaml
+- apps_v1_deployment_gatekeeper-controller-manager.yaml
+- policy_v1_poddisruptionbudget_gatekeeper-controller-manager.yaml
+- rbac.authorization.k8s.io_v1_clusterrolebinding_gatekeeper-manager-rolebinding.yaml
+- rbac.authorization.k8s.io_v1_clusterrole_gatekeeper-manager-role.yaml
+- rbac.authorization.k8s.io_v1_rolebinding_gatekeeper-manager-rolebinding.yaml
+- rbac.authorization.k8s.io_v1_role_gatekeeper-manager-role.yaml
+- v1_namespace_gatekeeper-system.yaml
+- v1_resourcequota_gatekeeper-critical-pods.yaml
+- v1_secret_gatekeeper-webhook-server-cert.yaml
+- v1_serviceaccount_gatekeeper-admin.yaml
+- v1_service_gatekeeper-webhook-service.yaml
+# Add annotations for backwards compatibility
+# Add OpenShift specific RBAC
+# Remove --disable-cert-rotation
+# Set a CPU limit
+patches:
+- path: patches/apps_v1_deployment_gatekeeper-audit.yaml
+- path: patches/apps_v1_deployment_gatekeeper-controller-manager.yaml
+- patch: |-
+    - op: add
+      path: /rules/-
+      value:
+        apiGroups:
+          - security.openshift.io
+        resourceNames:
+          - anyuid
+        resources:
+          - securitycontextconstraints
+        verbs:
+          - use
+  target:
+    group: rbac.authorization.k8s.io
+    kind: Role
+    name: gatekeeper-manager-role
+    version: v1
+- patch: |-
+    - op: remove
+      path: /spec/template/spec/containers/0/args/5
+  target:
+    kind: Deployment
+    name: gatekeeper-audit
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: 1000m
+  target:
+    kind: Deployment
+    name: gatekeeper-audit
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: 1000m
+  target:
+    kind: Deployment
+    name: gatekeeper-controller-manager

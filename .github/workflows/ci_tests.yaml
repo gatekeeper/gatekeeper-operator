@@ -13,29 +13,16 @@ defaults:
 jobs:
   verify-and-unit-tests:
     name: Run verify and unit tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-    - uses: actions/cache@v2
+    - uses: actions/setup-go@v3
       with:
-        # In order:
-        # * Module download cache
-        # * Build cache (Linux)
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.7'
+        go-version-file: go.mod
 
     - name: Verify modules
       run: go mod verify
@@ -64,40 +51,25 @@ jobs:
 
   e2e-tests:
     name: Run e2e tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-    - uses: actions/cache@v2
+    - uses: actions/setup-go@v3
       with:
-        # In order:
-        # * Module download cache
-        # * Build cache (Linux)
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.7'
+        go-version-file: go.mod
 
     - name: Download binaries
       run: |
-        mkdir -p ${GITHUB_WORKSPACE}/bin
-        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
         make download-binaries
 
     - name: Create K8s KinD Cluster
       run: |
         kind version
-        kind create cluster --image kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6 --wait=5m
+        make test-cluster
 
     - name: Build and Push Test Container Image to KIND node
       run: |
@@ -107,12 +79,21 @@ jobs:
     - name: E2E Tests
       run: |
         make deploy-ci NAMESPACE=mygatekeeper IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        kubectl -n mygatekeeper wait deployment/gatekeeper-operator-controller --for condition=Available --timeout=90s
+        kubectl -n mygatekeeper logs deployment/gatekeeper-operator-controller -c manager -f > operator.log &
         make test-e2e NAMESPACE=mygatekeeper
         kubectl delete --wait namespace mygatekeeper
 
+    - name: Debug
+      if: ${{ failure() }}
+      run: |
+        echo "::group::Operator Logs"
+        cat operator.log
+        echo "::endgroup::"
+
   gatekeeper-e2e-tests:
     name: Run gatekeeper e2e tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -123,38 +104,23 @@ jobs:
         NAMESPACE: ["gatekeeper-system"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: gatekeeper-operator
         fetch-depth: 0 # Fetch all history for all tags and branches
 
-    # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-    - uses: actions/cache@v2
+    - uses: actions/setup-go@v3
       with:
-        # In order:
-        # * Module download cache
-        # * Build cache (Linux)
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.7'
+        go-version-file: gatekeeper-operator/go.mod
 
     - name: Download binaries
       run: |
-        mkdir -p ${GITHUB_WORKSPACE}/bin
-        echo "${GITHUB_WORKSPACE}/bin" >> ${GITHUB_PATH}
         make download-binaries
 
     - name: Create K8s KinD Cluster
       run: |
         kind version
-        kind create cluster --image kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6 --wait=5m
+        make test-cluster
 
     - name: Build and Push Test Container Image to KIND node
       run: |
@@ -168,7 +134,7 @@ jobs:
 
     # Checkout a local copy of Gatekeeper to use its bats e2e tests.
     - name: Checkout Gatekeeper to verify imported manifests
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: open-policy-agent/gatekeeper
         ref: ${{ env.GATEKEEPER_VERSION }}
@@ -182,7 +148,13 @@ jobs:
 
     - name: Gatekeeper E2E Tests
       run: |
+        make download-binaries
         make deploy-ci NAMESPACE=${{ matrix.NAMESPACE }} IMG=localhost:5000/gatekeeper-operator:$GITHUB_SHA
+        kubectl -n ${{ matrix.NAMESPACE }} wait deployment/gatekeeper-operator-controller --for condition=Available --timeout=90s
         make test-gatekeeper-e2e
+        export PATH=$PWD/ci-tools/bin:$PATH
         cd ../gatekeeper
+        test/externaldata/dummy-provider/scripts/generate-tls-certificate.sh
+        docker build -t dummy-provider:test -f test/externaldata/dummy-provider/Dockerfile test/externaldata/dummy-provider
+        kind load docker-image --name kind dummy-provider:test
         make test-e2e GATEKEEPER_NAMESPACE=${{ matrix.NAMESPACE }} ENABLE_MUTATION_TESTS=1

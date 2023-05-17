@@ -9,6 +9,15 @@ spec:
   - name: affinity-pod
     image: busybox
     command: ["/bin/sh", "-c", "sleep INF"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
   nodeSelector:
     topology.kubernetes.io/zone: test
     region: EMEA
