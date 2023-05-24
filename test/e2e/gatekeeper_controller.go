@@ -81,32 +81,32 @@ func initializeGlobals() {
 	}
 }
 
-var _ = Describe("Gatekeeper", Ordered, func() {
-	BeforeAll(func() {
-		if !useExistingCluster() {
-			Skip("Test requires existing cluster. Set environment variable USE_EXISTING_CLUSTER=true and try again.")
-		}
-
-		if !globalsInitialized {
-			initializeGlobals()
-			globalsInitialized = true
-		}
-	})
-
-	AfterAll(func() {
-		Expect(K8sClient.Delete(ctx, emptyGatekeeper(), client.PropagationPolicy(v1.DeletePropagationForeground))).Should(Succeed())
-
-		// Once this succeeds, clean up has happened for all owned resources.
-		Eventually(func() bool {
-			err := K8sClient.Get(ctx, gatekeeperName, &v1alpha1.Gatekeeper{})
-			if err == nil {
-				return false
-			}
-			return apierrors.IsNotFound(err)
-		}, deleteTimeout, pollInterval).Should(BeTrue())
-	})
-
+var _ = Describe("Gatekeeper", func() {
 	Describe("Overriding CR", Ordered, func() {
+		BeforeEach(func() {
+			if !useExistingCluster() {
+				Skip("Test requires existing cluster. Set environment variable USE_EXISTING_CLUSTER=true and try again.")
+			}
+
+			if !globalsInitialized {
+				initializeGlobals()
+				globalsInitialized = true
+			}
+		})
+
+		AfterEach(func() {
+			Expect(K8sClient.Delete(ctx, emptyGatekeeper(), client.PropagationPolicy(v1.DeletePropagationForeground))).Should(Succeed())
+
+			// Once this succeeds, clean up has happened for all owned resources.
+			Eventually(func() bool {
+				err := K8sClient.Get(ctx, gatekeeperName, &v1alpha1.Gatekeeper{})
+				if err == nil {
+					return false
+				}
+				return apierrors.IsNotFound(err)
+			}, deleteTimeout, pollInterval).Should(BeTrue())
+		})
+
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
 			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_empty.yaml")
