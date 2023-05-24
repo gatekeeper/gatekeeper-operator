@@ -24,7 +24,7 @@ import (
 	"os"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	admregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -106,7 +106,7 @@ var _ = Describe("Gatekeeper", func() {
 		}, deleteTimeout, pollInterval).Should(BeTrue())
 	})
 
-	Describe("Overriding CR", func() {
+	Describe("Overriding CR", Ordered, func() {
 		It("Creating an empty gatekeeper contains default values", func() {
 			gatekeeper := emptyGatekeeper()
 			err := loadGatekeeperFromFile(gatekeeper, "gatekeeper_empty.yaml")
