@@ -81,8 +81,8 @@ func initializeGlobals() {
 	}
 }
 
-var _ = Describe("Gatekeeper", func() {
-	BeforeEach(func() {
+var _ = Describe("Gatekeeper", Ordered, func() {
+	BeforeAll(func() {
 		if !useExistingCluster() {
 			Skip("Test requires existing cluster. Set environment variable USE_EXISTING_CLUSTER=true and try again.")
 		}
@@ -93,7 +93,7 @@ var _ = Describe("Gatekeeper", func() {
 		}
 	})
 
-	AfterEach(func() {
+	AfterAll(func() {
 		Expect(K8sClient.Delete(ctx, emptyGatekeeper(), client.PropagationPolicy(v1.DeletePropagationForeground))).Should(Succeed())
 
 		// Once this succeeds, clean up has happened for all owned resources.
@@ -413,11 +413,12 @@ var _ = Describe("Gatekeeper", func() {
 		})
 
 		It("Enables Gatekeeper mutation with default values", func() {
+			auditDeployment, webhookDeployment := gatekeeperDeployments()
+
 			gatekeeper := emptyGatekeeper()
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
-			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
 			byCheckingMutationEnabled(auditDeployment, webhookDeployment)
 
