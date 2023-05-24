@@ -102,10 +102,6 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	GOFLAGS=$(GOFLAGS) go vet ./...
 
-.PHONY: vendor
-vendor: ## Run go mod vendor
-	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod vendor
-
 .PHONY: tidy
 tidy: ## Run go mod tidy
 	GO111MODULE=on GOFLAGS=$(GOFLAGS) go mod tidy
@@ -160,8 +156,7 @@ docker-push: ## Push docker image with the manager.
 .PHONY: .ensure-go-bindata
 BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
 .ensure-go-bindata:
-	ln -s $(abspath ./vendor) "$${TMP_GOPATH}/src"
-	export GO111MODULE=off && export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && GOFLAGS=$(GOFLAGS) go install "./vendor/github.com/go-bindata/go-bindata/..."
+	export GOPATH=$${TMP_GOPATH} && export GOBIN=$${TMP_GOPATH}/bin && GOFLAGS=$(GOFLAGS) go install "github.com/go-bindata/go-bindata/go-bindata@v3.1.2+incompatible"
 
 .PHONY: .run-bindata
 .run-bindata: .ensure-go-bindata
@@ -177,6 +172,7 @@ BINDATA_OUTPUT_FILE := ./pkg/bindata/bindata.go
 update-bindata:
 	export TMP_GOPATH=$$(mktemp -d) ;\
 	$(MAKE) .run-bindata ;\
+	GOPATH=$${TMP_GOPATH} GOFLAGS=$(GOFLAGS) go clean -modcache
 	rm -rf "$${TMP_GOPATH}"
 
 .PHONY: verify-bindata
@@ -192,6 +188,7 @@ verify-bindata:
 		exit 1 ;\
 	fi ;\
 	rm -rf "$${TMP_DIR}" ;\
+	GOPATH=$${TMP_GOPATH} GOFLAGS=$(GOFLAGS) go clean -modcache
 	rm -rf "$${TMP_GOPATH}"
 
 .PHONY: release
@@ -434,9 +431,6 @@ KIND_VERSION ?= v0.11.1
 KUBERNETES_VERSION ?= v1.21.1
 BATS_VERSION ?= 1.2.1
 OLM_VERSION ?= v0.18.2
-
-# Use the vendored directory
-GOFLAGS = -mod=vendor
 
 # Set version variables for LDFLAGS
 GIT_VERSION ?= $(shell git describe --match='v*' --always --dirty)
