@@ -413,12 +413,15 @@ var _ = Describe("Gatekeeper", func() {
 		})
 
 		It("Enables Gatekeeper mutation with default values", func() {
-			auditDeployment, webhookDeployment := gatekeeperDeployments()
-
 			gatekeeper := emptyGatekeeper()
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
-			Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+
+			Eventually(func() error {
+				return K8sClient.Create(ctx, gatekeeper)
+			}, timeout).Should(Succeed())
+
+			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
 			byCheckingMutationEnabled(auditDeployment, webhookDeployment)
 
