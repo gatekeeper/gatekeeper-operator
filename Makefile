@@ -235,7 +235,7 @@ deploy-olm:
 .PHONY: deploy-using-olm
 deploy-using-olm:
 	sed -i 's#quay.io/gatekeeper/gatekeeper-operator-bundle-index:latest#$(BUNDLE_INDEX_IMG)#g' config/olm-install/install-resources.yaml
-	sed -i 's#mygatekeeper#$(NAMESPACE)#g' config/olm-install/install-resources.yaml
+	sed -i 's#gatekeeper-system#$(NAMESPACE)#g' config/olm-install/install-resources.yaml
 	sed -i 's#channel: stable#channel: $(DEFAULT_CHANNEL)#g' config/olm-install/install-resources.yaml
 	$(KUSTOMIZE) build config/olm-install  | kubectl apply -f -
 
