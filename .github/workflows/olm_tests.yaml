@@ -49,18 +49,18 @@ jobs:
 
     - name: Deploy resources on KIND cluster to install Gatekeeper
       run: |
-        make deploy-using-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=mygatekeeper
-        while ! kubectl -n mygatekeeper get deployment gatekeeper-operator-controller; do \
+        make deploy-using-olm REPO=localhost:5000 VERSION=$GITHUB_SHA NAMESPACE=gatekeeper-system
+        while ! kubectl -n gatekeeper-system get deployment gatekeeper-operator-controller; do \
           echo "Waiting for operator deployment"; \
           sleep 2; \
         done
-        kubectl -n mygatekeeper wait deployment/gatekeeper-operator-controller --for condition=Available --timeout=90s
+        kubectl -n gatekeeper-system wait deployment/gatekeeper-operator-controller --for condition=Available --timeout=90s
 
     - name: E2E Tests
       run: |
-        kubectl -n mygatekeeper logs deployment/gatekeeper-operator-controller -c manager -f > operator.log &
-        make test-e2e NAMESPACE=mygatekeeper
-        kubectl delete --wait namespace mygatekeeper
+        kubectl -n gatekeeper-system logs deployment/gatekeeper-operator-controller -c manager -f > operator.log &
+        make test-e2e NAMESPACE=gatekeeper-system
+        kubectl delete --wait namespace gatekeeper-system
 
     - name: Debug
       if: ${{ failure() }}

@@ -31,7 +31,7 @@ import (
 	test "github.com/gatekeeper/gatekeeper-operator/test/e2e/util"
 )
 
-var namespace = "mygatekeeper"
+var namespace = "gatekeeper-system"
 
 func TestDeployWebhookConfigs(t *testing.T) {
 	g := NewWithT(t)

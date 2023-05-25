@@ -87,7 +87,7 @@ var DefaultDeployment = defaultConfig{
 			{
 				Key:      "kubernetes.io/metadata.name",
 				Operator: metav1.LabelSelectorOpNotIn,
-				Values:   []string{"mygatekeeper"},
+				Values:   []string{"gatekeeper-system"},
 			},
 		},
 	},
