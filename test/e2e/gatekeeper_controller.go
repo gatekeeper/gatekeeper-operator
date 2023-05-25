@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -417,9 +418,9 @@ var _ = Describe("Gatekeeper", func() {
 			webhookMode := v1alpha1.WebhookEnabled
 			gatekeeper.Spec.MutatingWebhook = &webhookMode
 
-			Eventually(func() error {
-				return K8sClient.Create(ctx, gatekeeper)
-			}, timeout).Should(Succeed())
+			By("Creating Gatekeeper resource", func() {
+				Expect(K8sClient.Create(ctx, gatekeeper)).Should(Succeed())
+			})
 
 			auditDeployment, webhookDeployment := gatekeeperDeployments()
 
@@ -494,7 +495,7 @@ func gatekeeperAuditDeployment() (auditDeployment *appsv1.Deployment) {
 	auditDeployment = &appsv1.Deployment{}
 	Eventually(func() error {
 		return K8sClient.Get(ctx, auditName, auditDeployment)
-	}, timeout, pollInterval).ShouldNot(HaveOccurred())
+	}, 2*time.Minute).ShouldNot(HaveOccurred())
 	return
 }
 
