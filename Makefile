@@ -132,6 +132,10 @@ test-e2e: generate fmt vet ## Run e2e tests, using the configured Kubernetes clu
 test-cluster: ## Create a local kind cluster with a registry for testing
 	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/kind-with-registry.sh
 
+.PHONY: test-cluster-olm
+test-cluster-olm: ## Create a local kind cluster with a registry for testing
+	kind create cluster --image=kindest/node:v1.21.14
+
 .PHONY: test-gatekeeper-e2e
 test-gatekeeper-e2e: ## Applies the test yaml and verifies that BATS is installed. For use by GitHub Actions
 	kubectl -n $(NAMESPACE) apply -f ./config/samples/gatekeeper_e2e_test.yaml
