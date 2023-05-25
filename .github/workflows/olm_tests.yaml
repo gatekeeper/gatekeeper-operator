@@ -31,7 +31,7 @@ jobs:
 
     - name: Create and set up K8s KinD Cluster
       run: |
-        make test-cluster-olm
+        make test-cluster
 
     - name: Build and Push Test Container Image and Bundle/Bundle Index Images
       run: |
