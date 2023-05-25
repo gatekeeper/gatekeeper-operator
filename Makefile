@@ -98,7 +98,7 @@ OPM_VERSION ?= v1.27.0
 GO_BINDATA_VERSION ?= v3.1.2+incompatible
 BATS_VERSION ?= 1.2.1
 OLM_VERSION ?= v0.18.2
-KUBERNETES_VERSION ?= v1.26.4
+KUBERNETES_VERSION ?= v1.21.14
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
