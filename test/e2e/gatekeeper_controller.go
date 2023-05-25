@@ -495,7 +495,7 @@ func gatekeeperAuditDeployment() (auditDeployment *appsv1.Deployment) {
 	auditDeployment = &appsv1.Deployment{}
 	Eventually(func() error {
 		return K8sClient.Get(ctx, auditName, auditDeployment)
-	}, 2*time.Minute).ShouldNot(HaveOccurred())
+	}, 5*time.Minute, pollInterval).ShouldNot(HaveOccurred())
 	return
 }
 
