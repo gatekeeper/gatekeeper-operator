@@ -1723,7 +1723,7 @@ spec:
         env:
         - name: RELATED_IMAGE_GATEKEEPER
           value: openpolicyagent/gatekeeper:v3.11.1
-        image: quay.io/gatekeeper/gatekeeper-operator:v3.11.1-candidate.1
+        image: quay.io/gatekeeper/gatekeeper-operator:v3.11.1
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

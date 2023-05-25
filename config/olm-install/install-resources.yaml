@@ -28,6 +28,6 @@ metadata:
   namespace: mygatekeeper
 spec:
   name: gatekeeper-operator
-  channel: 3.11-candidate
+  channel: "3.11"
   source: gatekeeper-operator
   sourceNamespace: mygatekeeper
