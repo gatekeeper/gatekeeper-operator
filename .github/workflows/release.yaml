@@ -25,7 +25,7 @@ jobs:
         echo "RELEASE_BUNDLE_IMG=${RELEASE_IMG}-bundle" >> ${GITHUB_ENV}
         echo "RELEASE_BUNDLE_INDEX_IMG=${RELEASE_IMG}-bundle-index" >> ${GITHUB_ENV}
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Fetch all history for all tags and branches
 
@@ -36,7 +36,7 @@ jobs:
 
     # FIXME: The version tags created in this repo for official releases are
     # annotated tags. However, this step is necessary to enable matching
-    # lightweight (non-annotated) tags because the GitHub Actions checkout@v2
+    # lightweight (non-annotated) tags because the GitHub Actions checkout@v3
     # action (run just prior) will overwrite the annotated tag with a
     # non-annotated one here
     # https://github.com/actions/checkout/blob/5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f/src/git-source-provider.ts#L136-L141
@@ -60,11 +60,11 @@ jobs:
         # Reset state of git tree modified by kustomize.
         git reset --hard
 
-    - uses: docker/setup-qemu-action@v1
-    - uses: docker/setup-buildx-action@v1
+    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-buildx-action@v2
       with:
         driver-opts: image=moby/buildkit:v0.8-beta
-    - uses: docker/login-action@v1
+    - uses: docker/login-action@v2
       with:
         registry: quay.io
         username: ${{ secrets.QUAY_USERNAME }}
@@ -98,5 +98,6 @@ jobs:
           ```
           kubectl apply -f https://raw.githubusercontent.com/${{ github.repository }}/${{ env.RELEASE_VERSION }}/deploy/gatekeeper-operator.yaml
           ```
+        generateReleaseNotes: true
         draft: true
         prerelease: false
