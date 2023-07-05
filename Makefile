@@ -148,7 +148,7 @@ download-binaries: kustomize go-bindata envtest controller-gen
 
 .PHONY: build
 build: generate fmt vet ## Build manager binary.
-	GOFLAGS=$(GOFLAGS) go build -ldflags $(LDFLAGS) -o bin/manager main.go
+	CGO_ENABLED=1 GOFLAGS=$(GOFLAGS) go build -ldflags $(LDFLAGS) -o bin/manager main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host, using the configured Kubernetes cluster in ~/.kube/config
