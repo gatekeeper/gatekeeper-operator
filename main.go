@@ -24,6 +24,9 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	// Not actually used in the code but it's used in the Makefile. This forces this to be in the go.mod so that it's
+	// in the Go module cache for build systems that permanently stores such dependencies.
+	_ "sigs.k8s.io/kustomize/kustomize/v5"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"

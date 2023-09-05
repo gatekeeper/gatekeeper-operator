@@ -93,6 +93,7 @@ CONTROLLER_GEN = $(LOCAL_BIN)/controller-gen
 KUSTOMIZE = $(LOCAL_BIN)/kustomize
 ENVTEST = $(LOCAL_BIN)/setup-envtest
 GO_BINDATA = $(LOCAL_BIN)/go-bindata
+# This must be in sync with the go.mod file.
 KUSTOMIZE_VERSION ?= v5.0.1
 OPM_VERSION ?= v1.27.0
 GO_BINDATA_VERSION ?= v3.1.2+incompatible
@@ -169,7 +170,7 @@ go-bindata:
 	$(call go-get-tool,github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION})
 
 .PHONY: .run-bindata
-.run-bindata: go-bindata
+.run-bindata: go-bindata kustomize
 	mkdir -p ./$(GATEKEEPER_MANIFEST_DIR)-rendered && \
 	$(KUSTOMIZE) build $(GATEKEEPER_MANIFEST_DIR) -o ./$(GATEKEEPER_MANIFEST_DIR)-rendered && \
 	$(GO_BINDATA) -nocompress -nometadata \
