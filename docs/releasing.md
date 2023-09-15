@@ -10,7 +10,7 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
     ```shell
     git fetch --prune upstream
     ```
-1. Store the current version for use later:
+1. Store the current version for use later. If this is the first release in a channel, set this value to `none`.
     ```shell
     RELEASE_PREV_VERSION=$(awk '/^VERSION \?= .*/ {print $3}' Makefile)
     ```
@@ -35,7 +35,7 @@ release of the Gatekeeper Operator using the GitHub Actions release workflow.
    i.e. no release candidate, such that users would have the previous released
    version installed in their cluster via OLM:
     ```shell
-    sed -Ei "s/(replaces: gatekeeper-operator.)v0.1.1/\1${RELEASE_PREV_VERSION}/" ./config/manifests/bases/gatekeeper-operator.clusterserviceversion.yaml
+    sed -Ei "s/REPLACES_VERSION \?= .+/REPLACES_VERSION ?= $RELEASE_PREV_VERSION/" Makefile
     ```
 1. Update bundle:
     ```shell
