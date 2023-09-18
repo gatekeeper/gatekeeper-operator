@@ -25,30 +25,9 @@ resources:
 - v1_secret_gatekeeper-webhook-server-cert.yaml
 - v1_serviceaccount_gatekeeper-admin.yaml
 - v1_service_gatekeeper-webhook-service.yaml
-# Add annotations for backwards compatibility
-# Add OpenShift specific RBAC
 # Remove --disable-cert-rotation
 # Set a CPU limit
 patches:
-- path: patches/apps_v1_deployment_gatekeeper-audit.yaml
-- path: patches/apps_v1_deployment_gatekeeper-controller-manager.yaml
-- patch: |-
-    - op: add
-      path: /rules/-
-      value:
-        apiGroups:
-          - security.openshift.io
-        resourceNames:
-          - anyuid
-        resources:
-          - securitycontextconstraints
-        verbs:
-          - use
-  target:
-    group: rbac.authorization.k8s.io
-    kind: Role
-    name: gatekeeper-manager-role
-    version: v1
 - patch: |-
     - op: remove
       path: /spec/template/spec/containers/0/args/5

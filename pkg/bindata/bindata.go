@@ -4219,8 +4219,6 @@ spec:
       gatekeeper.sh/system: "yes"
   template:
     metadata:
-      annotations:
-        container.seccomp.security.alpha.kubernetes.io/manager: runtime/default
       labels:
         control-plane: audit-controller
         gatekeeper.sh/operation: audit
@@ -4342,8 +4340,6 @@ spec:
       gatekeeper.sh/system: "yes"
   template:
     metadata:
-      annotations:
-        container.seccomp.security.alpha.kubernetes.io/manager: runtime/default
       labels:
         control-plane: controller-manager
         gatekeeper.sh/operation: webhook
@@ -4725,14 +4721,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - security.openshift.io
-  resourceNames:
-  - anyuid
-  resources:
-  - securitycontextconstraints
-  verbs:
-  - use
 `)
 
 func configGatekeeperRenderedRbacAuthorizationK8sIo_v1_role_gatekeeperManagerRoleYamlBytes() ([]byte, error) {

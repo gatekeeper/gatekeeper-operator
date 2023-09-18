@@ -493,14 +493,6 @@ spec:
           - patch
           - update
           - watch
-        - apiGroups:
-          - security.openshift.io
-          resourceNames:
-          - anyuid
-          resources:
-          - securitycontextconstraints
-          verbs:
-          - use
         serviceAccountName: gatekeeper-operator-controller-manager
     strategy: deployment
   installModes:
