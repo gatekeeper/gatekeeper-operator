@@ -168,7 +168,6 @@ const (
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,namespace="system",resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,namespace="system",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=policy,namespace="system",resources=poddisruptionbudgets,verbs=create;delete;update;use
-// +kubebuilder:rbac:groups=security.openshift.io,namespace="system",resources=securitycontextconstraints,resourceNames=anyuid,verbs=use
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -499,6 +498,10 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 			if err := removeAnnotations(obj); err != nil {
 				return err
 			}
+
+			if err := openShiftDeploymentOverrides(obj); err != nil {
+				return err
+			}
 		}
 	// webhook overrides
 	case WebhookFile:
@@ -510,6 +513,10 @@ func crOverrides(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, obj *uns
 		}
 		if isOpenshift {
 			if err := removeAnnotations(obj); err != nil {
+				return err
+			}
+
+			if err := openShiftDeploymentOverrides(obj); err != nil {
 				return err
 			}
 		}
@@ -739,6 +746,38 @@ func removeAnnotations(obj *unstructured.Unstructured) error {
 	if err := unstructured.SetNestedField(obj.Object, map[string]interface{}{}, "spec", "template", "metadata", "annotations"); err != nil {
 		return errors.Wrapf(err, "Failed to remove annotations")
 	}
+	return nil
+}
+
+// openShiftDeploymentOverrides will remove runAsUser, runAsGroup, and seccompProfile on every container in the
+// Deployment manifest. The seccompProfile is removed for backwards compatibility with OpenShift <= v4.10. Setting
+// seccompProfile=runtime/default in such versions explicitly disqualified the workload from the restricted SCC.
+// In OpenShift v4.11+, any workload running in a namespace prefixed with "openshift-*" must use the "restricted"
+// profile unless there is a ClusterServiceVersion present, which is not the case for the Gatekeeper operand namespace.
+func openShiftDeploymentOverrides(obj *unstructured.Unstructured) error {
+	containers, _, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	if err != nil {
+		return errors.Wrapf(err, "Failed to parse the deployment's containers")
+	}
+
+	for i := range containers {
+		container, ok := containers[i].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		unstructured.RemoveNestedField(container, "securityContext", "runAsUser")
+		unstructured.RemoveNestedField(container, "securityContext", "runAsGroup")
+		unstructured.RemoveNestedField(container, "securityContext", "seccompProfile")
+
+		containers[i] = container
+	}
+
+	err = unstructured.SetNestedField(obj.Object, containers, "spec", "template", "spec", "containers")
+	if err != nil {
+		return errors.Wrapf(err, "Failed to set the OpenShift overrides")
+	}
+
 	return nil
 }
 

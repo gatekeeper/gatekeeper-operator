@@ -303,6 +303,64 @@ func assertAffinity(g *WithT, expected *corev1.Affinity, current interface{}) {
 	g.Expect(util.ToMap(expected)).To(BeEquivalentTo(util.ToMap(current)))
 }
 
+func TestOpenShiftOverrides(t *testing.T) {
+	g := NewWithT(t)
+	gatekeeper := &operatorv1alpha1.Gatekeeper{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+	}
+
+	auditObj, err := util.GetManifestObject(AuditFile)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	webhookObj, err := util.GetManifestObject(WebhookFile)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// Test that no OpenShift overrides take place when it's not OpenShift
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertOverrides(g, auditObj, true)
+
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, false, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertOverrides(g, webhookObj, true)
+
+	// Test that OpenShift overrides take place
+	err = crOverrides(gatekeeper, AuditFile, auditObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertOverrides(g, auditObj, false)
+
+	err = crOverrides(gatekeeper, WebhookFile, webhookObj, namespace, true, false)
+	g.Expect(err).ToNot(HaveOccurred())
+	assertOverrides(g, webhookObj, false)
+}
+
+func assertOverrides(g *WithT, current *unstructured.Unstructured, isSet bool) {
+	containers, _, err := unstructured.NestedSlice(current.Object, "spec", "template", "spec", "containers")
+	g.ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	g.ExpectWithOffset(1, containers).ToNot(BeEmpty())
+
+	for i := range containers {
+		container, ok := containers[i].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		_, runAsUserFound, err := unstructured.NestedInt64(container, "securityContext", "runAsUser")
+		g.ExpectWithOffset(1, err).ToNot(HaveOccurred())
+		g.ExpectWithOffset(1, runAsUserFound).To(Equal(isSet))
+
+		_, runAsGroupFound, err := unstructured.NestedInt64(container, "securityContext", "runAsGroup")
+		g.ExpectWithOffset(1, err).ToNot(HaveOccurred())
+		g.ExpectWithOffset(1, runAsGroupFound).To(Equal(isSet))
+
+		_, seccompProfileFound, err := unstructured.NestedMap(container, "securityContext", "seccompProfile")
+		g.ExpectWithOffset(1, err).ToNot(HaveOccurred())
+		g.ExpectWithOffset(1, seccompProfileFound).To(Equal(isSet))
+	}
+}
+
 func TestNodeSelector(t *testing.T) {
 	g := NewWithT(t)
 	nodeSelector := map[string]string{
@@ -395,10 +453,12 @@ func assertPodAnnotations(g *WithT, obj *unstructured.Unstructured, expected map
 	g.Expect(obj).NotTo(BeNil())
 	current, found, err := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(found).To(BeTrue())
+
 	if expected == nil {
+		g.Expect(found).To(BeFalse())
 		g.Expect(test.DefaultDeployment.PodAnnotations).To(BeEquivalentTo(current))
 	} else {
+		g.Expect(found).To(BeTrue())
 		g.Expect(expected).To(BeEquivalentTo(current))
 	}
 }

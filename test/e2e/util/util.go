@@ -64,9 +64,6 @@ var DefaultDeployment = defaultConfig{
 	NodeSelector: map[string]string{
 		"kubernetes.io/os": "linux",
 	},
-	PodAnnotations: map[string]string{
-		"container.seccomp.security.alpha.kubernetes.io/manager": "runtime/default",
-	},
 	Resources: &corev1.ResourceRequirements{
 		Limits: corev1.ResourceList{
 			corev1.ResourceCPU:    resource.MustParse("1000m"),
