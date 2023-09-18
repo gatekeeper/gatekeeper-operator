@@ -46,7 +46,6 @@ import (
 
 const (
 	defaultGatekeeperCrName           = "gatekeeper"
-	openshiftAssetsDir                = "openshift/"
 	GatekeeperImageEnvVar             = "RELATED_IMAGE_GATEKEEPER"
 	NamespaceFile                     = "v1_namespace_gatekeeper-system.yaml"
 	AssignCRDFile                     = "apiextensions.k8s.io_v1_customresourcedefinition_assign.mutations.gatekeeper.sh.yaml"
@@ -288,10 +287,6 @@ func (r *GatekeeperReconciler) applyAssets(assets []string, gatekeeper *operator
 }
 
 func (r *GatekeeperReconciler) applyAsset(gatekeeper *operatorv1alpha1.Gatekeeper, asset string, controllerDeploymentPending bool) error {
-	if asset == RoleFile && r.isOpenShift() {
-		asset = openshiftAssetsDir + asset
-	}
-
 	obj, err := util.GetManifestObject(asset)
 	if err != nil {
 		return err
