@@ -34,8 +34,6 @@ spec:
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
-          seccompProfile:
-            type: RuntimeDefault
           capabilities:
             drop:
             - ALL
