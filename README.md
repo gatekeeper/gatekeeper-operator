@@ -1,3 +1,5 @@
+# Archived: Use [stolostron/gatekeeper-operator](https://github.com/stolostron/gatekeeper-operator)
+
 # OPA Gatekeeper Operator
 [![CI-Tests](https://github.com/gatekeeper/gatekeeper-operator/actions/workflows/ci_tests.yaml/badge.svg)](https://github.com/gatekeeper/gatekeeper-operator/actions/workflows/ci_tests.yaml)
 [![OLM-Tests](https://github.com/gatekeeper/gatekeeper-operator/actions/workflows/olm_tests.yaml/badge.svg)](https://github.com/gatekeeper/gatekeeper-operator/actions/workflows/olm_tests.yaml)
